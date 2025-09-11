@@ -1,6 +1,6 @@
 import java.util.Scanner;
 
-public class SuccessOrFail {
+public class Practice08 {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         System.out.print("점수를입력하시오: ");

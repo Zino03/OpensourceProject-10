@@ -1,6 +1,6 @@
 import java.util.Scanner;
 
-public class MultipleOfThree {
+public class Practice09 {
     public static void main(String[] args) {
         Scanner in = new Scanner(System.in);
         System.out.print("수를입력하시오: ");

@@ -1,6 +1,6 @@
 import java.util.Scanner;
 
-public class CoffeePrice {
+public class Practice13 {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         System.out.print("무슨커피드릴까요? ");

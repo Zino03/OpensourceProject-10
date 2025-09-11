@@ -1,6 +1,6 @@
 import java.util.Scanner;
 
-public class NestedIf {
+public class Practice11 {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         System.out.print("점수를입력하세요(0~100): ");
