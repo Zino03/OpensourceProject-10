@@ -1,12 +1,17 @@
-package com.example.saja_saja;
+package com.example.saja_saja.controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class Controller {
+public class TestController {
     @GetMapping("/")
-    public String mypage() {
+    public String home() {
+        return "home";
+    }
+
+    @GetMapping("/hello")
+    public String hello() {
         return "hello";
     }
 }
