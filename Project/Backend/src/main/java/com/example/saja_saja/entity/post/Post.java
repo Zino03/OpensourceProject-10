@@ -1,0 +1,56 @@
+package com.example.saja_saja.entity.post;
+
+import com.example.saja_saja.entity.user.User;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+@Data
+@Entity
+@AllArgsConstructor
+@NoArgsConstructor
+@Table(name = "post")
+public class Post {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "host_id",  nullable = false)
+    private User host;
+
+    private String title;
+
+    private String image;
+
+    private Integer price;
+
+    private String content;
+
+    private Integer quantity;
+
+    private Boolean isDeliveryAvailable;
+
+    private Integer deliveryFee;
+
+    private String pickupAddress;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime endAt;
+
+    private Integer status;
+
+    private Category category;
+
+    @OneToMany(mappedBy = "post")
+    private List<Buyer> buyers = new ArrayList<>();
+
+    @OneToMany(mappedBy = "post")
+    private List<Notice> notices = new ArrayList<>();
+}

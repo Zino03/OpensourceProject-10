@@ -1,11 +1,23 @@
 package com.example.saja_saja.entity.user;
 
+import com.example.saja_saja.entity.chat.RoomUser;
+import com.example.saja_saja.entity.community.Comment;
+import com.example.saja_saja.entity.community.Community;
 import com.example.saja_saja.entity.member.Member;
+import com.example.saja_saja.entity.post.Buyer;
+import com.example.saja_saja.entity.post.Post;
+import com.example.saja_saja.entity.report.CommentReport;
+import com.example.saja_saja.entity.report.CommunityReport;
+import com.example.saja_saja.entity.report.ReviewReport;
+import com.example.saja_saja.entity.report.UserReport;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Entity
@@ -35,4 +47,28 @@ public class User {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false, unique = true)
     private Member member;
+
+    @OneToMany(mappedBy = "host")
+    private List<Post> posts = new ArrayList<>();
+
+    @OneToMany(mappedBy = "author")
+    private List<Community> communities = new ArrayList<>();
+
+    @OneToMany(mappedBy = "reporter")
+    private List<CommunityReport> communityReports = new ArrayList<>();
+
+    @OneToMany(mappedBy = "reporter")
+    private List<CommentReport> commentReports = new ArrayList<>();
+
+    @OneToMany(mappedBy = "reporter")
+    private List<UserReport> userReports = new ArrayList<>();
+
+    @OneToMany(mappedBy = "reporter")
+    private List<ReviewReport> reviewReports = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user")
+    private List<RoomUser> roomUsers = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user")
+    private List<Buyer> buyers = new ArrayList<>();
 }
