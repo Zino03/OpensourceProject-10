@@ -38,7 +38,8 @@ public class Post {
 
     private Integer deliveryFee;
 
-    private String pickupAddress;
+    @OneToOne(fetch = FetchType.LAZY)
+    private Address pickupAddress;
 
     private LocalDateTime createdAt;
 

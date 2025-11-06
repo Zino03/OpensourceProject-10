@@ -1,0 +1,23 @@
+package com.example.saja_saja.entity.post;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Entity
+@AllArgsConstructor
+@NoArgsConstructor
+@Table(name = "address")
+public class Address {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
+    private String street;
+
+    private Double latitude;
+
+    private Double longitude;
+}
