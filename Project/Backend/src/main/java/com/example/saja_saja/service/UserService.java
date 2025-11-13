@@ -30,7 +30,8 @@ public class UserService {
         }
     }
 
-    public UserResponseDto updateUserInfo(Long userId, UserRequestDto req) {
+    public UserResponseDto updateUserInfo(Member member, UserRequestDto req) {
+        Long userId = member.getUser().getId();
         User user;
         try {
             user = userRepository.findById(userId).get();
@@ -40,8 +41,6 @@ public class UserService {
         }
 
         try {
-            Member member = user.getMember();
-
             if (req.getPassword() != null && !req.getPassword().isEmpty()) {
                 String hashedPassword = passwordEncoder.encode(req.getPassword());
                 member.setPassword(hashedPassword);
@@ -55,8 +54,6 @@ public class UserService {
             if (req.getProfileImg() != null) user.setProfileImg(req.getProfileImg());
             if (req.getAddress() != null) user.setAddress(req.getAddress());
             if (req.getAccount() != null) user.setAccount(req.getAccount());
-            if (req.getPhone() != null) user.setPhone(req.getPhone());
-
 
             return UserResponseDto.of(user);
         } catch(Exception e) {

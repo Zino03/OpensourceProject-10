@@ -19,6 +19,4 @@ public class UserRequestDto {
     private String address;
 
     private String account;
-
-    private String phone;
 }

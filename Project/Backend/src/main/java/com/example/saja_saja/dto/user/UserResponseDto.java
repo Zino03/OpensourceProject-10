@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class UserResponseDto {
+    // TODO: fix data
     private String email;
 
     private String nickname;
@@ -29,7 +30,6 @@ public class UserResponseDto {
         return new UserResponseDto().builder()
                 .email(user.getMember().getEmail())
                 .nickname(user.getNickname())
-                .phone(user.getPhone())
                 .profileImg(user.getProfileImg())
                 .address(user.getAddress())
                 .account(user.getAccount())

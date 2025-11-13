@@ -5,6 +5,7 @@ import com.example.saja_saja.dto.report.ReviewReportListResponseDto;
 import com.example.saja_saja.dto.user.ProfileResponseDto;
 import com.example.saja_saja.dto.user.UserRequestDto;
 import com.example.saja_saja.dto.user.UserResponseDto;
+import com.example.saja_saja.entity.member.Member;
 import com.example.saja_saja.service.ReviewReportService;
 import com.example.saja_saja.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -26,8 +27,8 @@ public class UserController {
 
     @PutMapping("/mypage/info")
     public UserResponseDto updateUserInfo(@RequestBody UserRequestDto req) {
-        Long userId = SecurityUtil.getCurrentUserId();
-        return userService.updateUserInfo(userId, req);
+        Member member = userService.getMember(SecurityUtil.getCurrentUserId());
+        return userService.updateUserInfo(member, req);
     }
 
     @GetMapping("/mypage/reports/reviews")
