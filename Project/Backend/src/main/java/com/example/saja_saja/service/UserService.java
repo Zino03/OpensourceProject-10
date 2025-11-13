@@ -1,5 +1,6 @@
 package com.example.saja_saja.service;
 
+import com.example.saja_saja.dto.user.ProfileResponseDto;
 import com.example.saja_saja.dto.user.UserRequestDto;
 import com.example.saja_saja.dto.user.UserResponseDto;
 import com.example.saja_saja.entity.member.Member;
@@ -58,6 +59,15 @@ public class UserService {
 
 
             return UserResponseDto.of(user);
+        } catch(Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public ProfileResponseDto getProfile(Long userId) {
+        try {
+            return ProfileResponseDto.of(userRepository.findById(userId).get());
         } catch(Exception e) {
             e.printStackTrace();
             return null;
