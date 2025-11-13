@@ -5,7 +5,6 @@ import com.example.saja_saja.entity.post.Buyer;
 import com.example.saja_saja.entity.post.Post;
 import com.example.saja_saja.entity.report.ReviewReport;
 import com.example.saja_saja.entity.report.UserReport;
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -41,7 +40,8 @@ public class User {
 
     private String virtualAccount;
 
-    private Double mannerScore;
+    @Column(nullable = false)
+    private Double mannerScore = 0.0;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false, unique = true)
