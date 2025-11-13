@@ -40,7 +40,8 @@ public class User {
 
     private String virtualAccount;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "double precision default 0.0")
+    @Builder.Default
     private Double mannerScore = 0.0;
 
     @OneToOne(fetch = FetchType.LAZY)
