@@ -38,6 +38,8 @@ public class Post {
 
     private Integer quantity;
 
+    private Integer currentQuantity;
+
     private Boolean isDeliveryAvailable;
 
     private Integer deliveryFee;

@@ -7,10 +7,8 @@ import com.example.saja_saja.service.PostService;
 import com.example.saja_saja.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api")
@@ -20,7 +18,12 @@ public class PostController {
     private final UserService userService;
 
     @PostMapping("/post")
-    public ResponseEntity post(@RequestBody PostWithQuantityRequest req) {
-        return postService.save(userService.getMember(SecurityUtil.getCurrentUserId()), req.getPost().toPost(), req.getQuantity());
+    public ResponseEntity save(@RequestBody PostWithQuantityRequest req, BindingResult errors) {
+        return postService.save(userService.getMember(SecurityUtil.getCurrentUserId()), req.getPost(), req.getQuantity(), errors);
+    }
+
+    @GetMapping("/post/{id}")
+    public ResponseEntity post(@PathVariable long id) {
+        return postService.post(userService.getMember(SecurityUtil.getCurrentUserId()), id);
     }
 }

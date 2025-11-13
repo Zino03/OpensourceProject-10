@@ -1,6 +1,7 @@
 package com.example.saja_saja.jwt;
 
 import com.example.saja_saja.dto.token.TokenDto;
+import com.example.saja_saja.exception.UnauthorizedException;
 import com.example.saja_saja.service.AuthService;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
@@ -44,11 +45,12 @@ public class TokenProvider {
 
         System.out.println(accessTokenExpiresIn);
 
-        String accessToken = Jwts.builder()
-                .setSubject(authentication.getName())
-                .claim(JwtProperties.AUTHORITIES_KEY, authorities)
-                .setExpiration(accessTokenExpiresIn)
-                .signWith(SignatureAlgorithm.HS512, key)
+        JwtBuilder builder = Jwts.builder();
+        builder.setSubject(authentication.getName());
+        builder.claim(JwtProperties.AUTHORITIES_KEY, authorities);
+        builder.setExpiration(accessTokenExpiresIn);
+        builder.signWith(SignatureAlgorithm.HS512, key);
+        String accessToken = builder
                 .compact();
 
         String refreshToken = Jwts.builder()
@@ -68,8 +70,7 @@ public class TokenProvider {
         Claims claims = parseClaims(accessToken);
 
         if(claims.get(JwtProperties.AUTHORITIES_KEY) == null) {
-            AuthService.res.setResponseMessage("권한 정보가 없는 토큰입니다.");
-            throw new RuntimeException(AuthService.res.getResponseMessage());
+            throw new UnauthorizedException("권한 정보가 없는 토큰입니다.");
         }
 
         Collection<? extends GrantedAuthority> authorities =
@@ -87,19 +88,14 @@ public class TokenProvider {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
         } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
-            AuthService.res.setResponseMessage("잘못된 JWT 서명입니다.");
-            log.info(AuthService.res.getResponseMessage());
+            throw new UnauthorizedException("잘못된 JWT 서명입니다.");
         } catch (ExpiredJwtException e) {
-            AuthService.res.setResponseMessage("만료된 jWT 토큰입니다.");
-            log.info(AuthService.res.getResponseMessage());
+            throw new UnauthorizedException("만료된 jWT 토큰입니다.");
         } catch (UnsupportedJwtException e) {
-            AuthService.res.setResponseMessage("지원되지 않는 JWT 토큰입니다.");
-            log.info(AuthService.res.getResponseMessage());
+            throw new UnauthorizedException("지원되지 않는 JWT 토큰입니다.");
         } catch(IllegalArgumentException e) {
-            AuthService.res.setResponseMessage("JWT 토큰이 잘못되었습니다.");
-            log.info(AuthService.res.getResponseMessage());
+            throw new UnauthorizedException("JWT 토큰이 잘못되었습니다.");
         }
-        return false;
     }
 
     private Claims parseClaims(String accessToken) {

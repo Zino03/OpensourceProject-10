@@ -33,13 +33,9 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String username) {
         return memberRepository.findByEmail(username)
                 .map(this::createUserDetails)
-                .orElseThrow(()-> {
-                    AuthService.res.setResponseMessage("Username not found '"+ username + "'");
-                    new UsernameNotFoundException(AuthService.res.getResponseMessage());
-                    return null;
-                });
+                .orElseThrow(()-> new UsernameNotFoundException("Username not found '"+ username + "'"));
     }
 }

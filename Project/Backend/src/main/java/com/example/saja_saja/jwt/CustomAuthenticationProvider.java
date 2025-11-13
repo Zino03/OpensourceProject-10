@@ -15,57 +15,40 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
     private final CustomUserDetailsService customUserDetailsService;
     @Override
     public Authentication authenticate(Authentication authentication) {
-        AuthService.res.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
-        AuthService.res.setResponseMessage("OK");
-        try {
-            if(authentication == null){
-                AuthService.res.setResponseMessage("Authentication is null");
-                throw new InternalAuthenticationServiceException(AuthService.res.getResponseMessage());
-            }
-            String username = authentication.getName();
-            if(authentication.getCredentials() == null){
-                AuthService.res.setResponseMessage("Credentials is null");
-                throw new AuthenticationCredentialsNotFoundException(AuthService.res.getResponseMessage());
-            }
-            String password = authentication.getCredentials().toString();
-            UserDetails loadedUser = customUserDetailsService.loadUserByUsername(username);
-            if(loadedUser == null){
-                AuthService.res.setResponseMessage("UserDetailsService returned null, which is an interface contract violation");
-                throw new InternalAuthenticationServiceException(AuthService.res.getResponseMessage());
-            }
-            /* checker */
-            if(!loadedUser.isAccountNonLocked()){
-                AuthService.res.setResponseMessage("User account is locked");
-                throw new LockedException(AuthService.res.getResponseMessage());
-            }
-            if(!loadedUser.isEnabled()){
-                AuthService.res.setResponseMessage("User is disabled");
-                throw new DisabledException(AuthService.res.getResponseMessage());
-            }
-            if(!loadedUser.isAccountNonExpired()){
-                AuthService.res.setResponseMessage("User account has expired");
-                throw new AccountExpiredException(AuthService.res.getResponseMessage());
-            }
-            /* 실질적인 인증 */
-            if(!passwordEncoder.matches(password, loadedUser.getPassword())){
-                AuthService.res.setStatusCode(HttpStatus.BAD_REQUEST.value());
-                AuthService.res.setResponseMessage("Password does not match stored value");
-                throw new BadCredentialsException(AuthService.res.getResponseMessage());
-            }
-            /* checker */
-            if(!loadedUser.isCredentialsNonExpired()){
-                AuthService.res.setResponseMessage("User credentials have expired");
-                throw new CredentialsExpiredException(AuthService.res.getResponseMessage());
-            }
-            /* 인증 완료 */
-            AuthService.res.setStatusCode(HttpStatus.OK.value());
-            UsernamePasswordAuthenticationToken result = new UsernamePasswordAuthenticationToken(loadedUser, null, loadedUser.getAuthorities());
-            result.setDetails(authentication.getDetails());
-            return result;
-        } catch (Exception e) {
-            e.printStackTrace();
+        if(authentication == null){
+            throw new InternalAuthenticationServiceException("Authentication is null");
         }
-        return null;
+        String username = authentication.getName();
+        if(authentication.getCredentials() == null){
+            throw new AuthenticationCredentialsNotFoundException("Credentials is null");
+        }
+        String password = authentication.getCredentials().toString();
+        UserDetails loadedUser = customUserDetailsService.loadUserByUsername(username);
+        if(loadedUser == null){
+            throw new InternalAuthenticationServiceException("UserDetailsService returned null, which is an interface contract violation");
+        }
+        /* checker */
+        if(!loadedUser.isAccountNonLocked()){
+            throw new LockedException("User account is locked");
+        }
+        if(!loadedUser.isEnabled()){
+            throw new DisabledException("User is disabled");
+        }
+        if(!loadedUser.isAccountNonExpired()){
+            throw new AccountExpiredException("User account has expired");
+        }
+        /* 실질적인 인증 */
+        if(!passwordEncoder.matches(password, loadedUser.getPassword())){
+            throw new BadCredentialsException("Password does not match stored value");
+        }
+        /* checker */
+        if(!loadedUser.isCredentialsNonExpired()){
+            throw new CredentialsExpiredException("User credentials have expired");
+        }
+        /* 인증 완료 */
+        UsernamePasswordAuthenticationToken result = new UsernamePasswordAuthenticationToken(loadedUser, null, loadedUser.getAuthorities());
+        result.setDetails(authentication.getDetails());
+        return result;
     }
 
     @Override
