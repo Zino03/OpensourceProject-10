@@ -49,8 +49,8 @@ public class UserController {
 
 //    @GetMapping("/mypage/joinedposts")
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity getProfile(@PathVariable Long userId) {
-        return userService.getProfile(userId);
+    @GetMapping("/user/{nickname}")
+    public ResponseEntity getProfile(@PathVariable String nickname) {
+        return userService.getProfile(nickname);
     }
 }

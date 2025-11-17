@@ -70,11 +70,11 @@ public class UserService {
         }
     }
 
-    public ResponseEntity getProfile(Long userId) {
-        Optional<User> optional = userRepository.findById(userId);
+    public ResponseEntity getProfile(String nickname) {
+        Optional<User> optional = userRepository.findByNickname(nickname);
 
         if (optional.isPresent()) {
-            ProfileResponseDto profile = ProfileResponseDto.of(userRepository.findById(userId).get());
+            ProfileResponseDto profile = ProfileResponseDto.of(userRepository.findByNickname(nickname).get());
 
             HashMap<String, Object> data = new HashMap<>();
             data.put("profile", profile);
