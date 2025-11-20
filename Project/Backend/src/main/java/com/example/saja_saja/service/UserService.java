@@ -138,6 +138,9 @@ public class UserService {
             HashMap<String, Object> data = new HashMap<>();
             data.put("address", UserAddressDto.of(userAddress));
             return new ResponseEntity(data, HttpStatus.OK);
+        } catch (NoSuchElementException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("변경에 실패하였습니다.");
@@ -166,6 +169,12 @@ public class UserService {
             Map<String, Object> message = new HashMap<>();
             message.put("message", "배송지가 삭제되었습니다.");
             return new ResponseEntity(message, HttpStatus.OK);
+        } catch (NoSuchElementException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
+        } catch (SecurityException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("배송지 삭제에 실패하였습니다.");
@@ -198,6 +207,9 @@ public class UserService {
             HashMap<String, Object> data = new HashMap<>();
             data.put("user", UserResponseDto.of(user));
             return new ResponseEntity(data, HttpStatus.OK);
+        } catch (NoSuchElementException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("변경에 실패하였습니다.");
