@@ -1,6 +1,7 @@
 package com.example.saja_saja.controller;
 
 import com.example.saja_saja.config.SecurityUtil;
+import com.example.saja_saja.dto.user.UserAddressDto;
 import com.example.saja_saja.dto.user.UserRequestDto;
 import com.example.saja_saja.entity.member.Member;
 import com.example.saja_saja.service.ReportService;
@@ -52,5 +53,29 @@ public class UserController {
     @GetMapping("/user/{nickname}")
     public ResponseEntity getProfile(@PathVariable String nickname) {
         return userService.getProfile(nickname);
+    }
+
+    @GetMapping("/user/addresses")
+    public ResponseEntity getAddresses() {
+        Long userId = userService.getMember(SecurityUtil.getCurrentUserId()).getUser().getId();
+        return userService.getAddress(userId);
+    }
+
+    @PostMapping("/user/address")
+    public ResponseEntity addUserAddress(@RequestBody UserAddressDto addressDto) {
+        Long userId = userService.getMember(SecurityUtil.getCurrentUserId()).getUser().getId();
+        return userService.addAddress(userId, addressDto);
+    }
+
+    @PutMapping("/user/address/{address_id}")
+    public ResponseEntity updateUserAddress(@PathVariable Long address_id, @RequestBody UserAddressDto addressDto) {
+        Long userId = userService.getMember(SecurityUtil.getCurrentUserId()).getUser().getId();
+        return userService.updateUserAddress(userId, address_id, addressDto);
+    }
+
+    @DeleteMapping("/user/address/{address_id}")
+    public ResponseEntity deleteUserAddress(@PathVariable Long address_id) {
+        Long userId = userService.getMember(SecurityUtil.getCurrentUserId()).getUser().getId();
+        return userService.deleteUserAddress(userId, address_id);
     }
 }

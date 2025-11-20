@@ -3,6 +3,7 @@ package com.example.saja_saja.entity.user;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,6 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Table(name = "user_address")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+@Builder
 public class UserAddress {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

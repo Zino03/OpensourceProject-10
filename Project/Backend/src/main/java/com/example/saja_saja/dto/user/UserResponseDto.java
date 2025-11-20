@@ -13,7 +13,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class UserResponseDto {
-    // TODO: fix data
     private String email;
 
     private String nickname;
