@@ -1,6 +1,24 @@
+@font-face{
+  font-family: "Pretendard";
+  src: url("./components/fonts/Pretendard-Regular.ttf") format("truetype");
+  font-weight: 400;
+}
+
+@font-face{
+  font-family: "Pretendard";
+  src: url("./components/fonts/Pretendard-SemiBold.ttf") format("truetype");
+  font-weight: 500;
+}
+
+@font-face{
+  font-family: "Pretendard";
+  src: url("./components/fonts/Pretendard-Bold.ttf") format("truetype");
+  font-weight: 600;
+}
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+  font-family: -apple-system, BlinkMacSystemFont, 'Pretendard-Regular','Pretendard-Bold', 'Pretendard-SemiBold', 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
