@@ -7,7 +7,7 @@ const HeaderWrapper = styled.header`
   width: 100%; 
   background-color: #fff;
   border-bottom: 1px solid #eee;
-  padding: 20px 0;
+  padding: 16px 0;
 `;
 const HeaderContent = styled.div`
   display: flex;
@@ -46,7 +46,7 @@ const RightSection = styled.div`
     text-decoration: none; 
     color: #333; 
     font-weight: 700; 
-    font-size: 14px; 
+    font-size: 13px; 
   }
   
   .user-menu { 

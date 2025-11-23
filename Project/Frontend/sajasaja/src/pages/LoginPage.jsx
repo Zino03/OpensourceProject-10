@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom';
 
 // 로그인 전체 폼
 const LoginWrapper = styled.div`
@@ -96,6 +97,13 @@ const LoginSignupButton = styled.button`
 `;
 
 const LoginPage = () => {
+  const navigate = useNavigate();
+
+  // 회원가입 버튼
+  const JoinClick = () => {
+    navigate(`/join`);
+  };
+
   return (
     <>
       <LoginWrapper>
@@ -124,7 +132,7 @@ const LoginPage = () => {
 
         <ButtonWrapper>
           <LoginSignupButton>LOGIN</LoginSignupButton>
-          <LoginSignupButton>SIGN UP</LoginSignupButton>
+          <LoginSignupButton onClick={JoinClick}>SIGN UP</LoginSignupButton>
         </ButtonWrapper>
       </LoginWrapper>
     </>
