@@ -24,12 +24,20 @@ public class ProfileResponseDto {
 
     private Double mannerScore;
 
-    private List<MyPostListResponseDto> posts;
+    private List<MyPostListResponseDto> activePosts;
+
+    private List<MyPostListResponseDto> closedPosts;
 
     public static ProfileResponseDto of(User user) {
         List<Post> userPosts = user.getPosts();
 
-        List<MyPostListResponseDto> dtoList = userPosts.stream()
+        List<MyPostListResponseDto> activePostList = userPosts.stream()
+                .filter(post -> post.getStatus() == 1 || post.getStatus() == 2)
+                .map(MyPostListResponseDto::of)
+                .collect(Collectors.toList());
+
+        List<MyPostListResponseDto> closedPostList = userPosts.stream()
+                .filter(post -> post.getStatus() == 3)
                 .map(MyPostListResponseDto::of)
                 .collect(Collectors.toList());
 
@@ -38,7 +46,8 @@ public class ProfileResponseDto {
                 .nickname(user.getNickname())
                 .profileImg(user.getProfileImg())
                 .mannerScore(user.getMannerScore())
-                .posts(dtoList)
+                .activePosts(activePostList)
+                .closedPosts(closedPostList)
                 .build();
     }
 }

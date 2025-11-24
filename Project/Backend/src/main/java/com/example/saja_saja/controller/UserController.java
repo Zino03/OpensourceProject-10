@@ -20,7 +20,7 @@ public class UserController {
     private final UserService userService;
     private final ReportService reportService;
 
-//    @GetMapping("/info")
+//    @GetMapping("/user")
 
     @PutMapping("/mypage/user")
     public ResponseEntity updateUserInfo(@RequestBody UserRequestDto req) {
@@ -28,13 +28,7 @@ public class UserController {
         return userService.updateUserInfo(member, req);
     }
 
-//    @GetMapping("/mypage/address")
-//    public String getAddress() {
-//        Member member = userService.getMember(SecurityUtil.getCurrentUserId());
-//        return
-//    }
-
-    @GetMapping("/mypage/reports/reviews")
+   @GetMapping("/mypage/reports/reviews")
     public ResponseEntity getReviewReportList(
             @PageableDefault(size = 15, sort = "id", direction = Sort.Direction.DESC) Pageable pageable
     ) {
@@ -45,7 +39,7 @@ public class UserController {
 //    @GetMapping("/mypage/reports/users")
 
 //    @GetMapping("/mypage/myposts")
-//    public ResponseEntity<Page<MyPostListResponseDto>> getPostList(@PageableDefault(size = 15, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+//    public ResponseEntity getPostList(@PageableDefault(size = 15, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
 //    }
 
 //    @GetMapping("/mypage/joinedposts")
