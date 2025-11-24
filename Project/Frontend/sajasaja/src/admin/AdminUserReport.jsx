@@ -5,9 +5,10 @@ const SearchBar = styled.div`
   display: flex;
   justify-content: space-between;
   margin-bottom: 24px;
+  gap: 12px;
 
   input {
-    width: 400px;
+    width: 100%;
     padding: 12px;
     border: 1px solid #ddd;
     border-radius: 8px;

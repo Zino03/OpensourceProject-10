@@ -46,7 +46,7 @@ const AdminSidebar = () => {
         <MenuTitle>신고 관리</MenuTitle>
         <MenuItem to="/admin/report-user">사용자 신고</MenuItem>
         <MenuItem to="/admin/report-review">후기 신고</MenuItem>
-        <MenuItem to="/admin/report-notice">게시글 신고</MenuItem>
+        <MenuItem to="/admin/report-notice">공지 신고</MenuItem>
       </MenuGroup>
 
       <MenuGroup>
@@ -55,8 +55,8 @@ const AdminSidebar = () => {
       </MenuGroup>
 
       <MenuGroup>
-        <MenuTitle>게시물 관리</MenuTitle>
-        <MenuItem to="/admin/posts">게시물</MenuItem>
+        <MenuTitle>게시글 관리</MenuTitle>
+        <MenuItem to="/admin/posts">게시글</MenuItem>
       </MenuGroup>
     </Sidebar>
   )
