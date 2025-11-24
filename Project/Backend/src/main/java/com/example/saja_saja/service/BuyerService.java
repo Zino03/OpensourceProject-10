@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,6 +20,10 @@ public class BuyerService {
     private final BuyerRepository buyerRepository;
 
     public ResponseEntity save(Member member, Post post, int requestQuantity) {
+        return this.save(member, post, false, requestQuantity);
+    }
+
+    public ResponseEntity save(Member member, Post post, boolean isDelivery, int requestQuantity) {
         int currentQuantity = post.getCurrentQuantity();
         int targetQuantity = post.getQuantity();
 
@@ -35,10 +40,28 @@ public class BuyerService {
             );
         }
 
+        LocalDateTime now = LocalDateTime.now();
+        switch (post.getStatus()) {
+            case 0: case 4:
+                throw new BadRequestException("신청할 수 없는 게시글입니다.", null);
+            case 1: case 2:
+                if(now.isAfter(post.getEndAt())) {
+                    throw new BadRequestException("마감된 게시글입니다.", null);
+                }
+                break;
+            case 3:
+                throw new BadRequestException("마감된 게시글입니다.", null);
+            default:
+        }
+
+        if(post.getIsDeliveryAvailable() == false && isDelivery == true) {
+            throw new BadRequestException("배송신청이 불가능한 게시글입니다.", null);
+        }
+
         Buyer buyer = Buyer.builder()
                 .user(member.getUser())
                 .post(post)
-                .isDelivery(false)
+                .isDelivery(isDelivery)
                 .quantity(requestQuantity)
                 .isPaid(1)
                 .receivedAt(null)

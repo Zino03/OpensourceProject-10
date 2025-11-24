@@ -43,7 +43,7 @@ public class WebSecurityConfig {
                         .dispatcherTypeMatchers(DispatcherType.FORWARD).permitAll()
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/auth/login", "/auth/signup").permitAll()
-                        .requestMatchers("/", "/api/post/", "/css/**", "/js/**").permitAll()
+                        .requestMatchers("/", "/api/post/**", "/api/posts", "/css/**", "/js/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
