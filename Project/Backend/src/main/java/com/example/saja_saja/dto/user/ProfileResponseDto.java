@@ -1,6 +1,6 @@
 package com.example.saja_saja.dto.user;
 
-import com.example.saja_saja.dto.post.MyPostListResponseDto;
+import com.example.saja_saja.dto.post.PostListResponseDto;
 import com.example.saja_saja.entity.post.Post;
 import com.example.saja_saja.entity.user.User;
 import lombok.AllArgsConstructor;
@@ -24,21 +24,21 @@ public class ProfileResponseDto {
 
     private Double mannerScore;
 
-    private List<MyPostListResponseDto> activePosts;
+    private List<PostListResponseDto> activePosts;
 
-    private List<MyPostListResponseDto> closedPosts;
+    private List<PostListResponseDto> closedPosts;
 
     public static ProfileResponseDto of(User user) {
         List<Post> userPosts = user.getPosts();
 
-        List<MyPostListResponseDto> activePostList = userPosts.stream()
+        List<PostListResponseDto> activePostList = userPosts.stream()
                 .filter(post -> post.getStatus() == 1 || post.getStatus() == 2)
-                .map(MyPostListResponseDto::of)
+                .map(PostListResponseDto::of)
                 .collect(Collectors.toList());
 
-        List<MyPostListResponseDto> closedPostList = userPosts.stream()
+        List<PostListResponseDto> closedPostList = userPosts.stream()
                 .filter(post -> post.getStatus() == 3)
-                .map(MyPostListResponseDto::of)
+                .map(PostListResponseDto::of)
                 .collect(Collectors.toList());
 
         return ProfileResponseDto.builder()

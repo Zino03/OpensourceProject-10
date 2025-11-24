@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
-    private final ReportService reportService;
 
 //    @GetMapping("/user")
 
@@ -26,14 +25,6 @@ public class UserController {
     public ResponseEntity updateUserInfo(@RequestBody UserRequestDto req) {
         Member member = userService.getMember(SecurityUtil.getCurrentUserId());
         return userService.updateUserInfo(member, req);
-    }
-
-   @GetMapping("/mypage/reports/reviews")
-    public ResponseEntity getReviewReportList(
-            @PageableDefault(size = 15, sort = "id", direction = Sort.Direction.DESC) Pageable pageable
-    ) {
-        Member member = userService.getMember(SecurityUtil.getCurrentUserId());
-        return reportService.getReviewReportList(member, pageable);
     }
 
 //    @GetMapping("/mypage/reports/users")
@@ -49,25 +40,25 @@ public class UserController {
         return userService.getProfile(nickname);
     }
 
-    @GetMapping("/user/addresses")
+    @GetMapping("/mypage/addresses")
     public ResponseEntity getAddresses() {
         Long userId = userService.getMember(SecurityUtil.getCurrentUserId()).getUser().getId();
         return userService.getAddress(userId);
     }
 
-    @PostMapping("/user/address")
+    @PostMapping("/mypage/address")
     public ResponseEntity addUserAddress(@RequestBody UserAddressDto addressDto) {
         Long userId = userService.getMember(SecurityUtil.getCurrentUserId()).getUser().getId();
         return userService.addAddress(userId, addressDto);
     }
 
-    @PutMapping("/user/address/{address_id}")
+    @PutMapping("/mypage/address/{address_id}")
     public ResponseEntity updateUserAddress(@PathVariable Long address_id, @RequestBody UserAddressDto addressDto) {
         Long userId = userService.getMember(SecurityUtil.getCurrentUserId()).getUser().getId();
         return userService.updateUserAddress(userId, address_id, addressDto);
     }
 
-    @DeleteMapping("/user/address/{address_id}")
+    @DeleteMapping("/mypage/address/{address_id}")
     public ResponseEntity deleteUserAddress(@PathVariable Long address_id) {
         Long userId = userService.getMember(SecurityUtil.getCurrentUserId()).getUser().getId();
         return userService.deleteUserAddress(userId, address_id);
