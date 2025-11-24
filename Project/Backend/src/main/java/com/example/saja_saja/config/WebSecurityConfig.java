@@ -36,7 +36,6 @@ public class WebSecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfiguration()))
                 .sessionManagement(m -> m.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                /* 🔥 JwtFilter 를 ExceptionTranslationFilter 뒤로 이동 */
                 .addFilterAfter(new JwtFilter(tokenProvider), ExceptionTranslationFilter.class)
 
                 .authorizeHttpRequests(requests -> requests
@@ -49,7 +48,6 @@ public class WebSecurityConfig {
                         .anyRequest().authenticated()
                 )
 
-                /* 🔥 스프링이 잡은 인증/인가 예외 처리 */
                 .exceptionHandling(except -> except
                         .accessDeniedHandler((request, response, ex) -> {
                             response.setStatus(403);
