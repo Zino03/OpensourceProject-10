@@ -1,5 +1,6 @@
 package com.example.saja_saja.service;
 
+import com.example.saja_saja.dto.member.LoginRequestDto;
 import com.example.saja_saja.dto.token.TokenDto;
 import com.example.saja_saja.dto.token.TokenRequestDto;
 import com.example.saja_saja.dto.member.MemberRequestDto;
@@ -70,8 +71,8 @@ public class AuthService {
     }
 
     @Transactional
-    public ResponseEntity login(MemberRequestDto memberRequestDto) {
-        UsernamePasswordAuthenticationToken authenticationToken = memberRequestDto.toAuthentication();
+    public ResponseEntity login(LoginRequestDto loginRequestDto) {
+        UsernamePasswordAuthenticationToken authenticationToken = loginRequestDto.toAuthentication();
 
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
 
