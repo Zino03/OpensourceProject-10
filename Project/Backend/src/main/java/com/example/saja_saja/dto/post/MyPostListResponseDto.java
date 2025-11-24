@@ -22,13 +22,13 @@ public class MyPostListResponseDto {
 
     private Integer price;
 
-    private Category category;
-
     private LocalDateTime endAt;
 
     private Integer status;
 
     private Integer quantity;
+
+    private Integer currentQuantity;
 
 //현재 참여 인원)
 
@@ -38,11 +38,10 @@ public class MyPostListResponseDto {
                 .title(post.getTitle())
                 .image(post.getImage())
                 .price(post.getPrice())
-                .category(post.getCategory())
                 .endAt(post.getEndAt())
                 .status(post.getStatus())
                 .quantity(post.getQuantity())
-                // .currentQuantity(post.getQuantity())
+                .currentQuantity(post.getQuantity())
                 .build();
     }
 
