@@ -1,5 +1,6 @@
 package com.example.saja_saja.controller;
 
+import com.example.saja_saja.dto.member.LoginRequestDto;
 import com.example.saja_saja.dto.token.TokenDto;
 import com.example.saja_saja.dto.token.TokenRequestDto;
 import com.example.saja_saja.dto.member.MemberRequestDto;
@@ -24,8 +25,8 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity login(@RequestBody MemberRequestDto memberRequestDto) {
-        return authService.login(memberRequestDto);
+    public ResponseEntity login(@RequestBody LoginRequestDto loginRequestDto) {
+        return authService.login(loginRequestDto);
     }
 
     @PostMapping("/reissue")

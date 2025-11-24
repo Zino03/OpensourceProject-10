@@ -36,10 +36,12 @@ public class Buyer {
 
     private Boolean isDelivery;
 
+    // 0: 대기, 1: 지불, 2: 반려
     private Integer isPaid;
 
     private LocalDateTime receivedAt;
 
+    // 0: 대기, 1: 수령확인
     private Boolean isConfirmed;
 
     @OneToOne
