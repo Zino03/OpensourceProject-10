@@ -27,6 +27,10 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private Boolean isBanned;
+
+    private String bannedReason;
+
     private String name;
 
     private String nickname;
