@@ -1,15 +1,16 @@
 import React from 'react';
 import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom';
 
 const SearchBar = styled.div`
   display: flex;
-  justify-content: space-between;
+  overflow: visible;
   margin-bottom: 24px;
-  gap: 12px;
+  gap: 18px;
 
   input {
-    width: 100%;
-    padding: 12px;
+    width: 80%;
+    padding: 10px;
     border: 1px solid #ddd;
     border-radius: 8px;
     font-size: 12px;
@@ -17,7 +18,7 @@ const SearchBar = styled.div`
   }
   
   select {
-    padding: 12px;
+    padding: 8px 10px;
     border: 1px solid #ddd;
     border-radius: 8px;
     font-size: 12px;
@@ -87,14 +88,20 @@ const Pagination = styled.div`
   }
 `;
 
-const mockReports = [
+const mockPayments = [
   { id: 1, title: '닭가슴살 공구', writer: '변진호', amount: '20000', deadline: '2025.11.20', date: '2025.11.10', status: 'waiting' },
-  { id: 2, title: '딸기 공구', writer: '변진호', amount: '400000.', deadline: '2025.11.20', date: '2025.11.13', status: 'rejected' },
+  { id: 2, title: '딸기 공구', writer: '변진호', amount: '400000', deadline: '2025.11.20', date: '2025.11.13', status: 'rejected' },
   { id: 3, title: '피자 공구', writer: '변진호', amount: '28900', deadline: '2025.11.20', date: '2025.11.13', status: 'complete' },
 ];
 
 
 const AdminPaymentManage = () => {
+  const navigate = useNavigate();
+
+  const handleDetailClick = (id) => {
+     navigate(`/admin/payment/${id}`);
+  };
+
   // 콘텐츠 렌더링
   return (
     <>
@@ -121,17 +128,18 @@ const AdminPaymentManage = () => {
           </tr>
         </thead>
         <tbody>
-          {mockReports.map((report) => (
-            <tr key={report.id}>
-              <td>{report.id}</td>
-              <td>{report.title}</td>
-              <td>{report.writer}</td>
-              <td>{report.amount}원</td>
-              <td>{report.deadline}</td>
-              <td>{report.date}</td>
+          {mockPayments.map((payment) => (
+            <tr key={payment.id}
+              onClick={() => handleDetailClick(payment.id)}>
+              <td>{payment.id}</td>
+              <td>{payment.title}</td>
+              <td>{payment.writer}</td>
+              <td>{payment.amount}원</td>
+              <td>{payment.deadline}</td>
+              <td>{payment.date}</td>
               <td>
-                <StatusButton className={report.status}>
-                  {report.status === 'waiting' ? '대기' : report.status === 'rejected' ? '취소' : '완료'}
+                <StatusButton className={payment.status}>
+                  {payment.status === 'waiting' ? '대기' : payment.status === 'rejected' ? '취소' : '완료'}
                 </StatusButton>
               </td>
             </tr>
