@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
+import ReportProcessModal from './modal/ReportProcessModal';
 
 const SearchBar = styled.div`
   display: flex;
@@ -91,6 +92,19 @@ const mockReports = [
 
 
 const AdminNoticePage = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedReport, setSelectedReport] = useState(null);
+
+  const handleOpenModal = (report) => {
+    setSelectedReport(report);
+    setIsModalOpen(true);  
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedReport(null);
+  };
+
   // 콘텐츠 렌더링
   return (
     <>
@@ -124,7 +138,7 @@ const AdminNoticePage = () => {
               <td>{report.content}</td>
               <td>{report.date}</td>
               <td>
-                <StatusButton className={report.status}>
+                <StatusButton className={report.status} onClick={() => handleOpenModal(report)}>
                   {report.status === 'waiting' ? '대기' : report.status === 'rejected' ? '반려' : '제재'}
                 </StatusButton>
               </td>
@@ -144,6 +158,15 @@ const AdminNoticePage = () => {
         <span>&gt;</span>
         <span>&gt;&gt;</span>
       </Pagination>
+
+      {isModalOpen && selectedReport && (
+        <ReportProcessModal 
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          type="notice"
+          data={selectedReport} 
+        />
+      )}
     </>
   );
 };
