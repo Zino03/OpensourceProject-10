@@ -19,21 +19,11 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
     private final UserService userService;
 
-//    @GetMapping("/user")
-
     @PutMapping("/mypage/user")
     public ResponseEntity updateUserInfo(@RequestBody UserRequestDto req) {
         Member member = userService.getMember(SecurityUtil.getCurrentUserId());
         return userService.updateUserInfo(member, req);
     }
-
-//    @GetMapping("/mypage/reports/users")
-
-//    @GetMapping("/mypage/myposts")
-//    public ResponseEntity getPostList(@PageableDefault(size = 15, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
-//    }
-
-//    @GetMapping("/mypage/joinedposts")
 
     @GetMapping("/user/{nickname}")
     public ResponseEntity getProfile(@PathVariable String nickname) {
@@ -58,9 +48,9 @@ public class UserController {
         return userService.updateUserAddress(userId, address_id, addressDto);
     }
 
-    @DeleteMapping("/mypage/address/{address_id}")
-    public ResponseEntity deleteUserAddress(@PathVariable Long address_id) {
+    @DeleteMapping("/mypage/address/{addressId}")
+    public ResponseEntity deleteUserAddress(@PathVariable Long addressId) {
         Long userId = userService.getMember(SecurityUtil.getCurrentUserId()).getUser().getId();
-        return userService.deleteUserAddress(userId, address_id);
+        return userService.deleteUserAddress(userId, addressId);
     }
 }
