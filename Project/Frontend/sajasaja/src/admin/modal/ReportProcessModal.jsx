@@ -49,9 +49,11 @@ const Value = styled.div`
 
 // 사유 박스
 // 긴 텍스트 줄바꿈 처리
-const LongText = styled(Value)`
+const ReportReason = styled(Value)`
   white-space: pre-wrap;
   word-break: break-all;
+  max-height: 240px; 
+  overflow-y: auto;
 `;
 
 const Divider = styled.hr`
@@ -190,9 +192,9 @@ const ReportProcessModal = ({ isOpen, onClose, type = 'user', data }) => {
           </InfoRow>
           <InfoRow>
             <Label>신고 사유 :</Label>
-            <LongText>
-              {data?.reason || 'ㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌㅌ'}
-            </LongText>
+            <ReportReason>
+              {data?.reason || '상대 사용자는 대화 주제와 전혀 관련 없는 외부 사이트 링크를 여러 번 전송하며 특정 상품 구매를 유도했습니다. 제가 관심 없음을 밝혔음에도 불구하고 “들어가서 확인만 해보라”는 메시지를 포함해 같은 링크를 반복적으로 보냈습니다. 특히 몇 초 간격으로 동일한 문구를 연달아 보내는 도배 행위로 인해 정상적인 대화 진행이 사실상 불가능한 상태가 되었고, 자동 메시지를 사용하는 듯한 패턴도 확인되어 신고 요청합니다.'}
+            </ReportReason>
           </InfoRow>
         </InfoSection>
 
