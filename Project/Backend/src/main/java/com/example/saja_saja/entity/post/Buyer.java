@@ -44,6 +44,12 @@ public class Buyer {
     // 0: 대기, 1: 수령확인
     private Boolean isConfirmed;
 
+    private LocalDateTime createdAt;
+
+    private Boolean isCanceled;
+
+    private LocalDateTime canceledAt;
+
     @OneToOne
     @JoinColumn(name = "review_id")
     private Review review;
