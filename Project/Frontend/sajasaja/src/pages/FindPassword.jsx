@@ -72,16 +72,17 @@ const ButtonGroup = styled.div`
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-top: 12px;
+  margin-top: 6px;
+  align-items: center;
 `;
 
 // 공통 버튼 스타일
 const Button = styled.button`
   width: 100%;
-  padding: 14px 0;
+  padding: 8px 0;
   border: none;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 500;
   cursor: pointer;
 `;
