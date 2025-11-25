@@ -3,13 +3,13 @@ import styled from 'styled-components';
 
 const SearchBar = styled.div`
   display: flex;
-  justify-content: space-between;
+  overflow: visible;
   margin-bottom: 24px;
-  gap: 12px;
+  gap: 18px;
 
   input {
-    width: 100%;
-    padding: 12px;
+    width: 80%;
+    padding: 10px;
     border: 1px solid #ddd;
     border-radius: 8px;
     font-size: 12px;
@@ -17,7 +17,7 @@ const SearchBar = styled.div`
   }
   
   select {
-    padding: 12px;
+    padding: 8px 10px;
     border: 1px solid #ddd;
     border-radius: 8px;
     font-size: 12px;
@@ -110,7 +110,7 @@ const AdminReviewPage = () => {
             <th>신고 ID</th>
             <th>신고자</th>
             <th>신고 대상</th>
-            <th>후기 제목</th>
+            <th>신고 제목</th>
             <th>접수일</th>
             <th>상태</th>
           </tr>

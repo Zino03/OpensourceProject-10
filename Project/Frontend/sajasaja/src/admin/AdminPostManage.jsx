@@ -1,15 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
+import PostManageModal from './modal/PostManageModal';
 
 const SearchBar = styled.div`
   display: flex;
-  justify-content: space-between;
+  overflow: visible;
   margin-bottom: 24px;
-  gap: 12px;
+  gap: 18px;
 
   input {
-    width: 100%;
-    padding: 12px;
+    width: 80%;
+    padding: 10px;
     border: 1px solid #ddd;
     border-radius: 8px;
     font-size: 12px;
@@ -17,7 +18,7 @@ const SearchBar = styled.div`
   }
   
   select {
-    padding: 12px;
+    padding: 8px 10px;
     border: 1px solid #ddd;
     border-radius: 8px;
     font-size: 12px;
@@ -57,22 +58,18 @@ const StatusButton = styled.button`
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  
-  &.hide {
-    background-color: #FFF5E0;
-    color: #555;
-  }
-  &.close {
+
+  &.companion {
     background-color: #FFF5E0;
     color: #FF5A5A;
   }
-  &.progress {
+  &.approve {
     background-color: #FFF5E0;
     color: #44824A;
   }
   &.waiting {
     background-color: #FFF5E0;
-    color: #000;
+    color: #555;
   }
 `;
 
@@ -91,15 +88,47 @@ const Pagination = styled.div`
   }
 `;
 
-const mockReports = [
+const mockPosts = [
   { id: 1, title: '닭가슴살 공구', writer: '변진호', deadline: '2025.11.20', date: '2025.11.10', status: 'waiting' },
-  { id: 2, title: '딸기 공구', writer: '변진호', deadline: '2025.11.20', date: '2025.11.13', status: 'progress' },
-  { id: 3, title: '피자 공구', writer: '변진호', deadline: '2025.11.20', date: '2025.11.13', status: 'hide' },
-  { id: 4, title: '노트북 공구', writer: '변진호', deadline: '2025.11.20', date: '2025.11.13', status: 'close' },
+  { id: 2, title: '딸기 공구', writer: '변진호', deadline: '2025.11.20', date: '2025.11.13', status: 'approve' },
+  { id: 3, title: '피자 공구', writer: '변진호', deadline: '2025.11.20', date: '2025.11.13', status: 'waiting' },
+  { id: 4, title: '노트북 공구', writer: '변진호', deadline: '2025.11.20', date: '2025.11.13', status: 'companion' },
 ];
 
 
 const AdminPaymentManage = () => {
+  const [posts, setPosts] = useState(mockPosts); 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedPost, setSelectedPost] = useState(null); 
+
+  const handleManageClick = (post) => {
+    setSelectedPost(post);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedPost(null);
+  };
+
+  const handleModalAction = (actionType, postId) => {
+    console.log(`Action: ${actionType}, Post ID: ${postId}`);
+    
+    // 임시
+    let newStatus = '대기';
+    switch(actionType) {
+      case 'approve': newStatus = '승인'; break;
+      case 'companion': newStatus = '반려'; break;
+      default: return;
+    }
+
+    setPosts(prevPosts => 
+      prevPosts.map(post => 
+        post.id === postId ? { ...post, status: newStatus } : post
+      )
+    );
+  };
+
   // 콘텐츠 렌더링
   return (
     <>
@@ -107,10 +136,9 @@ const AdminPaymentManage = () => {
         <input type="text" placeholder="검색" />
         <select>
           <option value="all">전체</option>
-          <option value="progress">진행중</option>
-          <option value="close">마감</option>
-          <option value="hide">숨김</option>
-          <option value="waiting">승인 대기</option>
+          <option value="approve">승인</option>
+          <option value="companion">반려</option>
+          <option value="waiting">대기</option>
         </select>
       </SearchBar>
 
@@ -126,16 +154,17 @@ const AdminPaymentManage = () => {
           </tr>
         </thead>
         <tbody>
-          {mockReports.map((report) => (
-            <tr key={report.id}>
-              <td>{report.id}</td>
-              <td>{report.title}</td>
-              <td>{report.writer}</td>
-              <td>{report.deadline}</td>
-              <td>{report.date}</td>
+          {mockPosts.map((post) => (
+            <tr key={post.id}
+              onClick={() => handleManageClick(post)}>
+              <td>{post.id}</td>
+              <td>{post.title}</td>
+              <td>{post.writer}</td>
+              <td>{post.deadline}</td>
+              <td>{post.date}</td>
               <td>
-                <StatusButton className={report.status}>
-                  {report.status === 'progress' ? '진행중' : report.status === 'close' ? '마감' : report.status === 'hide' ? '숨김' : '승인 대기'}
+                <StatusButton className={post.status}>
+                  {post.status === 'approve' ? '승인' : post.status === 'companion' ? '반려' : '대기'}
                 </StatusButton>
               </td>
             </tr>
@@ -154,6 +183,13 @@ const AdminPaymentManage = () => {
         <span>&gt;</span>
         <span>&gt;&gt;</span>
       </Pagination>
+      {isModalOpen && selectedPost && (
+        <PostManageModal 
+          post={selectedPost}
+          onClose={handleCloseModal}
+          onAction={handleModalAction}
+        />
+      )}
     </>
   );
 };

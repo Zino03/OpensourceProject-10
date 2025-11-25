@@ -11,7 +11,7 @@ const PageContainer = styled.div`
 const ContentArea = styled.main`
   flex: 1;
   padding: 8px;
-  overflow-y: auto;
+  overflow: auto;
   margin: 20px;
 `;
 

@@ -7,7 +7,7 @@ const HeaderWrapper = styled.header`
   width: 100%; 
   background-color: #fff;
   border-bottom: 1px solid #eee;
-  padding: 16px 0;
+  padding: 12px 0;
 `;
 const HeaderContent = styled.div`
   display: flex;
@@ -24,10 +24,10 @@ const LogoSection = styled.a`
   gap: 12px;
   text-decoration: none;
   
-  img { height: 36px; }
+  img { height: 30px; }
   h2 { 
-    font-size: 24px;
-    font-weight: 900;
+    font-size: 20px;
+    font-weight: 800;
     color: #2C3E50;
     margin: 0;
   }

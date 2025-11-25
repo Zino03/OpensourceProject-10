@@ -43,7 +43,9 @@ public class BuyerService {
         LocalDateTime now = LocalDateTime.now();
         switch (post.getStatus()) {
             case 0: case 4:
-                throw new BadRequestException("신청할 수 없는 게시글입니다.", null);
+                if(!post.getHost().equals(member.getUser())) {
+                    throw new BadRequestException("신청할 수 없는 게시글입니다.", null);                }
+
             case 1: case 2:
                 if(now.isAfter(post.getEndAt())) {
                     throw new BadRequestException("마감된 게시글입니다.", null);

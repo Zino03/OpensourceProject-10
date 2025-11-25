@@ -72,7 +72,7 @@ const mockData = [ // 임시 데이터
 
 // 검색 및 필터
 const FilterSection = styled.section`
-  padding: 50px 200px;
+  padding: 36px 300px;
   border-bottom: 1px solid #eee;
 `;
 
@@ -106,25 +106,18 @@ const SearchBar = styled.div`
 // 검색창 아래 카테고리 목록
 const SubCategoryTags = styled.div`
   display: flex;
-  gap: 8px;
+  gap: 4px;
   margin-top: 10px;
   justify-content: center;
   font-weight: 500;
   span {
-    padding: 6px 12px;
-    border-radius: 16px;
+    padding: 6px 6px;
+    border-radius: 12px;
     font-size: 10px;
     color: #555;
     cursor: pointer;
     &:hover { background-color: #FFF5E0; }
   }
-`;
-
-// 타이틀
-const Title = styled.h4`
-  font-size: 16px;
-  font-weight: 700;
-  margin: 30px 150px 20px;
 `;
 
 // 상품 목록 
@@ -134,7 +127,7 @@ const ProductListContainer = styled.div`
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 24px;
-  padding-bottom: 64px;
+  padding: 32px;
   margin: 0 125px;
 `;
 
@@ -171,7 +164,6 @@ const ProductsPage = () => {
         </SubCategoryTags>
       </FilterSection>
 
-      <Title>상품 목록</Title>
       <ProductListContainer>
         {products.map(product => (
           <ProductCard key={product.id} product={product} />
