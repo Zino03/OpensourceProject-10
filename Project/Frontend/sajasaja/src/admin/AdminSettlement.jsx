@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState }from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { AiOutlineExclamationCircle } from "react-icons/ai";
+import ParticipantListModal from './modal/ParticipantListModal';
 
 // 전체 컨테이너
 const Container = styled.div`
@@ -110,6 +111,7 @@ const ActionButton = styled.button`
 
 const AdminSettlement = () => {
   const navigate = useNavigate();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const data = {
     id: 1023,
@@ -144,12 +146,11 @@ const AdminSettlement = () => {
         <InfoRow>
           <Label>주최자 :</Label>
           <Value>{data.organizer}</Value>
-          <ParticipantButton>참여자 명단</ParticipantButton>
+          <ParticipantButton onClick={() => setIsModalOpen(true)}>참여자 명단</ParticipantButton>
         </InfoRow>
         <Divider />
       </Section>
 
-      {/* 2. 정산 금액 섹션 */}
       <Section>
         <SectionTitle>정산 금액</SectionTitle>
         
@@ -169,7 +170,6 @@ const AdminSettlement = () => {
         <Divider />
       </Section>
 
-      {/* 3. 계좌 정보 섹션 */}
       <Section>
         <SectionTitle>계좌 정보 (주최자)</SectionTitle>
         
@@ -189,7 +189,6 @@ const AdminSettlement = () => {
         <Divider />
       </Section>
 
-      {/* 4. 하단 액션 영역 */}
       <FooterAction>
         <WarningBox>
           <AiOutlineExclamationCircle size={32} color="red" />
@@ -205,6 +204,10 @@ const AdminSettlement = () => {
           <ActionButton>정산처리</ActionButton>
         </div>
       </FooterAction>
+
+      {isModalOpen && (
+        <ParticipantListModal onClose={() => setIsModalOpen(false)} />
+      )}
     </Container>
   );
 };
