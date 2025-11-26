@@ -5,6 +5,7 @@ import GlobalStyle from './styles/GlobalStyle';
 import Header from './components/Header';
 
 import ProductsPage from './pages/ProductsPage';
+import GroupPurchaseRegister from './pages/GroupPurchaseRegister';
 import LoginPage from './pages/LoginPage';
 import FindPassword from './pages/FindPassword';
 import JoinPage from './pages/JoinPage';
@@ -26,6 +27,8 @@ function App() {
         <Header/>
         <Routes>
           <Route path="/" element={<ProductsPage/>} />
+          <Route path="/write" element={<GroupPurchaseRegister/>} />
+
           <Route path="/login" element={<LoginPage/>} />
           <Route path="/find-password" element={<FindPassword/>} />
           <Route path="/join" element={<JoinPage/>} />
