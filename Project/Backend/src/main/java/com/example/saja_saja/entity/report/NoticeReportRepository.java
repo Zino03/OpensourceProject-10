@@ -14,4 +14,19 @@ public interface NoticeReportRepository extends JpaRepository<NoticeReport, Long
 
     @Query("SELECT r FROM NoticeReport r JOIN FETCH r.reportedNotice")
     Page<NoticeReport> findAll(Pageable pageable);
+
+    @Query("SELECT r FROM NoticeReport r JOIN FETCH r.reportedNotice JOIN FETCH r.reporter " +
+            "WHERE r.reporter.id = :userId AND r.status = :status")
+    Page<ReviewReport> findAllByReporterIdAndStatus(
+            @Param("userId") Long userId,
+            @Param("status") Integer status,
+            Pageable pageable
+    );
+
+    @Query("SELECT r FROM NoticeReport r JOIN FETCH r.reportedNotice JOIN FETCH r.reporter " +
+            "WHERE r.status = :status")
+    Page<ReviewReport> findAllByStatus(
+            @Param("status") Integer status,
+            Pageable pageable
+    );
 }

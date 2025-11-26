@@ -17,8 +17,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -96,7 +94,6 @@ public class UserService {
             HashMap<String, Object> data = new HashMap<>();
             data.put("address", savedAddressDto);
             return new ResponseEntity(data, HttpStatus.OK);
-
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("배송지 등록 실패하였습니다.");

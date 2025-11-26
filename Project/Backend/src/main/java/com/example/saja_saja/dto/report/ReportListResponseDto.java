@@ -19,7 +19,7 @@ public class ReportListResponseDto {
 
     private String title;
 
-    private String reportedName;
+    private String reportedNickname;
 
     private LocalDateTime reportedAt;
 
@@ -32,7 +32,7 @@ public class ReportListResponseDto {
                 reviewReport.getId(),
                 reviewReport.getReporter().getNickname(),
                 reviewReport.getTitle(),
-                reviewReport.getReportedReview().getBuyer().getUser().getName(),
+                reviewReport.getReportedReview().getBuyer().getUser().getNickname(),
                 reviewReport.getReportedAt(),
                 reviewReport.getStatus()
             );
@@ -41,7 +41,7 @@ public class ReportListResponseDto {
                 userReport.getId(),
                 userReport.getReporter().getNickname(),
                 userReport.getTitle(),
-                userReport.getReportedUser().getName(),
+                userReport.getReportedUser().getNickname(),
                 userReport.getReportedAt(),
                 userReport.getStatus()
             );
@@ -50,7 +50,7 @@ public class ReportListResponseDto {
                 noticeReport.getId(),
                 noticeReport.getReporter().getNickname(),
                 noticeReport.getTitle(),
-                noticeReport.getReportedNotice().getPost().getHost().getName(),
+                noticeReport.getReportedNotice().getPost().getHost().getNickname(),
                 noticeReport.getReportedAt(),
                 noticeReport.getStatus()
             );

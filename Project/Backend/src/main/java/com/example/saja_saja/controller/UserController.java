@@ -4,12 +4,8 @@ import com.example.saja_saja.config.SecurityUtil;
 import com.example.saja_saja.dto.user.UserAddressDto;
 import com.example.saja_saja.dto.user.UserRequestDto;
 import com.example.saja_saja.entity.member.Member;
-import com.example.saja_saja.service.ReportService;
 import com.example.saja_saja.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,10 +38,10 @@ public class UserController {
         return userService.addAddress(userId, addressDto);
     }
 
-    @PutMapping("/mypage/address/{address_id}")
-    public ResponseEntity updateUserAddress(@PathVariable Long address_id, @RequestBody UserAddressDto addressDto) {
+    @PutMapping("/mypage/address/{addressId}")
+    public ResponseEntity updateUserAddress(@PathVariable Long addressId, @RequestBody UserAddressDto addressDto) {
         Long userId = userService.getMember(SecurityUtil.getCurrentUserId()).getUser().getId();
-        return userService.updateUserAddress(userId, address_id, addressDto);
+        return userService.updateUserAddress(userId, addressId, addressDto);
     }
 
     @DeleteMapping("/mypage/address/{addressId}")

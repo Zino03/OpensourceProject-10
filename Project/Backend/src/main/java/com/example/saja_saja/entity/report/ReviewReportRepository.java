@@ -14,4 +14,19 @@ public interface ReviewReportRepository extends JpaRepository<ReviewReport, Long
 
     @Query("SELECT r FROM ReviewReport r JOIN FETCH r.reportedReview")
     Page<ReviewReport> findAll(Pageable pageable);
+
+    @Query("SELECT r FROM ReviewReport r JOIN FETCH r.reportedReview JOIN FETCH r.reporter " +
+            "WHERE r.reporter.id = :userId AND r.status = :status")
+    Page<ReviewReport> findAllByReporterIdAndStatus(
+            @Param("userId") Long userId,
+            @Param("status") Integer status,
+            Pageable pageable
+    );
+
+    @Query("SELECT r FROM ReviewReport r JOIN FETCH r.reportedReview JOIN FETCH r.reporter " +
+            "WHERE r.status = :status")
+    Page<ReviewReport> findAllByStatus(
+            @Param("status") Integer status,
+            Pageable pageable
+    );
 }

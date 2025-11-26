@@ -1,7 +1,6 @@
 package com.example.saja_saja.controller;
 
 import com.example.saja_saja.config.SecurityUtil;
-import com.example.saja_saja.dto.report.ReportRequestDto;
 import com.example.saja_saja.dto.report.ReportType;
 import com.example.saja_saja.entity.member.Member;
 import com.example.saja_saja.service.ReportService;
@@ -16,12 +15,12 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
-public class ReportController {
+public class AdminController {
     private final UserService userService;
     private final ReportService reportService;
 
-    @GetMapping("/reports/{type}")
-    public ResponseEntity getReviewReportList(
+    @GetMapping("/admin/reports/{type}")
+    public ResponseEntity getReportList(
             @PathVariable ReportType type,
             @RequestParam(required = false, defaultValue = "-1") Integer status,
             @PageableDefault(size = 15, sort = "reportedAt", direction = Sort.Direction.DESC) Pageable pageable
@@ -30,21 +29,13 @@ public class ReportController {
         return reportService.getReportList(member, type, status, pageable);
     }
 
-    @GetMapping("/reports/{type}/{reportId}")
+    @GetMapping("/admin/report/{type}/{reportId}")
     public ResponseEntity getReport(@PathVariable ReportType type, @PathVariable Long reportId) {
         Member member = userService.getMember(SecurityUtil.getCurrentUserId());
         return reportService.getReport(member, type, reportId);
     }
 
-    @PostMapping("/report/{type}")
-    public ResponseEntity createReport(@PathVariable ReportType type, @RequestBody ReportRequestDto req) {
-        Member member = userService.getMember(SecurityUtil.getCurrentUserId());
-        return reportService.createReport(member, type, req);
-    }
-
-    @DeleteMapping("/report/{type}/{reportId}")
-    public ResponseEntity deleteReport(@PathVariable ReportType type, @PathVariable Long reportId) {
-        Member member = userService.getMember(SecurityUtil.getCurrentUserId());
-        return reportService.deleteReport(member, type, reportId);
-    }
+    // TODO: 신고 처리
+    // TODO: 게시글 관리
+    // TODO: 정산 처리
 }
