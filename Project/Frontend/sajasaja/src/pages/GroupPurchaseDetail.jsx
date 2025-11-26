@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import { FaRegBell } from "react-icons/fa";
 import PurchaseModal from './modal/PurchaseModal';
 
 const Container = styled.div`
@@ -316,6 +317,79 @@ const MapOverlayButton = styled.button`
   cursor: pointer;
 `;
 
+const CommentList = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+const CommentItem = styled.div`
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+`;
+
+const CommentHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+`;
+
+const UserInfo = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+`;
+
+const UserIcon = styled.div`
+  width: 36px;
+  height: 36px;
+  background-color: #FFF5E0;
+  color: #FF7E36;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+`;
+
+const UserName = styled.span`
+  font-weight: 600;
+  font-size: 14px;
+`;
+
+const RatingText = styled.span`
+  font-size: 11px;
+  color: #666;
+  margin-left: 4px;
+`;
+
+const ReportButton = styled.button`
+  background: none;
+  border: none;
+  color: #999;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  
+  &:hover { color: #FF3B30; }
+`;
+
+const CommentContent = styled.div`
+  font-size: 12px;
+  margin-bottom: 12px;
+  white-space: pre-wrap;
+  word-break: break-all;
+`;
+
+const CommentDate = styled.div`
+  text-align: right;
+  font-size: 13px;
+  color: #999;
+`;
+
 const GroupPurchaseDetail = () => {
   const [activeTab, setActiveTab] = useState('info');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -327,7 +401,7 @@ const GroupPurchaseDetail = () => {
     startDate: '2025. 11. 16',
     endDate: '2025. 11. 30',
     daysLeft: 3,
-    shipping: '배송 가능',
+    shipping: '배송 불가능',
     shippingCost: '3,000원',
     organizer: '사자사자',
     mannerScore: 65,
@@ -336,6 +410,19 @@ const GroupPurchaseDetail = () => {
 texttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttext
 texttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttext`
   };
+
+  // 임시 데이터: 공지사항
+  const notices = [
+    { id: 1, writer: '사자사자', content: 'texttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttext', date: '2025. 11. 18' },
+    { id: 2, writer: '사자사자', content: '공지사항 내용입니다. 배송 관련 변동사항이 있습니다.', date: '2025. 11. 18' },
+  ];
+
+  // 임시 데이터: 후기
+  const reviews = [
+    { id: 1, writer: '과메기', rating: '별점 5점', content: '맛있고 최고예요 공구 열어주셔서 감사합니다 너무 좋아요 짱짱!!', date: '2025. 11. 18' },
+    { id: 2, writer: '가라사대', rating: '별점 5점', content: '맛있고 최고예요 공구 열어주셔서 감사합니다 너무 좋아요 짱짱!! 맛있고 최고예요 공구 열어주셔서 감사합니다 너무 좋아요 짱짱!!', date: '2025. 11. 18' },
+    { id: 3, writer: '과메기', rating: '별점 5점', content: '맛있고 최고예요 공구 열어주셔서 감사합니다 너무 좋아요 짱짱!!', date: '2025. 11. 18' },
+  ];
 
   const progressPercent = Math.min((product.currentCount / product.goalCount) * 100, 100);
 
@@ -414,19 +501,67 @@ texttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttext
         <TabItem active={activeTab === 'review'} onClick={() => setActiveTab('review')}>후기</TabItem>
       </TabMenu>
 
-      <Section>
-        <SectionHeader>상품 정보</SectionHeader>
-        <DescriptionBox>
-          {product.description}
-        </DescriptionBox>
-      </Section>
+      {activeTab === 'info' && (
+        <>
+          <Section>
+            <SectionHeader>상품 정보</SectionHeader>
+            <DescriptionBox>{product.description}</DescriptionBox>
+          </Section>
+          <Section>
+            <SectionHeader>수령장소</SectionHeader>
+            <MapPlaceholder>
+              <MapOverlayButton>지도보기</MapOverlayButton>
+            </MapPlaceholder>
+          </Section>
+        </>
+      )}
 
-      <Section>
-        <SectionHeader>수령장소</SectionHeader>
-        <MapPlaceholder>
-          <MapOverlayButton>지도보기</MapOverlayButton>
-        </MapPlaceholder>
-      </Section>
+      {activeTab === 'notice' && (
+        <Section>
+          <SectionHeader>공지</SectionHeader>
+          <CommentList>
+            {notices.map(notice => (
+              <CommentItem key={notice.id}>
+                <CommentHeader>
+                  <UserInfo>
+                    <UserIcon>🦁</UserIcon>
+                    <UserName>{notice.writer}</UserName>
+                  </UserInfo>
+                  <ReportButton>
+                    <FaRegBell /> 신고
+                  </ReportButton>
+                </CommentHeader>
+                <CommentContent>{notice.content}</CommentContent>
+                <CommentDate>{notice.date}</CommentDate>
+              </CommentItem>
+            ))}
+          </CommentList>
+        </Section>
+      )}
+
+      {activeTab === 'review' && (
+        <Section>
+          <SectionHeader>후기</SectionHeader>
+          <CommentList>
+            {reviews.map(review => (
+              <CommentItem key={review.id}>
+                <CommentHeader>
+                  <UserInfo>
+                    <UserIcon>🦁</UserIcon>
+                    <UserName>{review.writer}</UserName>
+                    <RatingText>{review.rating}</RatingText>
+                  </UserInfo>
+                  <ReportButton>
+                    <FaRegBell /> 신고
+                  </ReportButton>
+                </CommentHeader>
+                <CommentContent>{review.content}</CommentContent>
+                <CommentDate>{review.date}</CommentDate>
+              </CommentItem>
+            ))}
+          </CommentList>
+        </Section>
+      )}
 
     <PurchaseModal 
         isOpen={isModalOpen}

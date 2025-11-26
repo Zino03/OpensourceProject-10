@@ -144,18 +144,20 @@ const RadioLabel = styled.label`
   display: flex;
   align-items: center;
   gap: 6px;
-  cursor: pointer;
+  cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
+  color: ${props => props.disabled ? '#ccc' : '#333'};
   font-size: 12px;
 
   input {
     appearance: none;
     width: 18px;
     height: 18px;
-    border: 2px solid #ddd;
+    border: 2px solid ${props => props.disabled ? '#eee' : '#ddd'};
     border-radius: 50%;
     margin: 0;
-    cursor: pointer;
+    cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
     position: relative;
+    background-color: ${props => props.disabled ? '#f9f9f9' : 'transparent'};
 
     &:checked {
       border-color: #666;
@@ -197,6 +199,7 @@ const PurchaseModal = ({ isOpen, onClose, product }) => {
   const [quantity, setQuantity] = useState(1);
   const [receiveMethod, setReceiveMethod] = useState('pickup');
 
+  const isDeliveryAvailable = product?.shipping?.includes('가능') && !product?.shipping?.includes('불');
   const maxQuantity = product.goalCount - product.currentCount;
 
   useEffect(() => {
@@ -293,15 +296,16 @@ const PurchaseModal = ({ isOpen, onClose, product }) => {
         <ControlRow>
           <Label>수령방식</Label>
           <RadioGroup>
-            <RadioLabel>
+            <RadioLabel disabled={!isDeliveryAvailable}>
               <input 
                 type="radio" 
                 name="receive" 
                 value="delivery" 
                 checked={receiveMethod === 'delivery'}
                 onChange={(e) => setReceiveMethod(e.target.value)}
+                disabled={!isDeliveryAvailable}
               />
-              배송
+              배송 {isDeliveryAvailable ? '' : '(불가)'}
             </RadioLabel>
             <RadioLabel>
               <input 
