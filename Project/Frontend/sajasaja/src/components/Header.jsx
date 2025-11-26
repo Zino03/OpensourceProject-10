@@ -73,7 +73,7 @@ const Header = () => {
         <RightSection>
           <nav>
             <a href="/">공동 구매</a>
-            <a href="/">내 주변 공구</a>
+            <a href="/nearby">내 주변 공구</a>
             <a href="/write">공구 등록</a>
             <a href="/">이용가이드</a>
           </nav>
