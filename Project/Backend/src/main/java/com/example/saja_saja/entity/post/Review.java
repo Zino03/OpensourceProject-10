@@ -28,4 +28,6 @@ public class Review {
     private String content;
 
     private Integer star;
+
+    private Boolean isBanned;
 }
