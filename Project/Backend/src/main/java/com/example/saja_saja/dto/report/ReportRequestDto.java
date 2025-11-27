@@ -1,6 +1,7 @@
 package com.example.saja_saja.dto.report;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -13,6 +14,6 @@ public class ReportRequestDto {
     @NotBlank(message = "신고 사유를 입력해주세요.")
     private String content;
 
-    @NotBlank
+    @NotNull
     private Long reportedId;
 }
