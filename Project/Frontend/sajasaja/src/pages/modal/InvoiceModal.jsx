@@ -15,40 +15,56 @@ const Overlay = styled.div`
 
 const ModalContainer = styled.div`
   background-color: #fff;
-  width: 1000px;
-  border-radius: 4px;
-  padding: 40px;
+  width: 900px;
+  border-radius: 6px;
+  padding: 48px;
   display: flex;
   flex-direction: column;
+  max-height: 90%;
+  box-sizing: border-box;
 `;
 
 const Title = styled.h2`
-  font-size: 24px;
+  font-size: 18px;
   font-weight: 700;
-  color: #000;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
+  flex-shrink: 0;
+`;
+
+const TableWrapper = styled.div`
+  width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin-bottom: 20px;
+  flex: 1;
+  padding-right: 12px;
 `;
 
 // 테이블 스타일
 const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
+  font-size: 12px;
   text-align: center;
-  margin-bottom: 30px;
+  position: sticky;
+  table-layout: fixed;
 
   th {
+    background-color: #fff;
     padding: 16px;
     font-weight: 500;
-    color: #000;
-    border-bottom: 1px solid #333;
+    position: sticky;
+    top: 0;
+    box-shadow: inset 0 -1px 0 #333;
+    box-sizing: border-box;
   }
 
   td {
     padding: 16px 8px;
     border-bottom: 1px solid #eee;
-    color: #333;
     vertical-align: middle;
+    word-break: break-all;
+    box-sizing: border-box;
   }
 `;
 
@@ -58,10 +74,11 @@ const StyledSelect = styled.select`
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  font-size: 13px;
+  font-size: 12px;
   color: #555;
   cursor: pointer;
-  &:focus { outline: none; border-color: #333; }
+  &:focus { outline: none;}
+  box-sizing: border-box;
 `;
 
 const StyledInput = styled.input`
@@ -69,9 +86,10 @@ const StyledInput = styled.input`
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  font-size: 13px;
-  &:focus { outline: none; border-color: #333; }
+  font-size: 12px;
+  &:focus { outline: none;}
   &::placeholder { color: #999; }
+  box-sizing: border-box;
 `;
 
 // 하단 버튼 그룹
@@ -83,12 +101,12 @@ const ButtonGroup = styled.div`
 
 const CloseButton = styled.button`
   padding: 12px 30px;
-  background-color: #E0E0E0; /* 회색 */
+  background-color: #E0E0E0;
   color: #333;
   border: none;
   border-radius: 6px;
-  font-weight: 700;
-  font-size: 14px;
+  font-weight: 500;
+  font-size: 12px;
   cursor: pointer;
   &:hover { background-color: #d5d5d5; }
 `;
@@ -99,8 +117,8 @@ const SaveButton = styled.button`
   color: #fff;
   border: none;
   border-radius: 6px;
-  font-weight: 700;
-  font-size: 14px;
+  font-weight: 500;
+  font-size: 12px;
   cursor: pointer;
   &:hover { background-color: #333; }
 `;
@@ -108,7 +126,7 @@ const SaveButton = styled.button`
 // 택배사 목록
 const COURIERS = ['CJ대한통운', '우체국택배', '한진택배', '롯데택배', '로젠택배', 'GS25편의점', 'CU편의점'];
 
-const DeliveryInfoModal = ({ isOpen, onClose, participants, onSave }) => {
+const InvoiceModal = ({ isOpen, onClose, participants, onSave }) => {
   // 로컬 상태 입력값 관리 (초기값은 부모에게서 받은 participants)
   const [deliveryData, setDeliveryData] = useState([]);
 
@@ -147,44 +165,53 @@ const DeliveryInfoModal = ({ isOpen, onClose, participants, onSave }) => {
     <Overlay onClick={onClose}>
       <ModalContainer onClick={(e) => e.stopPropagation()}>
         <Title>배송 정보 입력</Title>
+        <TableWrapper>
+          <Table>
+            <colgroup>
+              <col style={{ width: '100px' }} />
+              <col style={{ width: '100px' }} />
+              <col style={{ width: 'auto' }} />
+              <col style={{ width: '140px' }} />
+              <col style={{ width: '200px' }} /> 
+            </colgroup>
 
-        <Table>
-          <thead>
-            <tr>
-              <th style={{ width: '100px' }}>성명</th>
-              <th style={{ width: '120px' }}>닉네임</th>
-              <th>배송지</th>
-              <th style={{ width: '140px' }}>택배사</th>
-              <th style={{ width: '200px' }}>송장번호</th>
-            </tr>
-          </thead>
-          <tbody>
-            {deliveryData.map((row) => (
-              <tr key={row.id}>
-                <td>{row.name}</td>
-                <td>{row.nickname}</td>
-                <td style={{ textAlign: 'left', lineHeight: '1.4' }}>{row.address}</td>
-                <td>
-                  <StyledSelect 
-                    value={row.courier} 
-                    onChange={(e) => handleChange(row.id, 'courier', e.target.value)}
-                  >
-                    <option value="">선택</option>
-                    {COURIERS.map(c => <option key={c} value={c}>{c}</option>)}
-                  </StyledSelect>
-                </td>
-                <td>
-                  <StyledInput 
-                    type="text" 
-                    value={row.invoiceNum} 
-                    placeholder="송장번호 입력"
-                    onChange={(e) => handleChange(row.id, 'invoiceNum', e.target.value.replace(/[^0-9]/g, ''))} 
-                  />
-                </td>
+            <thead>
+              <tr>
+                <th>성명</th>
+                <th>닉네임</th>
+                <th>배송지</th>
+                <th>택배사</th>
+                <th>송장번호</th>
               </tr>
-            ))}
-          </tbody>
-        </Table>
+            </thead>
+            <tbody>
+              {deliveryData.map((row) => (
+                <tr key={row.id}>
+                  <td>{row.name}</td>
+                  <td>{row.nickname}</td>
+                  <td style={{ textAlign: 'left', lineHeight: '1.4' }}>{row.address}</td>
+                  <td>
+                    <StyledSelect 
+                      value={row.courier} 
+                      onChange={(e) => handleChange(row.id, 'courier', e.target.value)}
+                    >
+                      <option value="">선택</option>
+                      {COURIERS.map(c => <option key={c} value={c}>{c}</option>)}
+                    </StyledSelect>
+                  </td>
+                  <td>
+                    <StyledInput 
+                      type="text" 
+                      value={row.invoiceNum} 
+                      placeholder="송장번호 입력"
+                      onChange={(e) => handleChange(row.id, 'invoiceNum', e.target.value.replace(/[^0-9]/g, ''))} 
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        </TableWrapper>
 
         <ButtonGroup>
           <CloseButton onClick={onClose}>닫기</CloseButton>
@@ -196,4 +223,4 @@ const DeliveryInfoModal = ({ isOpen, onClose, participants, onSave }) => {
   );
 };
 
-export default DeliveryInfoModal;
+export default InvoiceModal;

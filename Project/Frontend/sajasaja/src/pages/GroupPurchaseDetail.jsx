@@ -106,9 +106,9 @@ const InfoArea = styled.div`
 `;
 
 const ProductTitle = styled.h1`
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 600;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
 `;
 
 // 진행률 바
@@ -121,11 +121,11 @@ const ProgressSection = styled.div`
 const ProgressLabel = styled.div`
   font-size: 12px;
   color: #666;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 `;
 
 const CurrentCount = styled.div`
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 600;
   margin-bottom: 12px;
 `;
@@ -210,7 +210,7 @@ const MannerLabel = styled.span`
   border-radius: 4px;
 `;
 
-const ContactButtonSmall = styled.button`
+const ContactButton = styled.button`
   background-color: #FF7E36;
   color: white;
   border: none;
@@ -218,8 +218,7 @@ const ContactButtonSmall = styled.button`
   padding: 4px 10px;
   border-radius: 4px;
   cursor: pointer;
-  margin-left: auto;
-  font-weight: 500;
+  margin-left: 70px;
 `;
 
 
@@ -234,7 +233,7 @@ const PriceArea = styled.div`
 `;
 
 const PriceText = styled.div`
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
 `;
 
@@ -417,8 +416,7 @@ const InvoiceNumberButton = styled.button`
 
 const InvoiceStatusBadge = styled.span`
   display: inline-block;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 10px;
   padding: 6px 10px;
   border-radius: 20px;
   color: ${props => props.isRegistered ? '#00902F' : '#888'};
@@ -480,10 +478,13 @@ const GroupPurchaseDetail = () => {
   ];
 
   const [participants, setParticipants] = useState([
-    { id: 1, name: '변진호(주최자)', nickname: '사자사자', amount: '7,000원', status: '결제 완료', date: '2025-11-06', address: '충북 청주시...', invoice: null},
-    { id: 2, name: '최지우', nickname: '휴학할래', amount: '7,000원', status: '결제 완료', date: '2025-11-06', address: '충북 청주시...', invoice: null }, // 송장 없음
-    { id: 3, name: '김서연', nickname: '너도하자', amount: '7,000원', status: '결제 대기', date: '-', address: '충북 청주시...', invoice: null },
-    { id: 4, name: '조수빈', nickname: '휴학', amount: '7,000원', status: '결제 대기', date: '-', address: '충북 청주시...', invoice: null },
+    { id: 1, name: '변진호(주최자)', nickname: '사자사자', amount: '7,000원', status: '결제 완료', date: '2025-11-06', address: '충북 청주시 서원구 충대로 1 충북대학교 S4-1 103호', invoice: null},
+    { id: 2, name: '최지우', nickname: '휴학할래', amount: '7,000원', status: '결제 완료', date: '2025-11-06', address: '충북 청주시 서원구 충대로 1 충북대학교 S4-1 103호', invoice: null },
+    { id: 3, name: '김서연', nickname: '너도하자', amount: '7,000원', status: '결제 대기', date: '-', address: '충북 청주시 서원구 충대로 1 충북대학교 S4-1 103호', invoice: null },
+    { id: 4, name: '조수빈', nickname: '휴학', amount: '7,000원', status: '결제 대기', date: '-', address: '충북 청주시 서원구 충대로 1 충북대학교 S4-1 103호', invoice: null },
+    { id: 5, name: '최지우', nickname: '휴학할래', amount: '7,000원', status: '결제 완료', date: '2025-11-06', address: '충북 청주시 서원구 충대로 1 충북대학교 S4-1 103호', invoice: null },
+    { id: 6, name: '김서연', nickname: '너도하자', amount: '7,000원', status: '결제 대기', date: '-', address: '충북 청주시 서원구 충대로 1 충북대학교 S4-1 103호', invoice: null },
+    { id: 7, name: '조수빈', nickname: '휴학', amount: '7,000원', status: '결제 대기', date: '-', address: '충북 청주시 서원구 충대로 1 충북대학교 S4-1 103호', invoice: null },
   ]);
 
   const [activeTab, setActiveTab] = useState('info');
@@ -563,7 +564,7 @@ return (
               <ProfileIcon>🦁</ProfileIcon>
               <OrganizerName>{product.organizer}</OrganizerName>
               <MannerLabel>매너점수 {product.mannerScore}점</MannerLabel>
-              <ContactButtonSmall>연락하기</ContactButtonSmall>
+              <ContactButton>연락하기</ContactButton>
             </OrganizerBadge>
           </OrganizerRow>
         </DetailList>
