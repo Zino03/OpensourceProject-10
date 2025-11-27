@@ -30,7 +30,7 @@ public class PostService {
     private final AddressRepository addressRepository;
 
     public boolean isValidDeliveryFee(Boolean isDeliveryAvailable, Integer deliveryFee) {
-        if(isDeliveryAvailable == true){
+        if(isDeliveryAvailable){
             if(deliveryFee <= 0){
                 return false;
             }
@@ -72,6 +72,7 @@ public class PostService {
             post.setStatus(0);
             post.setPickupAddress(address);
             post.setCurrentQuantity(0);
+            post.setReviews(new ArrayList<>());
 
             post = postRepository.save(post);
 
@@ -100,7 +101,7 @@ public class PostService {
                         .findFirst()
                         .orElse(null);
 
-                if(!Objects.equals(post.getHost().getId(), member.getUser().getId())) {
+                if(!Objects.equals(post.getHost().getNickname(), member.getUser().getNickname())) {
                     post.setBuyers(null);
                 }
 

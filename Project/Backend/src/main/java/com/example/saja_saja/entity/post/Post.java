@@ -61,4 +61,7 @@ public class Post {
 
     @OneToMany(mappedBy = "post")
     private List<Notice> notices = new ArrayList<>();
+
+    @OneToMany(mappedBy = "post")
+    private List<Review> reviews = new ArrayList<>();
 }

@@ -50,8 +50,10 @@ public class PostResponseDto {
 
     private List<Notice> notices = new ArrayList<>();
 
+    private List<Review> reviews = new ArrayList<>();
+
     public static PostResponseDto of(Post post) {
-        return new PostResponseDto().builder()
+        return builder()
                 .id(post.getId())
                 .host(PostMemberResponseDto.of(post.getHost()))
                 .title(post.getTitle())
@@ -69,6 +71,7 @@ public class PostResponseDto {
                 .category(post.getCategory())
                 .buyers(post.getBuyers())
                 .notices(post.getNotices())
+                .reviews(post.getReviews())
                 .build();
     }
 }
