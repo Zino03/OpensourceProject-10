@@ -35,6 +35,6 @@ public class ReviewReport {
 
     private LocalDateTime reportedAt;
 
-    // 0: 처리 대기, 1: 신고 기각, 2: 사용자 제재
+    // 0: 처리 대기, 1: 신고 기각, 2: 후기 숨김
     private Integer status;
 }

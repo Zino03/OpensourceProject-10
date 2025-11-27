@@ -1,9 +1,6 @@
 package com.example.saja_saja.service;
 
-import com.example.saja_saja.dto.report.ReportListResponseDto;
-import com.example.saja_saja.dto.report.ReportRequestDto;
-import com.example.saja_saja.dto.report.ReportResponseDto;
-import com.example.saja_saja.dto.report.ReportType;
+import com.example.saja_saja.dto.report.*;
 import com.example.saja_saja.entity.member.Member;
 import com.example.saja_saja.entity.member.Role;
 import com.example.saja_saja.entity.post.Notice;
@@ -24,10 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 
 @Transactional
@@ -165,6 +159,18 @@ public class ReportService {
             String title = req.getTitle();
             String content = req.getContent();
 
+            if (reportedId == null) {
+                throw new IllegalArgumentException("신고 대상 ID는 필수 항목입니다.");
+            }
+
+            if (title == null || title.trim().isEmpty()) {
+                throw new IllegalArgumentException("신고 제목을 입력해주세요.");
+            }
+
+            if (content == null || content.trim().isEmpty()) {
+                throw new IllegalArgumentException("신고 내용을 입력해주세요.");
+            }
+
             Object reportEntity = null;
 
             switch (type) {
@@ -259,6 +265,78 @@ public class ReportService {
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("신고내역 삭제에 실패하였습니다.");
+        }
+    }
+
+    @Transactional
+    public ResponseEntity processReport(Member member, ReportType type, Long reportId, ReportProcessRequestDto req) {
+        try {
+            if (member.getRole() != Role.ADMIN) {
+                throw new AccessDeniedException("신고 처리 권한이 없습니다.");
+            }
+
+            ReportResponseDto reportResponse = null;
+
+            switch (type) {
+                case USER:
+                    UserReport userReport = userReportRepository.findById(reportId)
+                            .orElseThrow(() -> new NoSuchElementException("신고 내역을 찾을 수 없습니다."));
+
+                    userReport.setStatus(req.getStatus());
+                    if (req.getStatus() == 2) {
+                        User user = Optional.ofNullable(userReport.getReportedUser())
+                                .orElseThrow(() -> new NoSuchElementException("신고된 사용자를 찾을 수 없습니다."));
+
+                        user.setIsBanned(true);
+                        user.setBannedReason(req.getBannedReason());
+                    }
+                    reportResponse = ReportResponseDto.from(userReport);
+                    break;
+                case REVIEW:
+                    ReviewReport reviewReport = reviewReportRepository.findById(reportId)
+                            .orElseThrow(() -> new NoSuchElementException("신고 내역을 찾을 수 없습니다."));
+
+                    reviewReport.setStatus(req.getStatus());
+                    if (req.getStatus() == 2) {
+                        Review review = Optional.ofNullable(reviewReport.getReportedReview())
+                                .orElseThrow(() -> new NoSuchElementException("신고된 리뷰를 찾을 수 없습니다."));
+
+                        review.setIsBanned(true);
+                    }
+                    reportResponse = ReportResponseDto.from(reviewReport);
+                    break;
+                case NOTICE:
+                    NoticeReport noticeReport = noticeReportRepository.findById(reportId)
+                            .orElseThrow(() -> new NoSuchElementException("신고 내역을 찾을 수 없습니다."));
+
+                    noticeReport.setStatus(req.getStatus());
+                    if (req.getStatus() == 2) {
+                        Notice notice = Optional.ofNullable(noticeReport.getReportedNotice())
+                                .orElseThrow(() -> new NoSuchElementException("신고된 공지를 찾을 수 없습니다."));
+
+                        notice.setIsBanned(true);
+                    }
+                    reportResponse = ReportResponseDto.from(noticeReport);
+                    break;
+                default:
+                    throw new IllegalArgumentException("유효하지 않은 신고 유형입니다.");
+            }
+
+            HashMap<String, Object> data = new HashMap<>();
+            data.put("message", "신고 처리가 완료되었습니다.");
+            data.put("report", reportResponse);
+            return new ResponseEntity(data, HttpStatus.OK);
+        } catch (AccessDeniedException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
+        } catch (NoSuchElementException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException(e.getMessage(), e);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("신고 처리에 실패하였습니다.", e);
         }
     }
 }

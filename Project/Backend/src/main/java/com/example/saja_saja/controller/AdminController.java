@@ -1,6 +1,7 @@
 package com.example.saja_saja.controller;
 
 import com.example.saja_saja.config.SecurityUtil;
+import com.example.saja_saja.dto.report.ReportProcessRequestDto;
 import com.example.saja_saja.dto.report.ReportType;
 import com.example.saja_saja.entity.member.Member;
 import com.example.saja_saja.service.ReportService;
@@ -35,7 +36,15 @@ public class AdminController {
         return reportService.getReport(member, type, reportId);
     }
 
-    // TODO: 신고 처리
+    @PostMapping("/admin/report/{type}/{reportId}")
+    public ResponseEntity processReport(
+            @PathVariable ReportType type, @PathVariable Long reportId,
+            @RequestBody ReportProcessRequestDto req
+    ) {
+        Member member = userService.getMember(SecurityUtil.getCurrentUserId());
+        return reportService.processReport(member, type, reportId, req);
+    }
+
     // TODO: 게시글 관리
     // TODO: 정산 처리
 }
