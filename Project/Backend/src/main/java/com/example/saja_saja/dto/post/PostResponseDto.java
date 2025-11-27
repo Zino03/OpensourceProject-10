@@ -20,6 +20,10 @@ public class PostResponseDto {
 
     private PostMemberResponseDto host;
 
+    private Boolean isCanceled;
+
+    private String contact;
+
     private String title;
 
     private String image;
@@ -56,6 +60,8 @@ public class PostResponseDto {
         return builder()
                 .id(post.getId())
                 .host(PostMemberResponseDto.of(post.getHost()))
+                .isCanceled(post.getIsCanceled())
+                .contact(post.getContact())
                 .title(post.getTitle())
                 .image(post.getImage())
                 .price(post.getPrice())
@@ -71,7 +77,7 @@ public class PostResponseDto {
                 .category(post.getCategory())
                 .buyers(post.getBuyers())
                 .notices(post.getNotices())
-                .reviews(post.getReviews())
+                .reviews(new ArrayList<>())
                 .build();
     }
 }

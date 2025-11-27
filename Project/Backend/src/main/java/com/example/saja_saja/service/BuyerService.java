@@ -23,6 +23,12 @@ public class BuyerService {
         return this.save(member, post, false, requestQuantity);
     }
 
+    public ResponseEntity update(Member member, Post post, int requestQuantity) {
+        Buyer buyer = buyerRepository.findByUser(member.getUser());
+
+        return new ResponseEntity(buyer, HttpStatus.OK);
+    }
+
     public ResponseEntity save(Member member, Post post, boolean isDelivery, int requestQuantity) {
         int currentQuantity = post.getCurrentQuantity();
         int targetQuantity = post.getQuantity();

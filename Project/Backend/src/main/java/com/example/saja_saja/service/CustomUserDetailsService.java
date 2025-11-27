@@ -2,6 +2,7 @@ package com.example.saja_saja.service;
 
 import com.example.saja_saja.entity.member.Member;
 import com.example.saja_saja.entity.member.MemberRepository;
+import com.example.saja_saja.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.GrantedAuthority;
@@ -13,6 +14,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -22,6 +25,12 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     private UserDetails createUserDetails(Member member) {
         GrantedAuthority grantedAuthority = new SimpleGrantedAuthority(member.getRole().toString());
+
+        if(member.getUser().getIsBanned()==true) {
+            Map<String, Object> data = new HashMap<>();
+            data.put("bannedReason", member.getUser().getBannedReason());
+            throw new BadRequestException("정지당한 사용자입니다.", data);
+        }
 
         User user = new User(
                 String.valueOf(member.getId()),

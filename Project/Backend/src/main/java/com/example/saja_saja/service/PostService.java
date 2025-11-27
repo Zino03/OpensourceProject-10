@@ -20,7 +20,6 @@ import org.springframework.validation.FieldError;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -56,23 +55,20 @@ public class PostService {
                 throw new BadRequestException("배달비를 입력해주세요", null);
             }
 
-            Post post = postRequestDto.toPost();
-
-            Address address = null;
-            if (post.getPickupAddress() != null) {
-                address = addressRepository.save(post.getPickupAddress());
+            if (postRequestDto.getPickupAddress() == null) {
+                throw new BadRequestException("주소를 입력해주세요", null);
             }
 
-            if(post.getIsDeliveryAvailable() == false) {
+            Post post = postRequestDto.toPost();
+
+            if(postRequestDto.getIsDeliveryAvailable() == false) {
                 post.setDeliveryFee(0);
             }
 
             post.setHost(member.getUser());
-            post.setCreatedAt(LocalDateTime.now());
-            post.setStatus(0);
+
+            Address address = addressRepository.save(postRequestDto.getPickupAddress());
             post.setPickupAddress(address);
-            post.setCurrentQuantity(0);
-            post.setReviews(new ArrayList<>());
 
             post = postRepository.save(post);
 
@@ -87,13 +83,22 @@ public class PostService {
         }
     }
 
+    //TODO: reviews check
     public ResponseEntity post(Member member, long id) {
         Optional<Post> optional = postRepository.findById(id);
         if(optional.isPresent()) {
             PostResponseDto post = PostResponseDto.of(optional.get());
 
             HashMap<String, Object> data = new HashMap<>();
-            data.put("post", post);
+
+            List<Review> reviews = post.getBuyers().stream()
+                    .map(Buyer::getReview)
+                    .filter(Objects::nonNull)   // << null 제거!
+                    .toList();
+
+            if (!reviews.isEmpty()) {
+                post.setReviews(reviews);
+            }
 
             if(member != null) {
                 Buyer buyer = post.getBuyers().stream()
@@ -106,13 +111,18 @@ public class PostService {
                 }
 
                 data.put("buyer", buyer);
+            } else {
+                post.setBuyers(null);
             }
+
+            data.put("post", post);
             return new ResponseEntity(data, HttpStatus.OK);
         } else {
             throw new ResourceNotFoundException("공동구매 게시글을 찾을 수 없습니다");
         }
     }
 
+    //TODO : isCanceled check
     public ResponseEntity postList(Pageable pageable, Integer type, Category category) {
         Specification<Post> spec = (root, query, cb) -> null;
 
@@ -129,6 +139,10 @@ public class PostService {
             throw new BadRequestException("잘못된 타입입니다.", null);
         }
 
+        spec = spec.and((root, query, cb) ->
+                cb.equal(root.get("isCanceled"), false)
+        );
+
         // 카테고리 필터 (null일 때는 조건 없음)
         if (category != null) {
             spec = spec.and((root, query, cb) ->
@@ -143,6 +157,19 @@ public class PostService {
 
         return new ResponseEntity(postList, HttpStatus.OK);
     }
+
+    //TODO : check
+    public ResponseEntity cancel(Member member, long id) {
+        Post post = postRepository.findById(id).get();
+        if(!post.getHost().equals(member.getUser())) {
+            throw new BadRequestException("주최한 공구가 아닙니다", null);
+        }
+        post.setIsCanceled(true);
+        postRepository.save(post);
+        return new ResponseEntity("공구 취소가 완료되었습니다.", HttpStatus.OK);
+    }
+
+//    public
 
     @Transactional
     @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul") // 매일 0시 실행

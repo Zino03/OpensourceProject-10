@@ -31,19 +31,26 @@ public class PostRequestDto {
     private LocalDateTime endAt;
     @NotBlank(message = "카테고리를 선택해주세요.")
     private Category category;
+    @NotBlank(message = "연락수단을 입력해주세요")
+    private String contact;
 
     public Post toPost() {
         return Post.builder()
+                .isCanceled(false)
                 .title(title)
                 .image(image)
                 .price(price)
                 .content(content)
                 .quantity(quantity)
+                .currentQuantity(0)
                 .isDeliveryAvailable(isDeliveryAvailable)
                 .deliveryFee(deliveryFee)
                 .pickupAddress(pickupAddress)
+                .createdAt(LocalDateTime.now())
                 .endAt(endAt)
                 .category(category)
+                .contact(contact)
+                .status(0)
                 .notices(new ArrayList<>())
                 .buyers(new ArrayList<>())
                 .build();

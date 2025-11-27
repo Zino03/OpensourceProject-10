@@ -13,6 +13,8 @@ import lombok.NoArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.security.SecureRandom;
+
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
@@ -33,18 +35,27 @@ public class MemberRequestDto {
     @NotBlank(message = "닉네임을 입력해주세요.")
     private String nickname;
 
-    @NotBlank(message = "휴대전화를 입력해주세요.")
-    private String phone;
+//    @NotBlank(message = "휴대전화를 입력해주세요.")
+//    private String phone;
 
-//    private String profileImg;
-//    private String address;
-//    private String account;
+    public static String generateRandomNumberString() {
+        SecureRandom random = new SecureRandom();
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < 15; i++) {
+            sb.append(random.nextInt(10));
+        }
+
+        return sb.toString();
+    }
 
     public Member toMember(PasswordEncoder passwordEncoder) {
         User user = User.builder()
                 .name(name)
                 .nickname(nickname)
-                .phone(phone)
+//                .phone(phone)
+                .account(generateRandomNumberString())
+                .isBanned(false)
                 .build();
 
         return Member.builder()

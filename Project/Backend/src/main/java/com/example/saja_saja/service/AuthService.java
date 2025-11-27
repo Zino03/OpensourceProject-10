@@ -16,6 +16,7 @@ import com.example.saja_saja.response.DefaultRes;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
@@ -74,7 +75,16 @@ public class AuthService {
     public ResponseEntity login(LoginRequestDto loginRequestDto) {
         UsernamePasswordAuthenticationToken authenticationToken = loginRequestDto.toAuthentication();
 
-        Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
+        Authentication authentication;
+        try {
+            authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
+        } catch (InternalAuthenticationServiceException e) {
+            // 안쪽에 우리가 던진 BadRequestException이 있으면 다시 던져주기
+            if (e.getCause() instanceof BadRequestException bre) {
+                throw bre;
+            }
+            throw e; // 나머지는 그대로
+        }
 
         TokenDto tokenDto = tokenProvider.generateTokenDto(authentication);
 
