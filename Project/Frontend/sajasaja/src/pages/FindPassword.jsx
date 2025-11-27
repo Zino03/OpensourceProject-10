@@ -41,7 +41,7 @@ const InputGroup = styled.div`
     width: 100%;
     padding: 12px 16px;
     border: 1px solid #ddd;
-    border-radius: 4px;
+    border-radius: 6px;
     font-size: 12px;
     box-sizing: border-box;
 
@@ -81,7 +81,7 @@ const Button = styled.button`
   width: 100%;
   padding: 8px 0;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;

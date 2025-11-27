@@ -10,27 +10,27 @@ const PageWrapper = styled.div`
 
 const SignupWrapper = styled.div`
   width: 100%;
-  max-width: 500px;
+  max-width: 400px;
   background-color: #fff;
-  padding: 60px 48px;
+  padding: 48px;
   display: flex;
   flex-direction: column;
 `;
 
 const Title = styled.h2`
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 600;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
 `;
 
 const InputGroup = styled.div`
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   width: 100%;
 `;
 
 const Label = styled.label`
   display: block;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 500;
   margin-bottom: 8px;
 `;
@@ -44,7 +44,8 @@ const InputWithButton = styled.div`
 
 const Input = styled.input`
   flex: 1;
-  padding: 12px 16px;
+  width:100%;
+  padding: 8px 16px;
   border: 1px solid #ddd;
   border-radius: 8px;
   font-size: 12px;
@@ -56,13 +57,12 @@ const Input = styled.input`
 `;
 
 const CheckButton = styled.button`
-  padding: 14px 24px;
+  padding: 8px 16px;
   background-color: #CFCFCF;
   color: white;
   border: none;
   border-radius: 8px;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 11px;
   cursor: pointer;
   white-space: nowrap;
 
@@ -87,19 +87,18 @@ const ValidationMessage = styled.p`
 
 const SubmitButton = styled.button`
   width: 100%;
-  padding: 18px 0;
+  padding: 12px 16px;
   background-color: #000;
   color: white;
   border: none;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 600;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-  margin-top: 16px;
-  transition: background-color 0.2s;
+  margin-top: 8px;
 
   &:hover {
-    background-color: #333;
+    opacity: 0.9;
   }
 `;
 

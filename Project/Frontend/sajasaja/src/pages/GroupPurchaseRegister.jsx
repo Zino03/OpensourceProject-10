@@ -5,14 +5,14 @@ import AddressFindModal from './modal/AddressFindModal';
 
 const Container = styled.div`
   width: 100%;
-  max-width: 900px;
+  max-width: 800px;
   margin: 0 auto;
   padding: 30px 20px 100px; 
 `;
 
 const PageTitle = styled.h2`
   text-align: center;
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 600;
   margin-bottom: 30px;
 `;
@@ -53,7 +53,7 @@ const FormSection = styled.div`
 const Label = styled.div`
   width: 150px;
   font-weight: 500;
-  font-size: 14px;
+  font-size: 12px;
   padding-top: 12px;
   flex-shrink: 0;
 `;
@@ -73,6 +73,12 @@ const StyledInput = styled.input`
   border-radius: 4px;
   &::placeholder { color: #aaa; }
   &:focus { outline: none; }
+
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
 `;
 
 // 카테고리
@@ -114,7 +120,7 @@ const SplitItem = styled.div`
 
 const SubLabel = styled.span`
   font-weight: 500;
-  font-size: 14px;
+  font-size: 12px;
   white-space: nowrap;
   margin-right: 20px;
   margin-top: 8px;
@@ -137,7 +143,6 @@ const StyledTextArea = styled.textarea`
   border: 1px solid #ddd;
   border-radius: 4px;
   resize: none;
-  font-family: inherit;
   
   &::placeholder { color: #aaa; }
   &:focus { outline: none; }
@@ -155,7 +160,7 @@ const CheckboxLabel = styled.label`
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
+  font-size: 12px;
   cursor: pointer;
   font-weight: 500;
   white-space: nowrap;

@@ -5,21 +5,16 @@ import { useNavigate } from 'react-router-dom';
 // 카드 스타일
 const CardWrapper = styled.div`
   background-color: #fff;
-  border-radius: 4px;
+  border-radius: 6px;
   overflow: hidden;
   cursor: pointer;
-  transition: transform 0.2s ease;
   border: 1px solid #eee;
-
-  &:hover {
-    transform: translateY(-4px);
-  }
 `;
 
 const ImageContainer = styled.div`
   position: relative;
   width: 100%;
-  height: 200px;
+  height: 150px;
   overflow: hidden;
 
   img {
