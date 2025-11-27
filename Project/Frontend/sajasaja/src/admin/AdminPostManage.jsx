@@ -155,15 +155,14 @@ const AdminPaymentManage = () => {
         </thead>
         <tbody>
           {mockPosts.map((post) => (
-            <tr key={post.id}
-              onClick={() => handleManageClick(post)}>
+            <tr key={post.id}>
               <td>{post.id}</td>
               <td>{post.title}</td>
               <td>{post.writer}</td>
               <td>{post.deadline}</td>
               <td>{post.date}</td>
               <td>
-                <StatusButton className={post.status}>
+                <StatusButton className={post.status} onClick={() => handleManageClick(post)}>
                   {post.status === 'approve' ? '승인' : post.status === 'companion' ? '반려' : '대기'}
                 </StatusButton>
               </td>

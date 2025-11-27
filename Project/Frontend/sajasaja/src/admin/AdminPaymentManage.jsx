@@ -129,8 +129,7 @@ const AdminPaymentManage = () => {
         </thead>
         <tbody>
           {mockPayments.map((payment) => (
-            <tr key={payment.id}
-              onClick={() => handleDetailClick(payment.id)}>
+            <tr key={payment.id}>
               <td>{payment.id}</td>
               <td>{payment.title}</td>
               <td>{payment.writer}</td>
@@ -138,7 +137,7 @@ const AdminPaymentManage = () => {
               <td>{payment.deadline}</td>
               <td>{payment.date}</td>
               <td>
-                <StatusButton className={payment.status}>
+                <StatusButton className={payment.status} onClick={() => handleDetailClick(payment.id)}>
                   {payment.status === 'waiting' ? '대기' : payment.status === 'rejected' ? '취소' : '완료'}
                 </StatusButton>
               </td>

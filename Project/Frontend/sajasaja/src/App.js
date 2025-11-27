@@ -5,6 +5,9 @@ import GlobalStyle from './styles/GlobalStyle';
 import Header from './components/Header';
 
 import ProductsPage from './pages/ProductsPage';
+import GroupPurchaseDetail from './pages/GroupPurchaseDetail';
+import GroupPurchaseRegister from './pages/GroupPurchaseRegister';
+import NearbyGroupPurchase from "./pages/NearbyGroupPurchase";
 import LoginPage from './pages/LoginPage';
 import FindPassword from './pages/FindPassword';
 import JoinPage from './pages/JoinPage';
@@ -26,6 +29,10 @@ function App() {
         <Header/>
         <Routes>
           <Route path="/" element={<ProductsPage/>} />
+          <Route path="/products/:id" element={<GroupPurchaseDetail />} />
+          <Route path="/write" element={<GroupPurchaseRegister/>} />
+          <Route path="nearby" element={<NearbyGroupPurchase/>} />
+
           <Route path="/login" element={<LoginPage/>} />
           <Route path="/find-password" element={<FindPassword/>} />
           <Route path="/join" element={<JoinPage/>} />
