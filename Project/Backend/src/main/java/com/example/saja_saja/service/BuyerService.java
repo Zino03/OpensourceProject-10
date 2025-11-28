@@ -72,6 +72,8 @@ public class BuyerService {
                 .isDelivery(isDelivery)
                 .quantity(requestQuantity)
                 .isPaid(1)
+                .courier(null)
+                .trackingNumber(null)
                 .receivedAt(null)
                 .isConfirmed(true)
                 .build();
