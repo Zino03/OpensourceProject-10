@@ -30,7 +30,7 @@ const StatusTag = styled.div`
   top: 12px;
   left: 12px;
   padding: 5px 10px;
-  background-color: rgba(255, 122, 90, 0.9);
+  background-color: #FF7E00;
   color: white;
   font-size: 10px;
   font-weight: 500;
@@ -72,7 +72,7 @@ const DetailsContainer = styled.div`
 
 const Quantity = styled.div`
   text-align: right;
-  color: #FF7A5A;
+  color: #FF7E00;
 `;
 
 const Deadline = styled.div`

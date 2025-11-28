@@ -95,12 +95,12 @@ const CategoryButton = styled.button`
   font-size: 12px;
   cursor: pointer;
   border: none;
-  background-color: ${props => props.active ? '#FF7E36' : 'transparent'};
+  background-color: ${props => props.active ? '#FF7E00' : 'transparent'};
   color: ${props => props.active ? '#fff' : '#666'};
   font-weight: ${props => props.active ? '500' : '400'};
 
   &:hover {
-    background-color: ${props => props.active ? '#FF7E36' : '#f5f5f5'};
+    background-color: ${props => props.active ? '#FF7E00' : '#f5f5f5'};
   }
 `;
 
@@ -166,7 +166,7 @@ const CheckboxLabel = styled.label`
   white-space: nowrap;
 
   input {
-    accent-color: #FF7E36; /* 체크박스 색상 */
+    accent-color: #FF7E00; /* 체크박스 색상 */
     width: 16px;
     height: 16px;
   }
@@ -178,7 +178,7 @@ const SubmitButton = styled.button`
   width: 120px;
   padding: 12px 0;
   margin: 40px auto 0;
-  background-color: #FF7E36;
+  background-color: #FF7E00;
   color: #fff;
   border: none;
   border-radius: 6px;

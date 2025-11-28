@@ -85,7 +85,7 @@ const ThumbnailList = styled.div`
 const Thumbnail = styled.div`
   width: 60px;
   height: 60px;
-  border: 1px solid ${props => props.active ? '#FF7E36' : '#eee'};
+  border: 1px solid ${props => props.active ? '#FF7E00' : '#eee'};
   border-radius: 4px;
   cursor: pointer;
   overflow: hidden;
@@ -172,7 +172,7 @@ const Value = styled.div`
 
 const TimeBadge = styled.span`
   background-color: #FFF5E0;
-  color: #FF7E36;
+  color: #FF7E00;
   font-size: 12px;
   padding: 4px 8px;
   border-radius: 4px;
@@ -211,7 +211,7 @@ const MannerLabel = styled.span`
 `;
 
 const ContactButton = styled.button`
-  background-color: #FF7E36;
+  background-color: #FF7E00;
   color: white;
   border: none;
   font-size: 12px;
@@ -239,7 +239,7 @@ const PriceText = styled.div`
 
 const PurchaseButton = styled.button`
   width: 100%;
-  background-color: #FF7E36;
+  background-color: #FF7E00;
   color: #fff;
   border: none;
   padding: 10px 0;
@@ -264,12 +264,12 @@ const TabItem = styled.div`
   padding: 16px 0;
   font-size: 14px;
   font-weight: 500;
-  color: ${props => props.active ? '#FF7E36' : '#555'};
-  border-bottom: 3px solid ${props => props.active ? '#FF7E36' : 'transparent'};
+  color: ${props => props.active ? '#FF7E00' : '#555'};
+  border-bottom: 3px solid ${props => props.active ? '#FF7E00' : 'transparent'};
   cursor: pointer;
   
   &:hover {
-    color: #FF7E36;
+    opacity: 0.9;
   }
 `;
 
@@ -307,7 +307,7 @@ const MapOverlayButton = styled.button`
   position: absolute;
   top: 20px;
   right: 20px;
-  background-color: #FF7E36;
+  background-color: #FF7E00;
   color: white;
   border: none;
   padding: 8px 20px;
@@ -344,7 +344,7 @@ const UserIcon = styled.div`
   width: 36px;
   height: 36px;
   background-color: #FFF5E0;
-  color: #FF7E36;
+  color: #FF7E00;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -403,7 +403,7 @@ const ManageTitle = styled.h3`
 `;
 
 const InvoiceNumberButton = styled.button`
-  background-color: #FF7E36;
+  background-color: #FF7E00;
   color: white;
   border: none;
   padding: 10px 20px;
@@ -411,7 +411,7 @@ const InvoiceNumberButton = styled.button`
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
-  &:hover { background-color: #e86b25; }
+  &:hover { opacity: 0.9; }
 `;
 
 const InvoiceStatusBadge = styled.span`
