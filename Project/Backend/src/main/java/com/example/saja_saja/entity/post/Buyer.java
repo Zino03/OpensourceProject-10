@@ -39,6 +39,10 @@ public class Buyer {
     // 0: 대기, 1: 지불, 2: 반려
     private Integer isPaid;
 
+    private String courier;
+
+    private String trackingNumber;
+
     private LocalDateTime receivedAt;
 
     // 0: 대기, 1: 수령확인
