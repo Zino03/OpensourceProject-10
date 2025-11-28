@@ -50,7 +50,7 @@ const MapOverlayButton = styled.button`
 `;
 
 const WarningText = styled.p`
-  color: #FF3B30;
+  color: #FF7E00;
   font-size: 12px;
   text-align: right;
   margin-top: 8px;
@@ -352,7 +352,14 @@ const OrderPage = () => {
   };
 
   const handleOrder = () => {
-    alert('주문이 완료되었습니다!');
+    navigate('/payment', { 
+      state: { 
+        product: productData,
+        quantity: quantity,
+        totalPrice: finalPrice,
+        receiver: receiver,
+      } 
+    });
   };
 
   return (
