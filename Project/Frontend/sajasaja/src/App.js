@@ -8,10 +8,14 @@ import ProductsPage from './pages/ProductsPage';
 import GroupPurchaseDetail from './pages/GroupPurchaseDetail';
 import GroupPurchaseRegister from './pages/GroupPurchaseRegister';
 import NearbyGroupPurchase from "./pages/NearbyGroupPurchase";
+
 import LoginPage from './pages/LoginPage';
 import FindPassword from './pages/FindPassword';
 import JoinPage from './pages/JoinPage';
 import VerificationPage from './pages/VerificationPage';
+
+import OrderPage from './pages/OrderPage';
+import PaymentPage from './pages/PaymentPage';
 
 import AdminPage from './admin/AdminPages';
 import AdminUserReport from './admin/AdminUserReport'
@@ -20,6 +24,7 @@ import AdminNoticeReport from './admin/AdminNoticeReport'
 import AdminPaymentManage from './admin/AdminPaymentManage';
 import AdminPostManage from './admin/AdminPostManage';
 import AdminSettlement from './admin/AdminSettlement';
+import OrderCompletePage from './pages/OrderCompletePage';
 
 function App() {
   return (
@@ -30,6 +35,10 @@ function App() {
         <Routes>
           <Route path="/" element={<ProductsPage/>} />
           <Route path="/products/:id" element={<GroupPurchaseDetail />} />
+          <Route path="/order" element={<OrderPage/>} />
+          <Route path="payment" element={<PaymentPage/>} />
+          <Route path="/order-complete" element={<OrderCompletePage/>} />
+
           <Route path="/write" element={<GroupPurchaseRegister/>} />
           <Route path="nearby" element={<NearbyGroupPurchase/>} />
 

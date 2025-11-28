@@ -5,14 +5,14 @@ import AddressFindModal from './modal/AddressFindModal';
 
 const Container = styled.div`
   width: 100%;
-  max-width: 900px;
+  max-width: 800px;
   margin: 0 auto;
   padding: 30px 20px 100px; 
 `;
 
 const PageTitle = styled.h2`
   text-align: center;
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 600;
   margin-bottom: 30px;
 `;
@@ -53,7 +53,7 @@ const FormSection = styled.div`
 const Label = styled.div`
   width: 150px;
   font-weight: 500;
-  font-size: 14px;
+  font-size: 12px;
   padding-top: 12px;
   flex-shrink: 0;
 `;
@@ -73,6 +73,12 @@ const StyledInput = styled.input`
   border-radius: 4px;
   &::placeholder { color: #aaa; }
   &:focus { outline: none; }
+
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
 `;
 
 // 카테고리
@@ -89,12 +95,12 @@ const CategoryButton = styled.button`
   font-size: 12px;
   cursor: pointer;
   border: none;
-  background-color: ${props => props.active ? '#FF7E36' : 'transparent'};
+  background-color: ${props => props.active ? '#FF7E00' : 'transparent'};
   color: ${props => props.active ? '#fff' : '#666'};
   font-weight: ${props => props.active ? '500' : '400'};
 
   &:hover {
-    background-color: ${props => props.active ? '#FF7E36' : '#f5f5f5'};
+    background-color: ${props => props.active ? '#FF7E00' : '#f5f5f5'};
   }
 `;
 
@@ -114,7 +120,7 @@ const SplitItem = styled.div`
 
 const SubLabel = styled.span`
   font-weight: 500;
-  font-size: 14px;
+  font-size: 12px;
   white-space: nowrap;
   margin-right: 20px;
   margin-top: 8px;
@@ -137,7 +143,6 @@ const StyledTextArea = styled.textarea`
   border: 1px solid #ddd;
   border-radius: 4px;
   resize: none;
-  font-family: inherit;
   
   &::placeholder { color: #aaa; }
   &:focus { outline: none; }
@@ -155,13 +160,13 @@ const CheckboxLabel = styled.label`
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
+  font-size: 12px;
   cursor: pointer;
   font-weight: 500;
   white-space: nowrap;
 
   input {
-    accent-color: #FF7E36; /* 체크박스 색상 */
+    accent-color: #FF7E00; /* 체크박스 색상 */
     width: 16px;
     height: 16px;
   }
@@ -173,7 +178,7 @@ const SubmitButton = styled.button`
   width: 120px;
   padding: 12px 0;
   margin: 40px auto 0;
-  background-color: #FF7E36;
+  background-color: #FF7E00;
   color: #fff;
   border: none;
   border-radius: 6px;

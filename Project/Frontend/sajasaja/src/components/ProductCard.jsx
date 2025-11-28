@@ -5,21 +5,16 @@ import { useNavigate } from 'react-router-dom';
 // 카드 스타일
 const CardWrapper = styled.div`
   background-color: #fff;
-  border-radius: 4px;
+  border-radius: 6px;
   overflow: hidden;
   cursor: pointer;
-  transition: transform 0.2s ease;
   border: 1px solid #eee;
-
-  &:hover {
-    transform: translateY(-4px);
-  }
 `;
 
 const ImageContainer = styled.div`
   position: relative;
   width: 100%;
-  height: 200px;
+  height: 150px;
   overflow: hidden;
 
   img {
@@ -35,7 +30,7 @@ const StatusTag = styled.div`
   top: 12px;
   left: 12px;
   padding: 5px 10px;
-  background-color: rgba(255, 122, 90, 0.9);
+  background-color: #FF7E00;
   color: white;
   font-size: 10px;
   font-weight: 500;
@@ -77,7 +72,7 @@ const DetailsContainer = styled.div`
 
 const Quantity = styled.div`
   text-align: right;
-  color: #FF7A5A;
+  color: #FF7E00;
 `;
 
 const Deadline = styled.div`

@@ -128,7 +128,7 @@ const ProductListContainer = styled.div`
   grid-template-columns: repeat(5, 1fr);
   gap: 24px;
   padding: 32px;
-  margin: 0 125px;
+  margin: 0 150px;
 `;
 
 const ProductsPage = () => {

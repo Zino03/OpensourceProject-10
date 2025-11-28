@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { FaUserCircle } from "react-icons/fa";
+import { PiUserLight } from 'react-icons/pi';
 
 // 상단 헤더
 const HeaderWrapper = styled.header`
@@ -75,11 +75,10 @@ const Header = () => {
             <a href="/">공동 구매</a>
             <a href="/nearby">내 주변 공구</a>
             <a href="/write">공구 등록</a>
-            <a href="/">이용가이드</a>
           </nav>
           <div className="user-menu">
             <a href="/login">로그인</a>
-            <FaUserCircle size={24} color="#555" />
+            <PiUserLight size={"24px"}/> 
           </div>
         </RightSection>
       </HeaderContent>

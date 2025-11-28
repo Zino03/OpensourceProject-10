@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { FaTimes } from "react-icons/fa"; 
+import { useNavigate } from 'react-router-dom';
 
 const Overlay = styled.div`
   position: fixed;
@@ -196,6 +197,7 @@ const SubmitButton = styled.button`
 `;
 
 const PurchaseModal = ({ isOpen, onClose, product }) => {
+  const navigate = useNavigate(); 
   const [quantity, setQuantity] = useState(1);
   const [receiveMethod, setReceiveMethod] = useState('pickup');
 
@@ -248,6 +250,18 @@ const PurchaseModal = ({ isOpen, onClose, product }) => {
       setQuantity(1);
     }
   };
+
+  const handleSubmit = () => {
+    navigate('/order', { 
+      state: { 
+        product: product, 
+        quantity: quantity, 
+        method: receiveMethod 
+      } 
+    });
+    
+    onClose();
+  }
 
   return (
     <Overlay onClick={onClose}>
@@ -320,7 +334,7 @@ const PurchaseModal = ({ isOpen, onClose, product }) => {
           </RadioGroup>
         </ControlRow>
 
-        <SubmitButton>공동구매 시작하기</SubmitButton>
+        <SubmitButton onClick={() => handleSubmit()}>공동구매 시작하기</SubmitButton>
 
       </ModalContainer>
     </Overlay>

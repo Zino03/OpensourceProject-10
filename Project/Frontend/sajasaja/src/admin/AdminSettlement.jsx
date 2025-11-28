@@ -58,7 +58,7 @@ const Divider = styled.hr`
 
 const ParticipantButton = styled.button`
   padding: 10px 18px;
-  background-color: #FF7E36;
+  background-color: #000;
   color: white;
   border: none;
   border-radius: 4px;
@@ -87,7 +87,7 @@ const WarningBox = styled.div`
 `;
 
 const WarningText = styled.div`
-  color: #FF7E36;
+  color: red;
   font-size: 12px;
   font-weight: 600;
 `;
@@ -101,7 +101,7 @@ const ActionButton = styled.button`
   border: none;
   transition: opacity 0.2s;
 
-  background-color: ${props => props.gray ? '#bbb' : '#FF7E36'};
+  background-color: ${props => props.gray ? '#bbb' : '#000'};
   color: white;
 
   &:hover {
