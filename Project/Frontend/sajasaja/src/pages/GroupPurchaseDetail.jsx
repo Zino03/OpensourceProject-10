@@ -456,7 +456,7 @@ const GroupPurchaseDetail = () => {
     startDate: '2025. 11. 16',
     endDate: '2025. 11. 30',
     daysLeft: 3,
-    shipping: '배송 불가능',
+    shipping: '배송 가능',
     shippingCost: '3,000원',
     organizer: '사자사자',
     mannerScore: 65,

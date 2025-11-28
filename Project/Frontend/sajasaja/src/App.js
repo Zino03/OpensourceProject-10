@@ -8,10 +8,13 @@ import ProductsPage from './pages/ProductsPage';
 import GroupPurchaseDetail from './pages/GroupPurchaseDetail';
 import GroupPurchaseRegister from './pages/GroupPurchaseRegister';
 import NearbyGroupPurchase from "./pages/NearbyGroupPurchase";
+
 import LoginPage from './pages/LoginPage';
 import FindPassword from './pages/FindPassword';
 import JoinPage from './pages/JoinPage';
 import VerificationPage from './pages/VerificationPage';
+
+import OrderPage from './pages/OrderPage';
 
 import AdminPage from './admin/AdminPages';
 import AdminUserReport from './admin/AdminUserReport'
@@ -30,6 +33,8 @@ function App() {
         <Routes>
           <Route path="/" element={<ProductsPage/>} />
           <Route path="/products/:id" element={<GroupPurchaseDetail />} />
+          <Route path="/order" element={<OrderPage/>} />
+
           <Route path="/write" element={<GroupPurchaseRegister/>} />
           <Route path="nearby" element={<NearbyGroupPurchase/>} />
 
