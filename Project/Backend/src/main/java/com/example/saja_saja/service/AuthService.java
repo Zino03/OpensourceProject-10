@@ -7,6 +7,7 @@ import com.example.saja_saja.dto.member.MemberRequestDto;
 import com.example.saja_saja.dto.member.MemberResponseDto;
 import com.example.saja_saja.entity.token.RefreshToken;
 import com.example.saja_saja.entity.member.Member;
+import com.example.saja_saja.entity.user.UserRepository;
 import com.example.saja_saja.exception.BadRequestException;
 import com.example.saja_saja.exception.UnauthorizedException;
 import com.example.saja_saja.jwt.TokenProvider;
@@ -38,6 +39,7 @@ public class AuthService {
     private final TokenProvider tokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
     public static HashMap<String, Object> data = new HashMap<>();
+    private final UserRepository userRepository;
 
     public boolean passwordDuplicate(String password, String passwordCk) {
         return password.equals(passwordCk);
@@ -58,8 +60,11 @@ public class AuthService {
 
         if(memberRepository.findByEmail(memberRequestDto.getEmail()).isPresent()) {
             throw new BadRequestException("이미 가입되어 있는 유저입니다", null);
-        }
-        else if(!passwordDuplicate(memberRequestDto.getPassword(), memberRequestDto.getPasswordck())) {
+        } else if(userRepository.findByNickname(memberRequestDto.getNickname()).isPresent()) {
+            throw new BadRequestException("사용중인 닉네임입니다", null);
+        } else if(userRepository.findByPhone(memberRequestDto.getPhone()).isPresent()) {
+            throw new BadRequestException("이미 가입되어 있는 유저입니다", null);
+        } else if(!passwordDuplicate(memberRequestDto.getPassword(), memberRequestDto.getPasswordck())) {
             throw new BadRequestException("비밀번호가 다릅니다", null);
         }
 

@@ -35,8 +35,8 @@ public class MemberRequestDto {
     @NotBlank(message = "닉네임을 입력해주세요.")
     private String nickname;
 
-//    @NotBlank(message = "휴대전화를 입력해주세요.")
-//    private String phone;
+    @NotBlank(message = "휴대전화를 입력해주세요.")
+    private String phone;
 
     public static String generateRandomNumberString() {
         SecureRandom random = new SecureRandom();

@@ -30,7 +30,6 @@ public class UserResponseDto {
                 .email(user.getMember().getEmail())
                 .nickname(user.getNickname())
                 .profileImg(user.getProfileImg())
-                .address(user.getAddress())
                 .account(user.getAccount())
                 .build();
     }

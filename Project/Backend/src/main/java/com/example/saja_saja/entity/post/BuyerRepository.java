@@ -7,5 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface BuyerRepository extends JpaRepository<Buyer, Long> {
-    Buyer findByUser(User user);
+    Optional<Buyer> findByUser(User user);
+    Optional<Buyer> findByUserAndPost(User user, Post post);
 }

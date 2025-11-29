@@ -32,7 +32,6 @@ public class MemberResponseDto {
                 .nickname(member.getUser().getNickname())
                 .phone(member.getUser().getPhone())
                 .profileImg(member.getUser().getProfileImg())
-                .address(member.getUser().getAddress())
                 .account(member.getUser().getAccount())
                 .build();
     }

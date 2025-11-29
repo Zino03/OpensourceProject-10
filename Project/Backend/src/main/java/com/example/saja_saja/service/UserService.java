@@ -198,7 +198,6 @@ public class UserService {
 
             if (req.getNickname() != null) user.setNickname(req.getNickname());
             if (req.getProfileImg() != null) user.setProfileImg(req.getProfileImg());
-            if (req.getAddress() != null) user.setAddress(req.getAddress());
             if (req.getAccount() != null) user.setAccount(req.getAccount());
 
             HashMap<String, Object> data = new HashMap<>();
