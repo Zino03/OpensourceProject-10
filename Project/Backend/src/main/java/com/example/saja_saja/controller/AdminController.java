@@ -47,7 +47,6 @@ public class AdminController {
         return reportService.processReport(member, type, reportId, req);
     }
 
-    // TODO: 게시글 관리
     @GetMapping("/admin/posts")
     public ResponseEntity getAdminPostList(
             @RequestParam(required = false, defaultValue = "-1") Integer process,       // -1: 전체, 0: 대기, 1: 승인, 4: 반려
@@ -67,4 +66,10 @@ public class AdminController {
     }
 
     // TODO: 정산 처리
+    @GetMapping("/admin/post/{postId}")
+    public ResponseEntity getPost(@PathVariable Long postId) {
+        Member member = userService.getMember(SecurityUtil.getCurrentUserId());
+//        return postService.
+        return null;
+    }
 }

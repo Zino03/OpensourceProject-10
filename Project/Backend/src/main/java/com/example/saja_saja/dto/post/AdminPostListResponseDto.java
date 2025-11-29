@@ -23,7 +23,9 @@ public class AdminPostListResponseDto {
 
     private LocalDateTime createdAt;
 
-    private Integer status;
+    // 게시물관리    0: 대기, 1: 승인, 4: 반려
+    // 정산처리     0: 대기, 1: 완료(지불), 2: 반려
+    private Integer process;
 
     public static AdminPostListResponseDto of(Post post) {
         return new AdminPostListResponseDto().builder()
@@ -32,7 +34,7 @@ public class AdminPostListResponseDto {
                 .hostNickname(post.getHost().getNickname())
                 .endAt(post.getEndAt())
                 .createdAt(post.getCreatedAt())
-                .status(post.getStatus())
+                .process(post.getStatus())
                 .build();
     }
 }

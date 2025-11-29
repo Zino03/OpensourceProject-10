@@ -84,7 +84,7 @@ public class ReportService {
             }
 
             Page<ReportListResponseDto> reportDtoPage = reportPage.map(
-                    reportEntity -> ReportListResponseDto.from(reportEntity)
+                    reportEntity -> ReportListResponseDto.of(reportEntity)
             );
 
             List<ReportListResponseDto> reports = reportDtoPage.getContent();

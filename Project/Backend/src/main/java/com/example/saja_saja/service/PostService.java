@@ -224,6 +224,10 @@ public class PostService {
             Post post = postRepository.findById(postId)
                     .orElseThrow(() -> new NoSuchElementException("공동 구매 게시글을 찾을 수 없습니다."));
 
+            if (post.getStatus() != 0) {
+                throw new BadRequestException("대기 중인 공동 구매 게시글만 처리 가능합니다.", null);
+            }
+
             if (process == 1 || process == 4) {
                 post.setStatus(process);
             } else {
