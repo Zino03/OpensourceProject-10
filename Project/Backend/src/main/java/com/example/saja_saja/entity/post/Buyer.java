@@ -1,6 +1,7 @@
 package com.example.saja_saja.entity.post;
 
 import com.example.saja_saja.entity.user.User;
+import com.example.saja_saja.entity.user.UserAddress;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -39,20 +40,27 @@ public class Buyer {
     // 0: 대기, 1: 지불, 2: 반려
     private Integer isPaid;
 
+    @OneToOne
+    private UserAddress userAddress;
+
     private String courier;
 
     private String trackingNumber;
 
     private LocalDateTime receivedAt;
 
-    // 0: 대기, 1: 수령확인
-    private Boolean isConfirmed;
-
     private LocalDateTime createdAt;
 
     private Boolean isCanceled;
 
     private LocalDateTime canceledAt;
+
+    // 사용자가 제재당하면 구매자 책임
+    // 0: 단순변심, 1: 공구취소, 2: 결제 미완료
+    private Integer canceledReason;
+
+    // 0: 주문 접수, 1: 결제완료, 2: 상품 준비중, 3: 배송완료, 4: 구매확정
+    private Integer status;
 
     @OneToOne
     @JoinColumn(name = "review_id")

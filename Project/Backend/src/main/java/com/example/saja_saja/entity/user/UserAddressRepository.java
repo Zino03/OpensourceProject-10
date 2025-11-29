@@ -17,4 +17,6 @@ public interface UserAddressRepository extends JpaRepository<UserAddress, Long> 
     Long countByUser(User user);
 
     Optional<UserAddress> findTopByUserAndIsDefaultFalseOrderByIdAsc(User user);
+
+    Optional<UserAddress> findByUserAndId(User user, Long id);
 }
