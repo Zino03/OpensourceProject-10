@@ -142,6 +142,7 @@ const JoinPage = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   
   // 유효성 검사 메시지
+  const [telMessage, setTelMessage] = useState(null);
   const [nicknameMessage, setNicknameMessage] = useState(null);
   const [emailMessage, setEmailMessage] = useState(null);
   const [passwordMessage, setPasswordMessage] = useState(null);
@@ -150,6 +151,40 @@ const JoinPage = () => {
   // 중복 확인 필수
   const [isNicknameVerified, setIsNicknameVerified] = useState(false);
   const [isEmailVerified, setIsEmailVerified] = useState(false);
+
+  // 전화번호 처리
+  const handleTelChange = (e) => {
+    // 숫자 이외의 문자는 모두 제거
+    const value = e.target.value.replace(/[^0-9]/g, ''); 
+    
+    // 11자리까지만 업데이트
+    if (value.length <= 11) {
+      setTel(value);
+    }
+  };
+
+  // 전화번호가 변경될 때마다 실행 (11자리가 찼을 때 검사)
+  useEffect(() => {
+    if (tel.length === 0) {
+      setTelMessage(null);
+      return;
+    }
+
+    // 11자리가 되었을 때 검사 수행
+    if (tel.length === 11) {
+      const phoneRegex = /^010\d{8}$/;
+
+      if (phoneRegex.test(tel)) {
+        setTelMessage({ text: "사용 가능한 전화번호입니다.", type: "success" });
+      } else {
+        setTelMessage({ text: "010으로 시작하는 올바른 휴대폰 번호를 입력해주세요.", type: "error" });
+      }
+    } else {
+      // 11자리가 아닐 때 메시지 초기화
+      setTelMessage(null);
+    }
+  }, [tel]);
+
 
   // 닉네임 중복 확인
   const checkNickname = () => {
@@ -165,9 +200,9 @@ const JoinPage = () => {
     }
   }
   
-  // 이메일 중복 확인 (com, net, ac.kr) 해야대!
+  // 이메일 중복 확인 (com, net, ac.kr)
   const checkEmail = () => {
-    const emailRegex = /^[A-Za-z0-9_.-]+@[A-Za-z0-9-]+\.[A-Za-z0-9-]{2,}$/; // 이메일 형식 체크
+    const emailRegex = /^[A-Za-z0-9_.-]+@[A-Za-z0-9-]+\.(com|net|ac\.kr)$/i; // 이메일 형식 체크
     if (!emailRegex.test(email)) {
       setEmailMessage({ text: "올바른 이메일 형식이 아닙니다.", type: "error" });
       return;
@@ -221,16 +256,17 @@ const JoinPage = () => {
 
           <InputGroup>
             <Label>이름</Label>
-            <InputWithButton>
-              <Input type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
-            </InputWithButton>
+            <Input type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
           </InputGroup>
 
           <InputGroup>
             <Label>전화번호</Label>
-            <InputWithButton>
-              <Input type="number" value={tel} onChange={(e) => setTel(e.target.value)} />
-            </InputWithButton>
+            <Input type="number" placeholder="ex) 01012345678" value={tel} onChange={handleTelChange} maxLength={11}/>
+            {telMessage && ( // 메시지가 있을 때만 표시
+              <ValidationMessage className={telMessage.type}>
+                {telMessage.text}
+              </ValidationMessage>
+            )}
           </InputGroup>
 
           <InputGroup>
