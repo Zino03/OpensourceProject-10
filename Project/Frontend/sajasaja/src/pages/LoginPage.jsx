@@ -87,7 +87,6 @@ const ButtonWrapper = styled.div`
     font-weight: 600;
     border-radius: 4px;
     cursor: pointer;
-    border: 1px solid #ddd;
   }
 `;
 

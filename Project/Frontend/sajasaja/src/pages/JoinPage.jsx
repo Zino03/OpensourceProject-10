@@ -120,7 +120,7 @@ const JoinPage = () => {
         alert('모든 항목을 작성해주세요.');
         return;
       }
-
+      
       if (!isNicknameVerified) {
         alert('닉네임 중복 확인을 해주세요.');
         return;
