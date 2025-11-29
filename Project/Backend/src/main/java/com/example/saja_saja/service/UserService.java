@@ -198,7 +198,6 @@ public class UserService {
 
             if (req.getNickname() != null) user.setNickname(req.getNickname());
             if (req.getProfileImg() != null) user.setProfileImg(req.getProfileImg());
-            if (req.getAddress() != null) user.setAddress(req.getAddress());
             if (req.getAccount() != null) user.setAccount(req.getAccount());
 
             HashMap<String, Object> data = new HashMap<>();
@@ -214,16 +213,24 @@ public class UserService {
     }
 
     public ResponseEntity getProfile(String nickname) {
-        Optional<User> optional = userRepository.findByNickname(nickname);
+        try {
+            Optional<User> optional = userRepository.findByNickname(nickname);
 
-        if (optional.isPresent()) {
-            ProfileResponseDto profile = ProfileResponseDto.of(userRepository.findByNickname(nickname).get());
+            if (optional.isPresent()) {
+                ProfileResponseDto profile = ProfileResponseDto.of(userRepository.findByNickname(nickname).get());
 
-            HashMap<String, Object> data = new HashMap<>();
-            data.put("profile", profile);
-            return new ResponseEntity(data, HttpStatus.OK);
-        } else {
-            throw new ResourceNotFoundException("해당 사용자를 찾을 수 없습니다");
+                HashMap<String, Object> data = new HashMap<>();
+                data.put("profile", profile);
+                return new ResponseEntity(data, HttpStatus.OK);
+            } else {
+                throw new NoSuchElementException("해당 사용자를 찾을 수 없습니다");
+            }
+        } catch (NoSuchElementException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("프로필을 불러올 수 없습니다.", e);
         }
     }
 }

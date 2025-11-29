@@ -21,8 +21,6 @@ public class MemberResponseDto {
 
     private String profileImg;
 
-    private String address;
-
     private String account;
 
     public static MemberResponseDto of(Member member) {
@@ -32,7 +30,6 @@ public class MemberResponseDto {
                 .nickname(member.getUser().getNickname())
                 .phone(member.getUser().getPhone())
                 .profileImg(member.getUser().getProfileImg())
-                .address(member.getUser().getAddress())
                 .account(member.getUser().getAccount())
                 .build();
     }

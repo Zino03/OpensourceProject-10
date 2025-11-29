@@ -15,15 +15,16 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
     private final UserService userService;
 
-    @PutMapping("/mypage/user")
-    public ResponseEntity updateUserInfo(@RequestBody UserRequestDto req) {
-        Member member = userService.getMember(SecurityUtil.getCurrentUserId());
-        return userService.updateUserInfo(member, req);
-    }
 
     @GetMapping("/user/{nickname}")
     public ResponseEntity getProfile(@PathVariable String nickname) {
         return userService.getProfile(nickname);
+    }
+
+    @PutMapping("/mypage/user")
+    public ResponseEntity updateUserInfo(@RequestBody UserRequestDto req) {
+        Member member = userService.getMember(SecurityUtil.getCurrentUserId());
+        return userService.updateUserInfo(member, req);
     }
 
     @GetMapping("/mypage/addresses")
@@ -49,4 +50,7 @@ public class UserController {
         Long userId = userService.getMember(SecurityUtil.getCurrentUserId()).getUser().getId();
         return userService.deleteUserAddress(userId, addressId);
     }
+
+    // TODO: 주문내역 조회
+    // TODO: 주최 공구 조회
 }

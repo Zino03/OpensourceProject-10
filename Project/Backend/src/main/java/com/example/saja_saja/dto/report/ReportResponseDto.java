@@ -28,7 +28,7 @@ public class ReportResponseDto {
     // 0: 처리 대기, 1: 신고 기각, 2: 사용자 제재
     private Integer status;
 
-    public static ReportResponseDto from(Object reportEntity) {
+    public static ReportResponseDto of(Object reportEntity) {
         if (reportEntity instanceof ReviewReport reviewReport) {
             return new ReportResponseDto(
                     reviewReport.getId(),

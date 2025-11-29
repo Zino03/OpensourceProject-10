@@ -19,8 +19,6 @@ public class UserResponseDto {
 
     private String profileImg;
 
-    private String address;
-
     private String account;
 
     private String phone;
@@ -30,7 +28,6 @@ public class UserResponseDto {
                 .email(user.getMember().getEmail())
                 .nickname(user.getNickname())
                 .profileImg(user.getProfileImg())
-                .address(user.getAddress())
                 .account(user.getAccount())
                 .build();
     }

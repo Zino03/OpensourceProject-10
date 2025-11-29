@@ -25,7 +25,7 @@ import java.util.NoSuchElementException;
 public class AdminPostService {
     private final PostRepository postRepository;
 
-    public ResponseEntity adminPostList(Member member, Integer process, Pageable pageable) {
+    public ResponseEntity getAdminPostList(Member member, Integer process, Pageable pageable) {
         try {
             if (member.getRole() != Role.ADMIN) {
                 throw new AccessDeniedException("게시글 관리 권한이 없습니다.");
@@ -73,12 +73,12 @@ public class AdminPostService {
             throw e;
         } catch (Exception e) {
             e.printStackTrace();
-            throw new RuntimeException("공동 구매 게시글을 찾을 수 없습니다.", e);
+            throw new RuntimeException("공동 구매 게시글을 불러올 수 없습니다.", e);
         }
     }
 
     @Transactional
-    public ResponseEntity process(Member member, Long postId, Integer process) {
+    public ResponseEntity processPost(Member member, Long postId, Integer process) {
         try {
             if (member.getRole() != Role.ADMIN) {
                 throw new AccessDeniedException("게시글 관리 권한이 없습니다.");
@@ -91,8 +91,11 @@ public class AdminPostService {
                 throw new BadRequestException("대기 중인 공동 구매 게시글만 처리 가능합니다.", null);
             }
 
-            if (process == 1 || process == 4) {
+            if (process == 1) {
                 post.setStatus(process);
+            } else if (process == 4) {
+                post.setStatus(process);
+                post.setIsCanceled(true);
             } else {
                 throw new BadRequestException("처리 불가능한 process값입니다.", null);
             }
