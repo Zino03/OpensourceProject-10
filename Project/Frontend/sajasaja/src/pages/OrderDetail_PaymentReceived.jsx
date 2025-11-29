@@ -77,7 +77,7 @@ const styles = {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "flex-end",
-    width: "83%", //표 헤더 선 길이 조정
+    width: "77%",
     margin: "0 auto",
     borderBottom: "1px solid #000",
     paddingBottom: "8px",
@@ -89,25 +89,19 @@ const styles = {
   },
 
   orderListNotice: {
-    fontSize: "11px",
+    fontSize: "12px",
     color: "#D32F2F",
   },
 
   orderTable: {
-    width: "83%", //표 선 길이 조정
+    width: "77%",
     margin: "0 auto",
     borderCollapse: "collapse",
-    textalign: "center",
-    fontSize: "16px",
+    fontSize: "13px",
   },
 
   tableHeadRow: {
     borderBottom: "1px solid #000",
-  },
-
-  tr: {
-    display: "flex",
-    flexDirection: "row",
   },
 
   th: { //표 헤더 내용 스타일 수정
@@ -116,7 +110,6 @@ const styles = {
     fontWeight: 500,
     color: "#555",
     fontSize: "13.5px",
-    maxWidth: "200px",
   },
 
   td: { //표 바디 내용 스타일 수정
@@ -134,7 +127,7 @@ const styles = {
   },
 
   productName: {
-    maxWidth: "160px",
+    maxWidth: "200px",
     whiteSpace: "nowrap",
     textAlign: "left",
     overflow: "hidden",
@@ -143,33 +136,25 @@ const styles = {
 
   orderActions: {
     display: "flex",
-    justifyContent:"space-between",
     gap: "8px",
   },
 
-  
-  thOrderActions: {
-    minWidth: "98px",
-    display: "flex",
-    justifyContent: "center",
-  },
-
   btnOutline: { //버튼 스타일 수정
-    minWidth: "98px",
+    minWidth: "90px",
     padding: "4px 14px",
-    fontSize: "10px",
+    fontSize: "11px",
     borderRadius: "6px",
     cursor: "pointer",
     border: "1px solid #000",
     backgroundColor: "#fff",
     color: "#444",
-    margin: "0 -8px 0 0",
+    margin: "0 -8px 0 -4px",
   },
 
   btnFilled: { //버튼 스타일 수정
-    minWidth: "98px",
+    minWidth: "90px",
     padding: "4px 14px",
-    fontSize: "10px",
+    fontSize: "11px",
     borderRadius: "6px",
     cursor: "pointer",
     border: "1px solid #FF7E00",
@@ -210,7 +195,7 @@ const steps = [
 const orders = [
   { id: 1, name: "애니 피오르크 미니 프레첼 스낵 150g", host: "사자사자", quantity: 1, date: "2025-11-12", total: "7,000 원" },
   { id: 2, name: "비로드슴 실온 닭가슴살 7종 10팩 골라담기", host: "빈지노", quantity: 2, date: "2025-05-20", total: "12,400 원" },
-  { id: 3, name: "연평도 자연 간장게장 100% 알베기 암꽃게 ...", host: "간장게장맛있어", quantity: 2, date: "2025-01-13", total: "23,600 원" },
+  { id: 3, name: "연평도 자연 간장게장 100% 알베기 암꽃게 ...", host: "간장게장맛있어요요요", quantity: 2, date: "2025-01-13", total: "23,600 원" },
   { id: 4, name: "[아이앤비] 섬유유연제 건조기", host: "김우민호", quantity: 1, date: "2025-01-07", total: "5,200 원" },
 ];
 
@@ -279,7 +264,7 @@ function OrderDetail_PaymentCompleted() {
                   {order.name}
                 </td>
 
-                <td style={styles.td}>{order.host}</td>
+                <td style={{...styles.td, minWidth: "100px"}}>{order.host}</td>
                 <td style={styles.td}>{order.quantity}</td>
                 <td style={styles.td}>{order.date}</td>
                 <td style={styles.td}>{order.total}</td>
@@ -293,7 +278,7 @@ function OrderDetail_PaymentCompleted() {
                     <button type="button" style={styles.btnFilled}>
                       문의하기
                     </button>
-                </td>
+                  </td>
               </tr>
             ))}
           </tbody>
