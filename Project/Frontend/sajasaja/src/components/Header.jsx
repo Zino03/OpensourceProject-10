@@ -1,6 +1,5 @@
 import React from 'react';
 import styled from 'styled-components';
-import { PiUserLight } from 'react-icons/pi';
 
 // 상단 헤더
 const HeaderWrapper = styled.header`
@@ -81,7 +80,7 @@ const Header = () => {
           </nav>
           <LoginSection>
             <a href="/login">로그인</a>
-            <img src="/images/profile.png" alt="profile" /> 
+            <a href="/login"><img src="/images/profile.png" alt="profile" /></a>
           </LoginSection>
         </RightSection>
       </HeaderContent>
