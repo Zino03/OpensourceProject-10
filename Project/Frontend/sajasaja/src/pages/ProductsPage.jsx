@@ -2,8 +2,6 @@ import React, {useState, useEffect} from "react";
 import styled from 'styled-components';
 import ProductCard from '../components/ProductCard';
 
-import { CiSearch } from "react-icons/ci"; 
-
 const mockData = [ // 임시 데이터
   {
     id: 1,
@@ -72,7 +70,7 @@ const mockData = [ // 임시 데이터
 
 // 검색 및 필터
 const FilterSection = styled.section`
-  padding: 36px 300px;
+  padding: 36px 200px;
   border-bottom: 1px solid #eee;
 `;
 
@@ -100,20 +98,20 @@ const SearchBar = styled.div`
     &:focus { outline: none; }
   }
 
-  svg { font-size: 24px; color: #2C3E50; }
+  img { height: 20px; }
 `;
 
 // 검색창 아래 카테고리 목록
 const SubCategoryTags = styled.div`
   display: flex;
-  gap: 4px;
+  gap: 17px;
   margin-top: 10px;
   justify-content: center;
   font-weight: 500;
   span {
     padding: 6px 6px;
     border-radius: 12px;
-    font-size: 10px;
+    font-size: 11px;
     color: #555;
     cursor: pointer;
     &:hover { background-color: #FFF5E0; }
@@ -126,9 +124,9 @@ const ProductListContainer = styled.div`
   border-radius: 16px;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 24px;
+  gap: 12px;
   padding: 32px;
-  margin: 0 150px;
+  margin: 0 125px;
 `;
 
 const ProductsPage = () => {
@@ -146,7 +144,7 @@ const ProductsPage = () => {
             <option>전체</option>
           </select>
           <input type="text" placeholder="공동 구매 게시물 검색" />
-          <CiSearch />
+          <img src="/images/search.png" alt="search" /> 
         </SearchBar>
         <SubCategoryTags>
           <span>식품</span>
