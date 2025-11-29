@@ -23,14 +23,13 @@ public class ReportController {
     @GetMapping("/reports/{type}")
     public ResponseEntity getReviewReportList(
             @PathVariable ReportType type,
-            @RequestParam(required = false, defaultValue = "-1") Integer status,
             @PageableDefault(size = 15, sort = "reportedAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         Member member = userService.getMember(SecurityUtil.getCurrentUserId());
-        return reportService.getReportList(member, type, status, pageable);
+        return reportService.getReportList(member, type, pageable);
     }
 
-    @GetMapping("/reports/{type}/{reportId}")
+    @GetMapping("/report/{type}/{reportId}")
     public ResponseEntity getReport(@PathVariable ReportType type, @PathVariable Long reportId) {
         Member member = userService.getMember(SecurityUtil.getCurrentUserId());
         return reportService.getReport(member, type, reportId);
@@ -40,11 +39,5 @@ public class ReportController {
     public ResponseEntity createReport(@PathVariable ReportType type, @RequestBody ReportRequestDto req) {
         Member member = userService.getMember(SecurityUtil.getCurrentUserId());
         return reportService.createReport(member, type, req);
-    }
-
-    @DeleteMapping("/report/{type}/{reportId}")
-    public ResponseEntity deleteReport(@PathVariable ReportType type, @PathVariable Long reportId) {
-        Member member = userService.getMember(SecurityUtil.getCurrentUserId());
-        return reportService.deleteReport(member, type, reportId);
     }
 }

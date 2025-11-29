@@ -11,6 +11,8 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class UserAddressDto {
+    private Long id;
+
     private String name;
 
     private String recipient;
@@ -28,6 +30,7 @@ public class UserAddressDto {
     private Boolean isDefault;
 
     public UserAddressDto(UserAddress userAddress) {
+        this.id = userAddress.getId();
         this.name = userAddress.getName();
         this.recipient = userAddress.getRecipient();
         this.phone = userAddress.getPhone();
@@ -40,6 +43,7 @@ public class UserAddressDto {
 
     public static UserAddressDto of(UserAddress userAddress) {
         return new UserAddressDto().builder()
+                .id(userAddress.getId())
                 .name(userAddress.getName())
                 .recipient(userAddress.getRecipient())
                 .phone(userAddress.getPhone())

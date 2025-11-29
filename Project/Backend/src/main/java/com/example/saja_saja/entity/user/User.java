@@ -39,6 +39,7 @@ public class User {
 
     private String profileImg;
 
+    // TODO: 은행명 저장
     private String account;
 
     private String virtualAccount;

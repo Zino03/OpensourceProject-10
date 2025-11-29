@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AdminBuyerService {
 
-    // TODO: 결제 정산 update
     // TODO: 결제 정산 list
+
+    // TODO: 결제 정산 update
 }

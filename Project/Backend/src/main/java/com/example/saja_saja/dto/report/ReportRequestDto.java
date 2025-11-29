@@ -14,6 +14,7 @@ public class ReportRequestDto {
     @NotBlank(message = "신고 사유를 입력해주세요.")
     private String content;
 
-    @NotNull
     private Long reportedId;
+
+    private String reportedNickname;
 }
