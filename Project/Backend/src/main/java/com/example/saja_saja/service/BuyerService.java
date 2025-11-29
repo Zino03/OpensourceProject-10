@@ -1,12 +1,19 @@
 package com.example.saja_saja.service;
 
+import com.example.saja_saja.dto.buyer.BuyerListResponseDto;
+import com.example.saja_saja.dto.post.BuyerApplyRequestDto;
+import com.example.saja_saja.dto.post.TrackingNumberRequestDto;
 import com.example.saja_saja.entity.member.Member;
 import com.example.saja_saja.entity.post.Buyer;
 import com.example.saja_saja.entity.post.BuyerRepository;
 import com.example.saja_saja.entity.post.Post;
+import com.example.saja_saja.entity.post.PostRepository;
+import com.example.saja_saja.entity.user.User;
 import com.example.saja_saja.entity.user.UserAddress;
 import com.example.saja_saja.entity.user.UserAddressRepository;
+import com.example.saja_saja.entity.user.UserRepository;
 import com.example.saja_saja.exception.BadRequestException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpStatus;
@@ -15,38 +22,58 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class BuyerService {
+
     private final BuyerRepository buyerRepository;
     private final UserAddressRepository userAddressRepository;
+    private final PostRepository postRepository;
+    private final UserRepository userRepository;
 
-    public ResponseEntity save(Member member, Post post, int requestQuantity) {
-        return this.save(member, post, false, null, requestQuantity);
+    // host가 자기 공구 만들 때 기본 수량으로 자동 신청할 때 사용
+    public ResponseEntity save(Member member, long postId, int requestQuantity) {
+        return this.save(member, postId, new BuyerApplyRequestDto(false, null, requestQuantity));
     }
 
-    // TODO: 구매자 취소
-    // TODO: 주최자가 수량 변경
-    public ResponseEntity update(Member member, Post post, int requestQuantity) {
-        Buyer buyer = buyerRepository.findByUser(member.getUser());
+    // 구매자/주최자 공구 신청
+    @Transactional
+    public ResponseEntity save(Member member, Long postId, BuyerApplyRequestDto req) {
+        Optional<Post> optional = postRepository.findById(postId);
 
-        return new ResponseEntity(buyer, HttpStatus.OK);
-    }
+        if (optional.isEmpty()) {
+            throw new BadRequestException("공동구매 게시글을 찾을 수 없습니다.", null);
+        }
 
-    // TODO: 배송지 확인
-    public ResponseEntity save(Member member, Post post, boolean isDelivery, Long userAddressId, int requestQuantity) {
+        if (member.getUser().getIsBanned().equals(Boolean.TRUE)) {
+            throw new BadRequestException("이용이 정지된 사용자입니다.", null);
+        }
+
+        Post post = optional.get();
+
+        // 이미 취소된 공구
+        if (Boolean.TRUE.equals(post.getIsCanceled())) {
+            throw new BadRequestException("이미 취소된 공동구매 게시글입니다.", null);
+        }
+
+        // 이미 참여한 경우
+        Optional<Buyer> optionalB = buyerRepository.findByUserAndPost(member.getUser(), post);
+        if (optionalB.isPresent()) {
+            throw new BadRequestException("이미 참여한 공동구매입니다.", null);
+        }
+
         int currentQuantity = post.getCurrentQuantity();
+        int requestQuantity = req.getRequestQuantity();
         int targetQuantity = post.getQuantity();
 
         Map<String, Object> body = new HashMap<>();
+        body.put("body", req);
 
-        body.put("currentQuantity", currentQuantity);
-        body.put("requestQuantity", requestQuantity);
-        body.put("targetQuantity", targetQuantity);
-
+        // 수량 초과 체크
         if (currentQuantity + requestQuantity > targetQuantity) {
             throw new BadRequestException(
                     "신청 수량이 초과되었습니다. (현재 " + currentQuantity + " / 신청 " + requestQuantity + " / 목표 " + targetQuantity + ")",
@@ -54,24 +81,31 @@ public class BuyerService {
             );
         }
 
+        // 게시글 상태 체크
         LocalDateTime now = LocalDateTime.now();
         switch (post.getStatus()) {
-            case 0: case 4:
-                if(!post.getHost().equals(member.getUser())) {
-                    throw new BadRequestException("신청할 수 없는 게시글입니다.", null);                }
-
-            case 1: case 2:
-                if(now.isAfter(post.getEndAt())) {
-                    throw new BadRequestException("마감된 게시글입니다.", null);
+            case 0, 4 -> {
+                // 대기/반려 상태에서는 host만 신청 가능
+                if (!post.getHost().equals(member.getUser())) {
+                    throw new BadRequestException("신청할 수 없는 게시글입니다.", body);
                 }
-                break;
-            case 3:
-                throw new BadRequestException("마감된 게시글입니다.", null);
-            default:
+            }
+            case 1, 2 -> {
+                // 진행/마감임박 상태에서 endAt 이후는 신청 불가
+                if (now.isAfter(post.getEndAt())) {
+                    throw new BadRequestException("마감된 게시글입니다.", body);
+                }
+            }
+            case 3 -> throw new BadRequestException("마감된 게시글입니다.", body);
+            default -> {
+            }
         }
 
-        if(post.getIsDeliveryAvailable() == false && isDelivery == true) {
-            throw new BadRequestException("배송신청이 불가능한 게시글입니다.", null);
+        boolean isDelivery = Boolean.TRUE.equals(req.getIsDelivery());
+
+        // 배송 불가 공구인데 배송 신청한 경우
+        if (Boolean.FALSE.equals(post.getIsDeliveryAvailable()) && isDelivery) {
+            throw new BadRequestException("배송신청이 불가능한 게시글입니다.", body);
         }
 
         Buyer buyer = Buyer.builder()
@@ -85,14 +119,15 @@ public class BuyerService {
                 .status(0)
                 .build();
 
-        if(isDelivery == true) {
-            if(userAddressId == null) {
-                throw new BadRequestException("배송지가 없습니다.", null);
+        // 배송일 경우 배송지 복사
+        if (isDelivery) {
+            if (req.getUserAddressId() == null) {
+                throw new BadRequestException("배송지가 없습니다.", body);
             }
-            Optional<UserAddress> userAddress = userAddressRepository.findByUserAndId(member.getUser(), userAddressId);
+            Optional<UserAddress> userAddress = userAddressRepository.findByUserAndId(member.getUser(), req.getUserAddressId());
 
-            if(userAddress.isEmpty()) {
-                throw new BadRequestException("배송지를 찾을 수 없습니다.", null);
+            if (userAddress.isEmpty()) {
+                throw new BadRequestException("배송지를 찾을 수 없습니다.", body);
             }
 
             UserAddress newUserAddress = new UserAddress();
@@ -102,7 +137,8 @@ public class BuyerService {
             buyer.setUserAddress(newUserAddress);
         }
 
-        if(post.getHost().equals(member.getUser())) {
+        // 주최자가 자기 글에 신청하는 경우 → 결제완료/승인 처리
+        if (post.getHost().equals(member.getUser())) {
             buyer.setIsPaid(1);
             buyer.setStatus(1);
         }
@@ -115,9 +151,248 @@ public class BuyerService {
         return new ResponseEntity(buyer, HttpStatus.OK);
     }
 
-    // TODO: buyer list 가져오기
+    // 구매 취소
+    // canceledReason == 1 : 공구 취소에 의한 강제 취소
+    // canceledReason != 1 : 개인 변심 등
+    @Transactional
+    public ResponseEntity cancel(User user, Long postId, int canceledReason) {
+        Optional<Post> optionalP = postRepository.findById(postId);
 
-    // TODO: 운송장 update
+        if (optionalP.isEmpty()) {
+            throw new BadRequestException("공동구매 게시글을 찾을 수 없습니다.", null);
+        }
 
-    // TODO: 취소 여부 update
+        if (user.getIsBanned().equals(Boolean.TRUE)) {
+            throw new BadRequestException("이용이 정지된 사용자입니다.", null);
+        }
+
+        Post post = optionalP.get();
+
+        // 취소된 공구에서 일반 취소는 불가 (공구 취소 사유만 허용)
+        if (Boolean.TRUE.equals(post.getIsCanceled()) && canceledReason != 1) {
+            throw new BadRequestException("이미 취소된 공동구매 게시글입니다.", null);
+        }
+
+        if (post.getStatus().equals(4)) {
+            throw new BadRequestException("반려된 공동구매 게시글입니다.", null);
+        }
+
+        Optional<Buyer> optionalB = buyerRepository.findByUserAndPost(user, post);
+
+        if (optionalB.isEmpty()) {
+            throw new BadRequestException("구매 정보를 찾을 수 없습니다.", null);
+        }
+
+        Buyer buyer = optionalB.get();
+
+        // 주최자는 공구 취소(사유 1)를 제외한 취소 불가
+        if (user.equals(post.getHost()) && canceledReason != 1) {
+            throw new BadRequestException("주최자는 취소할 수 없습니다.", null);
+        }
+
+        if (!post.getBuyers().contains(buyer)) {
+            throw new BadRequestException("구매자만 취소할 수 있습니다.", null);
+        }
+
+        if (Boolean.TRUE.equals(buyer.getIsCanceled())) {
+            throw new BadRequestException("이미 취소된 주문입니다.", null);
+        }
+
+        // 마감 이후에는 (공구 취소 사유 1 외) 취소 불가
+        if (post.getStatus().equals(3) && canceledReason != 1) {
+            throw new BadRequestException("취소할 수 있는 기간이 아닙니다.", null);
+        }
+
+        if(buyer.getIsCanceled().equals(Boolean.FALSE)) {
+            buyer.setIsCanceled(true);
+            buyer.setCanceledAt(LocalDateTime.now());
+            buyer.setCanceledReason(canceledReason);
+            buyer.setIsPaid(3); // 주문 취소
+        }
+
+        post.setCurrentQuantity(post.getCurrentQuantity() - buyer.getQuantity());
+
+        buyerRepository.save(buyer);
+        postRepository.save(post);
+
+        return new ResponseEntity(buyer, HttpStatus.OK);
+    }
+
+    @Transactional
+    public ResponseEntity update(Member member, long postId, int requestQuantity) {
+        Optional<Post> optionalP = postRepository.findById(postId);
+
+        if (optionalP.isEmpty()) {
+            throw new BadRequestException("공동구매 게시글을 찾을 수 없습니다.", null);
+        }
+
+        if (member.getUser().getIsBanned().equals(Boolean.TRUE)) {
+            throw new BadRequestException("이용이 정지된 사용자입니다.", null);
+        }
+
+        Post post = optionalP.get();
+
+        Optional<Buyer> optionalB = buyerRepository.findByUserAndPost(member.getUser(), post);
+
+        if (optionalB.isEmpty()) {
+            throw new BadRequestException("구매 정보를 찾을 수 없습니다.", null);
+        }
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("requestQuantity", requestQuantity);
+
+        Buyer buyer = optionalB.get();
+
+        if (Boolean.TRUE.equals(post.getIsCanceled())) {
+            throw new BadRequestException("취소된 공동구매 게시글입니다.", null);
+        }
+
+        if (!member.getUser().equals(post.getHost())) {
+            throw new BadRequestException("주최자만 수량을 변경할 수 있습니다.", body);
+        }
+
+        // 마감 이후 수량 변경 불가
+        if (post.getStatus().equals(3)) {
+            throw new BadRequestException("수량을 변경할 수 있는 기간이 아닙니다.", null);
+        }
+
+        // 반려된 공구
+        if (post.getStatus().equals(4)) {
+            throw new BadRequestException("반려된 공동구매 게시글입니다.", null);
+        }
+
+        // 서비스 레벨에서도 한 번 방어
+        if (requestQuantity <= 0) {
+            throw new BadRequestException("수량은 1개 이상이어야 합니다.", body);
+        }
+
+        int oldQuantity = buyer.getQuantity();
+        int newTotal = post.getCurrentQuantity() - oldQuantity + requestQuantity;
+
+        // 목표 수량 초과 방지
+        if (newTotal > post.getQuantity()) {
+            throw new BadRequestException("목표 수량을 초과할 수 없습니다.", body);
+        }
+
+        buyer.setQuantity(requestQuantity);
+        post.setCurrentQuantity(newTotal);
+
+        buyerRepository.save(buyer);
+        postRepository.save(post);
+
+        return new ResponseEntity(buyer, HttpStatus.OK);
+    }
+
+    public ResponseEntity buyerList(Member member, long postId) {
+        Optional<Post> optional = postRepository.findById(postId);
+
+        if (optional.isEmpty()) {
+            throw new BadRequestException("공동구매 게시글을 찾을 수 없습니다.", null);
+        }
+
+        if (member.getUser().getIsBanned().equals(Boolean.TRUE)) {
+            throw new BadRequestException("이용이 정지된 사용자입니다.", null);
+        }
+
+        Post post = optional.get();
+
+        if (Boolean.TRUE.equals(post.getIsCanceled())) {
+            throw new BadRequestException("취소된 공동구매 게시글입니다.", null);
+        }
+
+        if (!member.getUser().equals(post.getHost())) {
+            throw new BadRequestException("구매자를 조회할 수 있는 권한이 없습니다.", null);
+        }
+
+        // 대기중/반려 상태에서는 조회 불가
+        if (post.getStatus().equals(0)) {
+            throw new BadRequestException("대기중인 공동구매 게시글입니다.", null);
+        }
+
+        if (post.getStatus().equals(4)) {
+            throw new BadRequestException("반려된 공동구매 게시글입니다.", null);
+        }
+
+        List<BuyerListResponseDto> buyers = post.getBuyers()
+                .stream()
+                .filter(buyer -> !buyer.getUser().equals(post.getHost())) // 주최자는 제외
+                .map(buyer -> BuyerListResponseDto.of(buyer, post.getPrice()))
+                .toList();
+
+        return new ResponseEntity(buyers, HttpStatus.OK);
+    }
+
+    // 배송정보 업데이트 (주최자)
+    @Transactional
+    public ResponseEntity trackingNumberUpdate(Member member, long postId, TrackingNumberRequestDto trackingNumberRequestDto) {
+        Optional<Post> optionalP = postRepository.findById(postId);
+
+        if (optionalP.isEmpty()) {
+            throw new BadRequestException("공동구매 게시글을 찾을 수 없습니다.", null);
+        }
+
+        if (member.getUser().getIsBanned().equals(Boolean.TRUE)) {
+            throw new BadRequestException("이용이 정지된 사용자입니다.", null);
+        }
+
+        Post post = optionalP.get();
+
+        if (!member.getUser().equals(post.getHost())) {
+            throw new BadRequestException("배송정보를 등록할 수 있는 권한이 없습니다.", null);
+        }
+
+        if (Boolean.TRUE.equals(post.getIsCanceled())) {
+            throw new BadRequestException("취소된 공동구매 게시글입니다.", null);
+        }
+
+        Optional<User> optionalU = userRepository.findByNickname(trackingNumberRequestDto.getUserNickname());
+
+        if (optionalU.isEmpty()) {
+            throw new BadRequestException("등록되어 있지 않은 사용자입니다.", null);
+        }
+
+        User user = optionalU.get();
+
+        Optional<Buyer> optionalB = buyerRepository.findByUserAndPost(user, post);
+
+        if (optionalB.isEmpty()) {
+            throw new BadRequestException("해당 사용자의 구매 정보가 없습니다.", null);
+        }
+
+        // 배송 불가 공구는 배송정보 등록 불가
+        if (Boolean.FALSE.equals(post.getIsDeliveryAvailable())) {
+            throw new BadRequestException("배송이 불가능한 공동구매 게시글은 배송정보를 등록할 수 없습니다.", null);
+        }
+
+        if (post.getStatus().equals(0)) {
+            throw new BadRequestException("대기중인 공동구매 게시글입니다.", null);
+        }
+
+        if (post.getStatus().equals(4)) {
+            throw new BadRequestException("반려된 공동구매 게시글입니다.", null);
+        }
+
+        // 마감 이후부터만 등록 가능
+        if (!post.getStatus().equals(3)) {
+            throw new BadRequestException("배송정보를 등록할 수 있는 기간이 아닙니다.", null);
+        }
+
+        Buyer buyer = optionalB.get();
+
+        // 주최자, 취소된 구매자, 배송 신청 안 한 구매자는 등록 불가
+        if (user.equals(post.getHost())
+                || Boolean.TRUE.equals(buyer.getIsCanceled())
+                || Boolean.FALSE.equals(buyer.getIsDelivery())) {
+            throw new BadRequestException("배송정보를 등록할 수 있는 사용자가 아닙니다.", null);
+        }
+
+        buyer.setCourier(trackingNumberRequestDto.getCourier());
+        buyer.setTrackingNumber(trackingNumberRequestDto.getTrackingNumber());
+
+        buyerRepository.save(buyer);
+
+        return new ResponseEntity(buyer, HttpStatus.OK);
+    }
+
+    // TODO: 주최자가 수령일자 update
 }
