@@ -185,13 +185,14 @@ const orderCounts = {
 
 /* 현재 활성 단계 = 배송 완료 */
 const steps = [
-  { id: 1, label: "주문 접수", value: orderCounts.received },
-  { id: 2, label: "결제 완료", value: orderCounts.payment },
-  { id: 3, label: "상품 준비 중", value: orderCounts.preparing },
-  { id: 4, label: "배송 중", value: orderCounts.shipping },
-  { id: 5, label: "배송완료", value: orderCounts.delivered, active: true },
-  { id: 6, label: "주문 취소", value: orderCounts.cancelled },
+  { id: 1, label: "주문 접수", value: orderCounts.received, path: "/orders/received" },
+  { id: 2, label: "결제 완료", value: orderCounts.payment, path: "/orders/payment" },
+  { id: 3, label: "상품 준비 중", value: orderCounts.preparing, path: "/orders/preparing" },
+  { id: 4, label: "배송 중", value: orderCounts.shipping, path: "/orders/shipping" },
+  { id: 5, label: "배송완료", value: orderCounts.delivered, active: true, path: "/orders/delivered" },
+  { id: 6, label: "주문 취소", value: orderCounts.cancelled, path: "/orders/cancelled" },
 ];
+
 
 /* 주문 리스트 + 구매확정 여부 */
 const orders = [
