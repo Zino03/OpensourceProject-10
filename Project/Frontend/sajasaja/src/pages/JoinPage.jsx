@@ -54,6 +54,14 @@ const Input = styled.input`
   &::placeholder {
     color: #aaa;
   }
+
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  &:focus { outline: none; }
 `;
 
 const CheckButton = styled.button`
@@ -108,7 +116,7 @@ const JoinPage = () => {
     // 가입하기 버튼
     const Join = () => {
       // 모든 필수 입력 항목이 채워져 있는지 확인
-      if (!nickname || !email || !password || !confirmPassword) {
+      if (!username || !tel || !nickname || !email || !password || !confirmPassword) {
         alert('모든 항목을 작성해주세요.');
         return;
       }
@@ -126,6 +134,8 @@ const JoinPage = () => {
     };
 
   // 상태 관리
+  const [username, setUsername] = useState('');
+  const [tel, setTel] = useState('');
   const [nickname, setNickname] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -208,6 +218,20 @@ const JoinPage = () => {
       <PageWrapper>
         <SignupWrapper>
           <Title>회원가입</Title>
+
+          <InputGroup>
+            <Label>이름</Label>
+            <InputWithButton>
+              <Input type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
+            </InputWithButton>
+          </InputGroup>
+
+          <InputGroup>
+            <Label>전화번호</Label>
+            <InputWithButton>
+              <Input type="number" value={tel} onChange={(e) => setTel(e.target.value)} />
+            </InputWithButton>
+          </InputGroup>
 
           <InputGroup>
             <Label>닉네임</Label>

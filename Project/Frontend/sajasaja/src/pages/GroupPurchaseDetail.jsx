@@ -4,6 +4,7 @@ import { FaRegBell } from "react-icons/fa";
 import PurchaseModal from './modal/PurchaseModal';
 import InvoiceModal from './modal/InvoiceModal';
 import ReceiveModal from './modal/ReceiveModal';
+import DeliveryInfoModal from './modal/DeliveryInfoModal';
 
 const Container = styled.div`
   width: 100%;
@@ -260,13 +261,13 @@ const TabMenu = styled.div`
 `;
 
 const TabItem = styled.div`
-  width: 120px;
+  width: 80px;
   text-align: center;
   padding: 16px 0;
   font-size: 14px;
   font-weight: 500;
   color: ${props => props.active ? '#FF7E00' : '#555'};
-  border-bottom: 3px solid ${props => props.active ? '#FF7E00' : 'transparent'};
+  border-bottom: 1px solid ${props => props.active ? '#FF7E00' : 'transparent'};
   cursor: pointer;
   
   &:hover {
@@ -405,15 +406,21 @@ const TitleGroup = styled.div`
 `;
 
 const ManageTitle = styled.h3`
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
 `;
 
+const ManageButtonGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+`
+
 const ManageButton = styled.button`
-  background-color: #FF7E00;
+  background-color: #000;
   color: white;
   border: none;
-  padding: 10px 20px;
+  padding: 8px 16px;
   border-radius: 6px;
   font-size: 12px;
   font-weight: 500;
@@ -444,7 +451,7 @@ const ParticipantTable = styled.table`
   }
 
   td {
-    padding: 20px 10px;
+    padding: 16px 10px;
     border-bottom: 1px solid #eee;
   }
 `;
@@ -453,9 +460,9 @@ const FilterButton = styled.button`
   background-color: #fff;
   border: 1px solid ${props => props.active ? '#FF7E00' : '#000'};
   color: ${props => props.active ? '#FF7E00' : '#000'};
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 12px;
+  padding: 2px 12px;
+  border-radius: 6px;
+  font-size: 10px;
   font-weight: 500;
   cursor: pointer;
 
@@ -498,10 +505,10 @@ const GroupPurchaseDetail = () => {
     { id: 1, name: '변진호(주최자)', nickname: '사자사자', amount: '7,000원', address: '(12345)\n도로명: 충북 청주시 가나구 다라로 123(삼성동, 사자아파트)****\n지   번: 충북 청주시 가나구 삼성동 123 ****', status: '결제 완료', date: '2025-11-06', invoice: null, pickup: null, receive: 'pickup' },
     { id: 2, name: '최지우', nickname: '직접수령', amount: '7,000원', address: '(12345)\n도로명: 충북 청주시 가나구 다라로 123(삼성동, 사자아파트)****\n지   번: 충북 청주시 가나구 삼성동 123 ****', status: '결제 완료', date: '2025-11-06', invoice: null, pickup: null, receive: 'pickup' },
     { id: 3, name: '김서연', nickname: '너도하자', amount: '7,000원', address: '(12345)\n도로명: 충북 청주시 가나구 다라로 123(삼성동, 사자아파트)****\n지   번: 충북 청주시 가나구 삼성동 123 ****', status: '결제 대기', date: '-', invoice: null, pickup: null, receive: 'pickup' },
-    { id: 4, name: '조수빈', nickname: '휴학', amount: '7,000원', address: '(12345)\n도로명: 충북 청주시 가나구 다라로 123(삼성동, 사자아파트)****\n지   번: 충북 청주시 가나구 삼성동 123 ****', status: '결제 대기', date: '-', invoice: null, pickup: null, receive: 'delivery' },
-    { id: 5, name: '최지우', nickname: '배송수령', amount: '7,000원', address: '(12345)\n도로명: 충북 청주시 가나구 다라로 123(삼성동, 사자아파트)****\n지   번: 충북 청주시 가나구 삼성동 123 ****', status: '결제 완료', date: '2025-11-06', invoice: null, pickup: null, receive: 'delivery' },
-    { id: 6, name: '김서연', nickname: '너도하자', amount: '7,000원', address: '(12345)\n도로명: 충북 청주시 가나구 다라로 123(삼성동, 사자아파트)****\n지   번: 충북 청주시 가나구 삼성동 123 ****', status: '결제 대기', date: '-', invoice: null, pickup: null, receive: 'delivery' },
-    { id: 7, name: '조수빈', nickname: '휴학', amount: '7,000원', address: '(12345)\n도로명: 충북 청주시 가나구 다라로 123(삼성동, 사자아파트)****\n지   번: 충북 청주시 가나구 삼성동 123 ****', status: '결제 대기', date: '-', invoice: null, pickup: null, receive: 'delivery' },
+    { id: 4, name: '조수빈', nickname: '휴학', amount: '7,000원', address: '(12345)\n도로명: 충북 청주시 가나구 다라로 123(삼성동, 사자아파트)****\n지   번: 충북 청주시 가나구 삼성동 123 ****', status: '결제 대기', date: '-', invoice: null, pickup: null, receive: 'delivery', receiver: '김서연', req: '공동현관 출입방법\n자유출입', tel:'010-2169-6918' },
+    { id: 5, name: '최지우', nickname: '배송수령', amount: '7,000원', address: '(12345)\n도로명: 충북 청주시 가나구 다라로 123(삼성동, 사자아파트)****\n지   번: 충북 청주시 가나구 삼성동 123 ****', status: '결제 완료', date: '2025-11-06', invoice: null, pickup: null, receive: 'delivery', receiver: '김서연', req: '공동현관 출입방법\n자유출입', tel:'010-2169-6918' },
+    { id: 6, name: '김서연', nickname: '너도하자', amount: '7,000원', address: '(12345)\n도로명: 충북 청주시 가나구 다라로 123(삼성동, 사자아파트)****\n지   번: 충북 청주시 가나구 삼성동 123 ****', status: '결제 대기', date: '-', invoice: null, pickup: null, receive: 'delivery', receiver: '김서연', req: '공동현관 출입방법\n자유출입', tel:'010-2169-6918' },
+    { id: 7, name: '조수빈', nickname: '휴학', amount: '7,000원', address: '(12345)\n도로명: 충북 청주시 가나구 다라로 123(삼성동, 사자아파트)****\n지   번: 충북 청주시 가나구 삼성동 123 ****', status: '결제 대기', date: '-', invoice: null, pickup: null, receive: 'delivery', receiver: '김서연', req: '공동현관 출입방법\n자유출입', tel:'010-2169-6918' },
   ]);
 
   const [activeTab, setActiveTab] = useState('info');
@@ -511,6 +518,8 @@ const GroupPurchaseDetail = () => {
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   // 수령 일자 등록 모달
   const [isReceiveDateModalOpen, setIsReceiveDateModalOpen] = useState(false);
+  // 배송 정보 모달
+  const [isDeliveryInfoModalOpen, setIsDeliveryInfoModalOpen] = useState(false);
 
   // 배송, 직접 수령 구분
   const [participantFilter, setParticipantFilter] = useState('delivery');
@@ -546,169 +555,205 @@ const GroupPurchaseDetail = () => {
 
   const progressPercent = Math.min((product.currentCount / product.goalCount) * 100, 100);
 
-return (
-  <Container>
-    <CategoryTag>
-      <span>식품</span> &gt;
-    </CategoryTag>
+  return (
+    <Container>
+      <CategoryTag>
+        <span>식품</span> &gt;
+      </CategoryTag>
 
-    <TopSection>
-      <ImageArea>
-        <MainImageWrapper>
-          <Badge>마감임박</Badge>
-          <MainImage alt="상품 이미지" />
-        </MainImageWrapper>
-        <ThumbnailList>
-          <Thumbnail active={true}>
-              <img alt="썸네일" />
-          </Thumbnail>
-        </ThumbnailList>
-      </ImageArea>
+      <TopSection>
+        <ImageArea>
+          <MainImageWrapper>
+            <Badge>마감임박</Badge>
+            <MainImage alt="상품 이미지" />
+          </MainImageWrapper>
+          <ThumbnailList>
+            <Thumbnail active={true}>
+                <img alt="썸네일" />
+            </Thumbnail>
+          </ThumbnailList>
+        </ImageArea>
 
-      <InfoArea>
-        <ProductTitle>{product.title}</ProductTitle>
+        <InfoArea>
+          <ProductTitle>{product.title}</ProductTitle>
 
-        <ProgressSection>
-          <ProgressLabel>현재 주문된 수량</ProgressLabel>
-          <CurrentCount>{product.currentCount}</CurrentCount>
-          <ProgressBarContainer>
-            <ProgressBarFill percent={progressPercent} />
-          </ProgressBarContainer>
-        </ProgressSection>
+          <ProgressSection>
+            <ProgressLabel>현재 주문된 수량</ProgressLabel>
+            <CurrentCount>{product.currentCount}</CurrentCount>
+            <ProgressBarContainer>
+              <ProgressBarFill percent={progressPercent} />
+            </ProgressBarContainer>
+          </ProgressSection>
 
-        <DetailList>
-          <DetailRow>
-            <Label>모집기간</Label>
-            <Value>
-              {product.startDate} ~ {product.endDate} 
-              <TimeBadge>{product.daysLeft}일 남음</TimeBadge>
-            </Value>
-          </DetailRow>
-          <DetailRow>
-            <Label>목표수량</Label>
-            <Value>{product.goalCount}</Value>
-          </DetailRow>
-          <DetailRow>
-            <Label>배송정보</Label>
-            <Value>
-              {product.shipping} <span style={{color:'#ddd', margin: '0 8px'}}>|</span> {product.shippingCost}
-            </Value>
-          </DetailRow>
-          
-          <OrganizerRow>
-            <Label>주최자</Label>
-            <OrganizerBadge>
-              <ProfileIcon>🦁</ProfileIcon>
-              <OrganizerName>{product.organizer}</OrganizerName>
-              <MannerLabel>매너점수 {product.mannerScore}점</MannerLabel>
-              <ContactButton>연락하기</ContactButton>
-            </OrganizerBadge>
-          </OrganizerRow>
-        </DetailList>
+          <DetailList>
+            <DetailRow>
+              <Label>모집기간</Label>
+              <Value>
+                {product.startDate} ~ {product.endDate} 
+                <TimeBadge>{product.daysLeft}일 남음</TimeBadge>
+              </Value>
+            </DetailRow>
+            <DetailRow>
+              <Label>목표수량</Label>
+              <Value>{product.goalCount}</Value>
+            </DetailRow>
+            <DetailRow>
+              <Label>배송정보</Label>
+              <Value>
+                {product.shipping} <span style={{color:'#ddd', margin: '0 8px'}}>|</span> {product.shippingCost}
+              </Value>
+            </DetailRow>
+            
+            <OrganizerRow>
+              <Label>주최자</Label>
+              <OrganizerBadge>
+                <ProfileIcon>🦁</ProfileIcon>
+                <OrganizerName>{product.organizer}</OrganizerName>
+                <MannerLabel>매너점수 {product.mannerScore}점</MannerLabel>
+                <ContactButton>연락하기</ContactButton>
+              </OrganizerBadge>
+            </OrganizerRow>
+          </DetailList>
 
-        <BottomArea>
-          <PriceArea>
-            <PriceText>{product.price.toLocaleString()} 원</PriceText>
-          </PriceArea>
-          <PurchaseButton onClick={() => setIsModalOpen(true)}>공동구매 시작하기</PurchaseButton>
-        </BottomArea>
-      </InfoArea>
-    </TopSection>
+          <BottomArea>
+            <PriceArea>
+              <PriceText>{product.price.toLocaleString()} 원</PriceText>
+            </PriceArea>
+            <PurchaseButton onClick={() => setIsModalOpen(true)}>공동구매 시작하기</PurchaseButton>
+          </BottomArea>
+        </InfoArea>
+      </TopSection>
 
-    <TabMenu>
-      <TabItem active={activeTab === 'info'} onClick={() => setActiveTab('info')}>상품 정보</TabItem>
-      <TabItem active={activeTab === 'notice'} onClick={() => setActiveTab('notice')}>공지</TabItem>
-      <TabItem active={activeTab === 'review'} onClick={() => setActiveTab('review')}>후기</TabItem>
-      {isOrganizer && (
-        <TabItem active={activeTab === 'manage'} onClick={() => setActiveTab('manage')}>구매자 관리</TabItem>
+      <TabMenu>
+        <TabItem active={activeTab === 'info'} onClick={() => setActiveTab('info')}>상품 정보</TabItem>
+        <TabItem active={activeTab === 'notice'} onClick={() => setActiveTab('notice')}>공지</TabItem>
+        <TabItem active={activeTab === 'review'} onClick={() => setActiveTab('review')}>후기</TabItem>
+        {isOrganizer && (
+          <TabItem active={activeTab === 'manage'} onClick={() => setActiveTab('manage')}>구매자 관리</TabItem>
+        )}
+      </TabMenu>
+
+      {activeTab === 'info' && (
+        <>
+          <Section>
+            <SectionHeader>상품 정보</SectionHeader>
+            <DescriptionBox>{product.description}</DescriptionBox>
+          </Section>
+          <Section>
+            <SectionHeader>수령장소</SectionHeader>
+            <MapPlaceholder>
+              <MapOverlayButton>지도보기</MapOverlayButton>
+            </MapPlaceholder>
+          </Section>
+        </>
       )}
-    </TabMenu>
 
-    {activeTab === 'info' && (
-      <>
+      {activeTab === 'notice' && (
         <Section>
-          <SectionHeader>상품 정보</SectionHeader>
-          <DescriptionBox>{product.description}</DescriptionBox>
+          <SectionHeader>공지</SectionHeader>
+          <CommentList>
+            {notices.map(notice => (
+              <CommentItem key={notice.id}>
+                <CommentHeader>
+                  <UserInfo>
+                    <UserIcon>🦁</UserIcon>
+                    <UserName>{notice.writer}</UserName>
+                  </UserInfo>
+                  <ReportButton>
+                    <FaRegBell /> 신고
+                  </ReportButton>
+                </CommentHeader>
+                <CommentContent>{notice.content}</CommentContent>
+                <CommentDate>{notice.date}</CommentDate>
+              </CommentItem>
+            ))}
+          </CommentList>
         </Section>
+      )}
+
+      {activeTab === 'review' && (
         <Section>
-          <SectionHeader>수령장소</SectionHeader>
-          <MapPlaceholder>
-            <MapOverlayButton>지도보기</MapOverlayButton>
-          </MapPlaceholder>
+          <SectionHeader>후기</SectionHeader>
+          <CommentList>
+            {reviews.map(review => (
+              <CommentItem key={review.id}>
+                <CommentHeader>
+                  <UserInfo>
+                    <UserIcon>🦁</UserIcon>
+                    <UserName>{review.writer}</UserName>
+                    <RatingText>{review.rating}</RatingText>
+                  </UserInfo>
+                  <ReportButton>
+                    <FaRegBell /> 신고
+                  </ReportButton>
+                </CommentHeader>
+                <CommentContent>{review.content}</CommentContent>
+                <CommentDate>{review.date}</CommentDate>
+              </CommentItem>
+            ))}
+          </CommentList>
         </Section>
-      </>
-    )}
+      )}
 
-    {activeTab === 'notice' && (
+      {isOrganizer && activeTab === 'manage' && (
       <Section>
-        <SectionHeader>공지</SectionHeader>
-        <CommentList>
-          {notices.map(notice => (
-            <CommentItem key={notice.id}>
-              <CommentHeader>
-                <UserInfo>
-                  <UserIcon>🦁</UserIcon>
-                  <UserName>{notice.writer}</UserName>
-                </UserInfo>
-                <ReportButton>
-                  <FaRegBell /> 신고
-                </ReportButton>
-              </CommentHeader>
-              <CommentContent>{notice.content}</CommentContent>
-              <CommentDate>{notice.date}</CommentDate>
-            </CommentItem>
-          ))}
-        </CommentList>
-      </Section>
-    )}
+            <ManageHeader>
+              <TitleGroup>
+                <ManageTitle>공구 참여 명단</ManageTitle>
+                  <FilterButton 
+                    active={participantFilter === 'delivery'}
+                    onClick={() => {setParticipantFilter('delivery')}}>
+                    배송 수령
+                  </FilterButton>
 
-    {activeTab === 'review' && (
-      <Section>
-        <SectionHeader>후기</SectionHeader>
-        <CommentList>
-          {reviews.map(review => (
-            <CommentItem key={review.id}>
-              <CommentHeader>
-                <UserInfo>
-                  <UserIcon>🦁</UserIcon>
-                  <UserName>{review.writer}</UserName>
-                  <RatingText>{review.rating}</RatingText>
-                </UserInfo>
-                <ReportButton>
-                  <FaRegBell /> 신고
-                </ReportButton>
-              </CommentHeader>
-              <CommentContent>{review.content}</CommentContent>
-              <CommentDate>{review.date}</CommentDate>
-            </CommentItem>
-          ))}
-        </CommentList>
-      </Section>
-    )}
-
-    {isOrganizer && activeTab === 'manage' && (
-    <Section>
-          <ManageHeader>
-            <TitleGroup>
-              <ManageTitle>공구 참여 명단</ManageTitle>
-                <FilterButton 
-                  active={participantFilter === 'delivery'}
-                  onClick={() => {setParticipantFilter('delivery')}}>
-                  배송 수령
-                </FilterButton>
-
-                <FilterButton 
-                  active={participantFilter === 'pickup'}
-                  onClick={() => {setParticipantFilter('pickup')}}>
-                  직접 수령
-                </FilterButton>
-              </TitleGroup>
-            {participantFilter === 'delivery' ? (<ManageButton onClick={() => setIsInvoiceModalOpen(true)}>송장번호 등록</ManageButton>
-          ) : (<ManageButton onClick={() => setIsReceiveDateModalOpen(true)}>수령일자 등록</ManageButton>)}
-          </ManageHeader>
-          
-          {participantFilter === 'delivery' ? (
-            <ParticipantTable>
+                  <FilterButton 
+                    active={participantFilter === 'pickup'}
+                    onClick={() => {setParticipantFilter('pickup')}}>
+                    직접 수령
+                  </FilterButton>
+                </TitleGroup>
+              {participantFilter === 'delivery' ? (
+                <ManageButtonGroup>
+                  <ManageButton onClick={() => setIsDeliveryInfoModalOpen(true)}>배송 정보</ManageButton>
+                  <ManageButton onClick={() => setIsInvoiceModalOpen(true)}>송장번호 등록</ManageButton>
+                </ManageButtonGroup>
+            ) : (<ManageButton onClick={() => setIsReceiveDateModalOpen(true)}>수령일자 등록</ManageButton>)}
+            </ManageHeader>
+            
+            {participantFilter === 'delivery' ? (
+              <ParticipantTable>
+                <thead>
+                  <tr>
+                    <th>성명</th>
+                    <th>닉네임</th>
+                    <th>결제 금액</th>
+                    <th>결제 상태</th>
+                    <th>수령 일자</th>
+                    <th>송장 등록</th>
+                  </tr>
+                </thead>
+                <tbody onClick={() => setIsDeliveryInfoModalOpen(true)}>
+                  {filteredParticipants.map((p, idx) => (
+                      <tr key={idx}>
+                        <td>{p.name}</td>
+                        <td>{p.nickname}</td>
+                        <td>{p.amount}</td>
+                        <td>{p.status}</td>
+                        <td>{p.date}</td>
+                        <td>
+                          {p.invoice ? (
+                            <RegisterStatusBadge isRegistered={true}>등록 완료</RegisterStatusBadge>
+                          ) : (
+                            <RegisterStatusBadge isRegistered={false}>미등록</RegisterStatusBadge>
+                          )}
+                        </td>
+                      </tr>
+                      )
+                    )}
+                </tbody>
+              </ParticipantTable>
+            ) : (
+              <ParticipantTable>
               <thead>
                 <tr>
                   <th>성명</th>
@@ -716,87 +761,61 @@ return (
                   <th>결제 금액</th>
                   <th>결제 상태</th>
                   <th>수령 일자</th>
-                  <th>송장 등록</th>
+                  <th>수령 일자 등록</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredParticipants.map((p, idx) => (
-                    <tr key={idx}>
-                      <td>{p.name}</td>
-                      <td>{p.nickname}</td>
-                      <td>{p.amount}</td>
-                      <td>{p.status}</td>
-                      <td>{p.date}</td>
-                      <td>
-                        {p.invoice ? (
-                          <RegisterStatusBadge isRegistered={true}>등록 완료</RegisterStatusBadge>
-                        ) : (
-                          <RegisterStatusBadge isRegistered={false}>미등록</RegisterStatusBadge>
-                        )}
-                      </td>
-                    </tr>
-                    )
-                  )}
+                  <tr key={idx}>
+                    <td>{p.name}</td>
+                    <td>{p.nickname}</td>
+                    <td>{p.amount}</td>
+                    <td>{p.status}</td>
+                    <td>{p.pickup ? p.pickup.receiveDate : '-'}</td>
+                    <td>
+                      {p.pickup ? (
+                        <RegisterStatusBadge isRegistered={true}>등록 완료</RegisterStatusBadge>
+                      ) : (
+                        <RegisterStatusBadge isRegistered={false}>미등록</RegisterStatusBadge>
+                      )}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </ParticipantTable>
-          ) : (
-            <ParticipantTable>
-            <thead>
-              <tr>
-                <th>성명</th>
-                <th>닉네임</th>
-                <th>결제 금액</th>
-                <th>결제 상태</th>
-                <th>수령 일자</th>
-                <th>수령 일자 등록</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredParticipants.map((p, idx) => (
-                <tr key={idx}>
-                  <td>{p.name}</td>
-                  <td>{p.nickname}</td>
-                  <td>{p.amount}</td>
-                  <td>{p.status}</td>
-                  <td>{p.pickup ? p.pickup.receiveDate : '-'}</td>
-                  <td>
-                    {p.pickup ? (
-                      <RegisterStatusBadge isRegistered={true}>등록 완료</RegisterStatusBadge>
-                    ) : (
-                      <RegisterStatusBadge isRegistered={false}>미등록</RegisterStatusBadge>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </ParticipantTable>
-          )
-        }
-        </Section>
-      )}
-    
-    <PurchaseModal 
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        product={product} 
-      />
+            )
+          }
+          </Section>
+        )}
+      
+      <PurchaseModal 
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          product={product} 
+        />
 
-    <InvoiceModal 
-        isOpen={isInvoiceModalOpen}
-        onClose={() => setIsInvoiceModalOpen(false)}
-        participants={filteredParticipants} 
-        onSave={handleInvoiceSave}
-      />
+      <InvoiceModal 
+          isOpen={isInvoiceModalOpen}
+          onClose={() => setIsInvoiceModalOpen(false)}
+          participants={filteredParticipants} 
+          onSave={handleInvoiceSave}
+        />
 
-    <ReceiveModal 
-        isOpen={isReceiveDateModalOpen}
-        onClose={() => setIsReceiveDateModalOpen(false)}
-        participants={filteredParticipants} 
-        onSave={handleReceiveDateSave}
-      />
+      <ReceiveModal 
+          isOpen={isReceiveDateModalOpen}
+          onClose={() => setIsReceiveDateModalOpen(false)}
+          participants={filteredParticipants} 
+          onSave={handleReceiveDateSave}
+        />
 
-  </Container>
-  );
-};
+      <DeliveryInfoModal 
+          isOpen={isDeliveryInfoModalOpen}
+          onClose={() => setIsDeliveryInfoModalOpen(false)}
+          participants={filteredParticipants} 
+        />
+
+    </Container>
+    );
+  };
 
 export default GroupPurchaseDetail;

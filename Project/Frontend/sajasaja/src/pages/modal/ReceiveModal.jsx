@@ -128,6 +128,20 @@ const DatePickerWrapper = styled.div`
   }
 `;
 
+const TimeInput = styled.input`
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 12px;
+  text-align: center;
+  box-sizing: border-box;
+  
+  &:focus {
+    outline: none;
+  }
+`;
+
 const ReceiveModal = ({ isOpen, onClose, participants, onSave }) => {
   // 로컬 상태 입력값 관리 (초기값은 부모에게서 받은 participants)
   const [RData, setRData] = useState([]);
@@ -156,9 +170,9 @@ const ReceiveModal = ({ isOpen, onClose, participants, onSave }) => {
     ));
   };
 
-  const handleTimeChange = (id, time) => {
+  const handleTimeChange = (id, e) => {
     setRData(prev => prev.map(item => 
-      item.id === id ? { ...item, receiveTime: time } : item
+      item.id === id ? { ...item, receiveTime: e.target.value } : item
     ));
   };
 
@@ -168,15 +182,11 @@ const ReceiveModal = ({ isOpen, onClose, participants, onSave }) => {
       const dateStr = item.receiveDate 
         ? item.receiveDate.toISOString().split('T')[0] // "2025-11-20"
         : '';
-      
-      const timeStr = item.receiveTime 
-        ? item.receiveTime.toTimeString().split(' ')[0].substring(0, 5) // "14:30"
-        : '';
 
       return {
         ...item,
         receiveDate: dateStr,
-        receiveTime: timeStr
+        receiveTime: item.receiveTime
       };
     });
 
@@ -216,19 +226,12 @@ const ReceiveModal = ({ isOpen, onClose, participants, onSave }) => {
                     </DatePickerWrapper>
                   </td>
                   <td>
-                    <DatePickerWrapper>
-                      <DatePicker
-                        selected={row.receiveTime}
-                        onChange={(time) => handleTimeChange(row.id, time)}
-                        showTimeSelect
-                        showTimeSelectOnly // 시간만 선택 모드
-                        timeIntervals={30} // 30분 단위
-                        timeCaption="시간"
-                        dateFormat="HH:mm" // 표시 형식
-                        placeholderText="시간 선택"
-                        className="custom-datepicker"
-                      />
-                    </DatePickerWrapper>
+                    <TimeInput 
+                      type="text" 
+                      value={row.receiveTime}
+                      placeholder="예) 14:00"
+                      onChange={(e) => handleTimeChange(row.id, e)}
+                    />
                   </td>
                 </tr>
               ))}
