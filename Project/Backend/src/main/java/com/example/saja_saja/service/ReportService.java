@@ -35,6 +35,11 @@ public class ReportService {
     private final ReviewReportRepository reviewReportRepository;
     private final NoticeReportRepository noticeReportRepository;
 
+    // TODO: 제재를 당했을때 진행중 공구 취소, 참여중인 공구는 취소 X
+    //  제재된 사용자 프로필에는 제재여부, 매너점수 초기화, 공구 조회 X
+    //  제재된 사용자 본인의 경우 본인 프로필에서 공구 조회 X, 주문내역 확인 O, 정보 수정 O, 배송지 관리 O,
+    //  post 공구 등록, 구매, 후기 모든 서비스 불가능
+
     public ResponseEntity getReportList(Member member, ReportType reportType, Integer status, Pageable pageable) {
         try {
             Page<?> reportPage;
