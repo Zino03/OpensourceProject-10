@@ -116,8 +116,7 @@ public class AdminReportService {
 
                         List<Post> posts = user.getPosts();
                         for (Post post : posts) {
-                            // TODO: member -> user
-                            postService.cancel(new Member("","",user, Role.USER), post.getId());
+                            postService.cancel(user, post.getId());
                         }
                     }
                     reportResponse = ReportResponseDto.of(userReport);
