@@ -26,6 +26,13 @@ import AdminPostManage from './admin/AdminPostManage';
 import AdminSettlement from './admin/AdminSettlement';
 import OrderCompletePage from './pages/OrderCompletePage';
 
+import OrderDetail_OrderReceived from './pages/OrderDetail_OrderReceived';
+import OrderDetail_PaymentReceived from './pages/OrderDetail_PaymentReceived.jsx';
+import OrderDetail_Preparing from './pages/OrderDetail_Preparing';
+import OrderDetail_Shipping from './pages/OrderDetail_Shipping';
+import OrderDetail_Delivered from './pages/OrderDetail_Delivered';
+import OrderDetail_Cancelled from './pages/OrderDetail_Cancelled';
+
 function App() {
   return (
     <Router>
@@ -36,11 +43,18 @@ function App() {
           <Route path="/" element={<ProductsPage/>} />
           <Route path="/products/:id" element={<GroupPurchaseDetail />} />
           <Route path="/order" element={<OrderPage/>} />
-          <Route path="payment" element={<PaymentPage/>} />
+          <Route path="/payment" element={<PaymentPage/>} />
           <Route path="/order-complete" element={<OrderCompletePage/>} />
 
+          <Route path="/order-detail" element={<OrderDetail_OrderReceived />} />
+          <Route path="/received" element={<OrderDetail_PaymentReceived />} />
+          <Route path="/preparing" element={<OrderDetail_Preparing />} />
+          <Route path="/shipping" element={<OrderDetail_Shipping />} />
+          <Route path="/delivered" element={<OrderDetail_Delivered />} />
+          <Route path="/cancelled" element={<OrderDetail_Cancelled />} />
+
           <Route path="/write" element={<GroupPurchaseRegister/>} />
-          <Route path="nearby" element={<NearbyGroupPurchase/>} />
+          <Route path="/nearby" element={<NearbyGroupPurchase/>} />
 
           <Route path="/login" element={<LoginPage/>} />
           <Route path="/find-password" element={<FindPassword/>} />
@@ -49,14 +63,13 @@ function App() {
 
           <Route path="/admin" element={<AdminPage/>}>
             <Route index element={<AdminUserReport/>} />
-  
+
             <Route path="report-user" element={<AdminUserReport/>} />
             <Route path="report-review" element={<AdminReviewReport/>} /> 
             <Route path="report-notice" element={<AdminNoticeReport/>} />
             <Route path="payment" element={<AdminPaymentManage/>} />
             <Route path="posts" element={<AdminPostManage/>} />
             <Route path="payment/:id" element={<AdminSettlement />} />
-
           </Route>
         </Routes>
       </div>
