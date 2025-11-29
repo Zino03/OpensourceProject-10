@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { FaRegBell } from "react-icons/fa";
 import PurchaseModal from './modal/PurchaseModal';
 import InvoiceModal from './modal/InvoiceModal';
+import ReceiveModal from './modal/ReceiveModal';
 
 const Container = styled.div`
   width: 100%;
@@ -393,8 +394,14 @@ const CommentDate = styled.div`
 const ManageHeader = styled.div`
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: flex-start;
   margin-bottom: 10px;
+`;
+
+const TitleGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
 `;
 
 const ManageTitle = styled.h3`
@@ -402,7 +409,7 @@ const ManageTitle = styled.h3`
   font-weight: 600;
 `;
 
-const InvoiceNumberButton = styled.button`
+const ManageButton = styled.button`
   background-color: #FF7E00;
   color: white;
   border: none;
@@ -414,7 +421,7 @@ const InvoiceNumberButton = styled.button`
   &:hover { opacity: 0.9; }
 `;
 
-const InvoiceStatusBadge = styled.span`
+const RegisterStatusBadge = styled.span`
   display: inline-block;
   font-size: 10px;
   padding: 6px 10px;
@@ -440,11 +447,21 @@ const ParticipantTable = styled.table`
     padding: 20px 10px;
     border-bottom: 1px solid #eee;
   }
+`;
 
-  th:nth-child(6), 
-  td:nth-child(6){
-    text-align: center;
-    width: 350px;
+const FilterButton = styled.button`
+  background-color: #fff;
+  border: 1px solid ${props => props.active ? '#FF7E00' : '#000'};
+  color: ${props => props.active ? '#FF7E00' : '#000'};
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+
+  &:hover {
+    border-color: #FF7E00;
+    color: #FF7E00;
   }
 `;
 
@@ -478,29 +495,49 @@ const GroupPurchaseDetail = () => {
   ];
 
   const [participants, setParticipants] = useState([
-    { id: 1, name: '변진호(주최자)', nickname: '사자사자', amount: '7,000원', status: '결제 완료', date: '2025-11-06', address: '충북 청주시 서원구 충대로 1 충북대학교 S4-1 103호', invoice: null},
-    { id: 2, name: '최지우', nickname: '휴학할래', amount: '7,000원', status: '결제 완료', date: '2025-11-06', address: '충북 청주시 서원구 충대로 1 충북대학교 S4-1 103호', invoice: null },
-    { id: 3, name: '김서연', nickname: '너도하자', amount: '7,000원', status: '결제 대기', date: '-', address: '충북 청주시 서원구 충대로 1 충북대학교 S4-1 103호', invoice: null },
-    { id: 4, name: '조수빈', nickname: '휴학', amount: '7,000원', status: '결제 대기', date: '-', address: '충북 청주시 서원구 충대로 1 충북대학교 S4-1 103호', invoice: null },
-    { id: 5, name: '최지우', nickname: '휴학할래', amount: '7,000원', status: '결제 완료', date: '2025-11-06', address: '충북 청주시 서원구 충대로 1 충북대학교 S4-1 103호', invoice: null },
-    { id: 6, name: '김서연', nickname: '너도하자', amount: '7,000원', status: '결제 대기', date: '-', address: '충북 청주시 서원구 충대로 1 충북대학교 S4-1 103호', invoice: null },
-    { id: 7, name: '조수빈', nickname: '휴학', amount: '7,000원', status: '결제 대기', date: '-', address: '충북 청주시 서원구 충대로 1 충북대학교 S4-1 103호', invoice: null },
+    { id: 1, name: '변진호(주최자)', nickname: '사자사자', amount: '7,000원', address: '(12345)\n도로명: 충북 청주시 가나구 다라로 123(삼성동, 사자아파트)****\n지   번: 충북 청주시 가나구 삼성동 123 ****', status: '결제 완료', date: '2025-11-06', invoice: null, pickup: null, receive: 'pickup' },
+    { id: 2, name: '최지우', nickname: '직접수령', amount: '7,000원', address: '(12345)\n도로명: 충북 청주시 가나구 다라로 123(삼성동, 사자아파트)****\n지   번: 충북 청주시 가나구 삼성동 123 ****', status: '결제 완료', date: '2025-11-06', invoice: null, pickup: null, receive: 'pickup' },
+    { id: 3, name: '김서연', nickname: '너도하자', amount: '7,000원', address: '(12345)\n도로명: 충북 청주시 가나구 다라로 123(삼성동, 사자아파트)****\n지   번: 충북 청주시 가나구 삼성동 123 ****', status: '결제 대기', date: '-', invoice: null, pickup: null, receive: 'pickup' },
+    { id: 4, name: '조수빈', nickname: '휴학', amount: '7,000원', address: '(12345)\n도로명: 충북 청주시 가나구 다라로 123(삼성동, 사자아파트)****\n지   번: 충북 청주시 가나구 삼성동 123 ****', status: '결제 대기', date: '-', invoice: null, pickup: null, receive: 'delivery' },
+    { id: 5, name: '최지우', nickname: '배송수령', amount: '7,000원', address: '(12345)\n도로명: 충북 청주시 가나구 다라로 123(삼성동, 사자아파트)****\n지   번: 충북 청주시 가나구 삼성동 123 ****', status: '결제 완료', date: '2025-11-06', invoice: null, pickup: null, receive: 'delivery' },
+    { id: 6, name: '김서연', nickname: '너도하자', amount: '7,000원', address: '(12345)\n도로명: 충북 청주시 가나구 다라로 123(삼성동, 사자아파트)****\n지   번: 충북 청주시 가나구 삼성동 123 ****', status: '결제 대기', date: '-', invoice: null, pickup: null, receive: 'delivery' },
+    { id: 7, name: '조수빈', nickname: '휴학', amount: '7,000원', address: '(12345)\n도로명: 충북 청주시 가나구 다라로 123(삼성동, 사자아파트)****\n지   번: 충북 청주시 가나구 삼성동 123 ****', status: '결제 대기', date: '-', invoice: null, pickup: null, receive: 'delivery' },
   ]);
 
   const [activeTab, setActiveTab] = useState('info');
   const [isModalOpen, setIsModalOpen] = useState(false);
+
   // 송장 번호 등록 모달
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
+  // 수령 일자 등록 모달
+  const [isReceiveDateModalOpen, setIsReceiveDateModalOpen] = useState(false);
+
+  // 배송, 직접 수령 구분
+  const [participantFilter, setParticipantFilter] = useState('delivery');
+  // 필터에 맞는 참여자만
+  const filteredParticipants = participants.filter(p => p.receive === participantFilter);
   
   // 주최자 여부 확인
   const isOrganizer = true;
 
   const handleInvoiceSave = (updatedData) => {
-    // updatedData는 모달에서 넘어온 배열 [{id, courier, invoiceNum}, ...]
+    // updatedData는 모달에서 넘어온 배열
     setParticipants(prev => prev.map(p => {
       const update = updatedData.find(item => item.id === p.id);
       if (update && update.courier && update.invoiceNum) {
         return { ...p, invoice: { courier: update.courier, number: update.invoiceNum } };
+      }
+      return p;
+    }));
+    alert('배송 정보가 저장되었습니다.');
+  };
+
+  const handleReceiveDateSave = (updatedData) => {
+    // updatedData는 모달에서 넘어온 배열
+    setParticipants(prev => prev.map(p => {
+      const update = updatedData.find(item => item.id === p.id);
+      if (update && update.receiveDate && update.receiveTime) {
+        return { ...p, pickup: { receiveDate: update.receiveDate, receiveTime: update.receiveTime } };
       }
       return p;
     }));
@@ -652,56 +689,110 @@ return (
     {isOrganizer && activeTab === 'manage' && (
     <Section>
           <ManageHeader>
-            <ManageTitle>공구 참여 명단</ManageTitle>
-            <InvoiceNumberButton onClick={() => setIsInvoiceModalOpen(true)}>송장번호 등록</InvoiceNumberButton>
+            <TitleGroup>
+              <ManageTitle>공구 참여 명단</ManageTitle>
+                <FilterButton 
+                  active={participantFilter === 'delivery'}
+                  onClick={() => {setParticipantFilter('delivery')}}>
+                  배송 수령
+                </FilterButton>
+
+                <FilterButton 
+                  active={participantFilter === 'pickup'}
+                  onClick={() => {setParticipantFilter('pickup')}}>
+                  직접 수령
+                </FilterButton>
+              </TitleGroup>
+            {participantFilter === 'delivery' ? (<ManageButton onClick={() => setIsInvoiceModalOpen(true)}>송장번호 등록</ManageButton>
+          ) : (<ManageButton onClick={() => setIsReceiveDateModalOpen(true)}>수령일자 등록</ManageButton>)}
           </ManageHeader>
           
-          <ParticipantTable>
+          {participantFilter === 'delivery' ? (
+            <ParticipantTable>
+              <thead>
+                <tr>
+                  <th>성명</th>
+                  <th>닉네임</th>
+                  <th>결제 금액</th>
+                  <th>결제 상태</th>
+                  <th>수령 일자</th>
+                  <th>송장 등록</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredParticipants.map((p, idx) => (
+                    <tr key={idx}>
+                      <td>{p.name}</td>
+                      <td>{p.nickname}</td>
+                      <td>{p.amount}</td>
+                      <td>{p.status}</td>
+                      <td>{p.date}</td>
+                      <td>
+                        {p.invoice ? (
+                          <RegisterStatusBadge isRegistered={true}>등록 완료</RegisterStatusBadge>
+                        ) : (
+                          <RegisterStatusBadge isRegistered={false}>미등록</RegisterStatusBadge>
+                        )}
+                      </td>
+                    </tr>
+                    )
+                  )}
+              </tbody>
+            </ParticipantTable>
+          ) : (
+            <ParticipantTable>
             <thead>
               <tr>
                 <th>성명</th>
                 <th>닉네임</th>
                 <th>결제 금액</th>
                 <th>결제 상태</th>
-                <th>배송 예정일</th>
-                <th>배송지</th>
-                <th>송장 등록</th>
+                <th>수령 일자</th>
+                <th>수령 일자 등록</th>
               </tr>
             </thead>
             <tbody>
-              {participants.map((p, idx) => (
+              {filteredParticipants.map((p, idx) => (
                 <tr key={idx}>
                   <td>{p.name}</td>
                   <td>{p.nickname}</td>
                   <td>{p.amount}</td>
                   <td>{p.status}</td>
-                  <td>{p.date}</td>
-                  <td>{p.address}</td>
+                  <td>{p.pickup ? p.pickup.receiveDate : '-'}</td>
                   <td>
-                    {p.invoice ? (
-                      <InvoiceStatusBadge isRegistered={true}>등록 완료</InvoiceStatusBadge>
+                    {p.pickup ? (
+                      <RegisterStatusBadge isRegistered={true}>등록 완료</RegisterStatusBadge>
                     ) : (
-                      <InvoiceStatusBadge isRegistered={false}>미등록</InvoiceStatusBadge>
+                      <RegisterStatusBadge isRegistered={false}>미등록</RegisterStatusBadge>
                     )}
                   </td>
                 </tr>
               ))}
             </tbody>
           </ParticipantTable>
+          )
+        }
         </Section>
       )}
     
-  <PurchaseModal 
-      isOpen={isModalOpen}
-      onClose={() => setIsModalOpen(false)}
-      product={product} 
-    />
+    <PurchaseModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        product={product} 
+      />
 
     <InvoiceModal 
         isOpen={isInvoiceModalOpen}
         onClose={() => setIsInvoiceModalOpen(false)}
-        participants={participants} 
+        participants={filteredParticipants} 
         onSave={handleInvoiceSave}
+      />
+
+    <ReceiveModal 
+        isOpen={isReceiveDateModalOpen}
+        onClose={() => setIsReceiveDateModalOpen(false)}
+        participants={filteredParticipants} 
+        onSave={handleReceiveDateSave}
       />
 
   </Container>

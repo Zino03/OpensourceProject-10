@@ -15,7 +15,7 @@ const Overlay = styled.div`
 
 const ModalContainer = styled.div`
   background-color: #fff;
-  width: 900px;
+  width: 1000px;
   border-radius: 6px;
   padding: 48px;
   display: flex;
@@ -48,6 +48,7 @@ const Table = styled.table`
   text-align: center;
   position: sticky;
   table-layout: fixed;
+  white-space: pre-wrap;
 
   th {
     background-color: #fff;
@@ -189,7 +190,7 @@ const InvoiceModal = ({ isOpen, onClose, participants, onSave }) => {
                 <tr key={row.id}>
                   <td>{row.name}</td>
                   <td>{row.nickname}</td>
-                  <td style={{ textAlign: 'left', lineHeight: '1.4' }}>{row.address}</td>
+                  <td style={{ textAlign: 'left' }}>{row.address}</td>
                   <td>
                     <StyledSelect 
                       value={row.courier} 
@@ -215,7 +216,7 @@ const InvoiceModal = ({ isOpen, onClose, participants, onSave }) => {
 
         <ButtonGroup>
           <CloseButton onClick={onClose}>닫기</CloseButton>
-          <SaveButton onClick={handleSave}>배송 정보 저장</SaveButton>
+          <SaveButton onClick={handleSave}>저장</SaveButton>
         </ButtonGroup>
 
       </ModalContainer>
