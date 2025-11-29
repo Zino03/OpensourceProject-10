@@ -21,7 +21,7 @@ const styles = {
   // 숫자 스타일 (4,4,4,3,4,4)
   stepNumber: {
     fontSize: "40px",
-    fontWeight: 300,
+    fontWeight: 700,
     color: "#b0b0b0",
     lineHeight: 1,
   },
@@ -56,7 +56,7 @@ const styles = {
 
   // 테이블 기본 스타일
   orderTable: {
-    width: "100%",
+    width: "90%",
     borderCollapse: "collapse",
     fontSize: "13px",
   },
