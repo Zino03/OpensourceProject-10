@@ -155,7 +155,7 @@ const JoinPage = () => {
     }
   }
   
-  // 이메일 중복 확인 (com, net, ac.kr)
+  // 이메일 중복 확인 (com, net, ac.kr) 해야대!
   const checkEmail = () => {
     const emailRegex = /^[A-Za-z0-9_.-]+@[A-Za-z0-9-]+\.[A-Za-z0-9-]{2,}$/; // 이메일 형식 체크
     if (!emailRegex.test(email)) {

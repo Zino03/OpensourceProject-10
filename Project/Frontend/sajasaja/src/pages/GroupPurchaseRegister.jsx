@@ -26,7 +26,7 @@ const ImageUploadBox = styled.label`
   width: 200px;
   height: 200px;
   border: 1px solid #ddd;
-  border-radius: 8px;
+  border-radius: 10px;
   margin: 0 auto 40px;
   cursor: pointer;
   color: #999;
@@ -54,7 +54,7 @@ const Label = styled.div`
   width: 150px;
   font-weight: 500;
   font-size: 12px;
-  padding-top: 12px;
+  padding-top: 4px;
   flex-shrink: 0;
 `;
 
@@ -67,10 +67,10 @@ const InputArea = styled.div`
 // 인풋 스타일
 const StyledInput = styled.input`
   width: 100%;
-  padding: 12px;
+  padding: 8px;
   font-size: 12px;
   border: 1px solid #ddd;
-  border-radius: 4px;
+  border-radius: 5px;
   &::placeholder { color: #aaa; }
   &:focus { outline: none; }
 
@@ -91,7 +91,7 @@ const CategoryGrid = styled.div`
 
 const CategoryButton = styled.button`
   padding: 8px;
-  border-radius: 20px;
+  border-radius: 10px;
   font-size: 12px;
   cursor: pointer;
   border: none;
@@ -141,7 +141,7 @@ const StyledTextArea = styled.textarea`
   padding: 12px;
   font-size: 12px;
   border: 1px solid #ddd;
-  border-radius: 4px;
+  border-radius: 5px;
   resize: none;
   
   &::placeholder { color: #aaa; }
@@ -166,7 +166,7 @@ const CheckboxLabel = styled.label`
   white-space: nowrap;
 
   input {
-    accent-color: #FF7E00; /* 체크박스 색상 */
+    accent-color: #FF7E00; 
     width: 16px;
     height: 16px;
   }
@@ -178,10 +178,10 @@ const SubmitButton = styled.button`
   width: 120px;
   padding: 12px 0;
   margin: 40px auto 0;
-  background-color: #FF7E00;
+  background-color: #000;
   color: #fff;
   border: none;
-  border-radius: 6px;
+  border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -339,8 +339,7 @@ const GroupPurchaseRegister = () => {
       <FormSection>
         <Label>연락수단</Label>
         <InputArea>
-          <StyledInput type="text" placeholder="전화번호" style={{ marginBottom: '8px' }} />
-          <StyledInput type="text" placeholder="오픈채팅" />
+          <StyledInput type="text" placeholder="전화번호" style={{ width: '290px' }} />
         </InputArea>
       </FormSection>
 

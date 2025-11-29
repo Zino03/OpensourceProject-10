@@ -78,7 +78,7 @@ const FilterSection = styled.section`
 const SearchBar = styled.div`
   background-color: #fff; 
   display: flex;
-  border: 1px solid #aaa;
+  border: 1.5px solid #ccc;
   border-radius: 20px;
   padding: 8px 16px;
 
