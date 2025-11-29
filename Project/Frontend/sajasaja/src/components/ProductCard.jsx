@@ -28,7 +28,7 @@ const ImageContainer = styled.div`
 const StatusTag = styled.div`
   position: absolute;
   top: 12px;
-  left: 12px;
+  right: 12px;
   padding: 5px 10px;
   background-color: #FF3B30;
   color: white;

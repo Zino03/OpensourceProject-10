@@ -111,7 +111,6 @@ const MapArea = styled.div`
   position: relative;
   overflow: hidden;
   
-  background-image: url('https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/preview_map.png');
   background-size: cover;
   background-position: center;
 `;
@@ -121,21 +120,14 @@ const Marker = styled.div`
   position: absolute;
   top: ${props => props.top};
   left: ${props => props.left};
-  width: 30px;
-  height: 30px;
-  background-color: #FF7E00;
-  border-radius: 50%;
-  border: 2px solid #fff;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.2);
   display: flex;
   justify-content: center;
   align-items: center;
-  color: #fff;
-  font-size: 20px;
   cursor: pointer;
   transform: translate(-50%, -100%); 
   transition: transform 0.2s;
 
+  img {height: 30px; }
   &:hover {
     transform: translate(-50%, -110%) scale(1.1);
     z-index: 100;
@@ -272,6 +264,7 @@ const NearbyGroupPurchase = () => {
 
       {/* 우측 지도 영역 */}
       <MapArea>
+        <img src="/images/getTileMap.png" alt="marker" />
         {mockItems.map((item) => (
           <Marker 
             key={item.id} 
@@ -280,7 +273,7 @@ const NearbyGroupPurchase = () => {
             onClick={() => setSelectedId(item.id)}
             title={item.title}
           >
-            <FaMapMarkerAlt />
+            <img src="/images/marker.png" alt="marker" />
           </Marker>
         ))}
         {/*FaPlus, FaMinus, FaSyncAlt, FaCrosshairs */}
