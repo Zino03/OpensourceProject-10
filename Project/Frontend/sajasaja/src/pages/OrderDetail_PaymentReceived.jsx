@@ -77,7 +77,7 @@ const styles = {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "flex-end",
-    width: "77%",
+    width: "83%", //표 헤더 선 길이 조정
     margin: "0 auto",
     borderBottom: "1px solid #000",
     paddingBottom: "8px",
@@ -89,32 +89,39 @@ const styles = {
   },
 
   orderListNotice: {
-    fontSize: "12px",
+    fontSize: "11px",
     color: "#D32F2F",
   },
 
   orderTable: {
-    width: "77%",
+    width: "83%", //표 선 길이 조정
     margin: "0 auto",
     borderCollapse: "collapse",
-    fontSize: "13px",
+    textalign: "center",
+    fontSize: "16px",
   },
 
   tableHeadRow: {
     borderBottom: "1px solid #000",
   },
 
+  tr: {
+    display: "flex",
+    flexDirection: "row",
+  },
+
   th: { //표 헤더 내용 스타일 수정
     padding: "20px 8px",
-    textAlign: "left",
+    textAlign: "center",
     fontWeight: 500,
     color: "#555",
     fontSize: "13.5px",
+    maxWidth: "200px",
   },
 
   td: { //표 바디 내용 스타일 수정
     padding: "10px 8px",
-    textAlign: "left",
+    textAlign: "center",
     fontSize: "11.5px",
   },
 
@@ -127,37 +134,48 @@ const styles = {
   },
 
   productName: {
-    maxWidth: "200px",
+    maxWidth: "160px",
     whiteSpace: "nowrap",
+    textAlign: "left",
     overflow: "hidden",
     textOverflow: "ellipsis",
   },
 
   orderActions: {
     display: "flex",
+    justifyContent:"space-between",
     gap: "8px",
   },
 
+  
+  thOrderActions: {
+    minWidth: "98px",
+    display: "flex",
+    justifyContent: "center",
+  },
+
   btnOutline: { //버튼 스타일 수정
-    minWidth: "90px",
+    minWidth: "98px",
     padding: "4px 14px",
-    fontSize: "11px",
+    fontSize: "10px",
     borderRadius: "6px",
     cursor: "pointer",
     border: "1px solid #000",
     backgroundColor: "#fff",
     color: "#444",
+    margin: "0 -8px 0 0",
   },
 
   btnFilled: { //버튼 스타일 수정
-    minWidth: "90px",
+    minWidth: "98px",
     padding: "4px 14px",
-    fontSize: "11px",
+    fontSize: "10px",
     borderRadius: "6px",
     cursor: "pointer",
     border: "1px solid #FF7E00",
     backgroundColor: "#FF7E00",
     color: "#fff",
+    margin: "0 -4px 0 -8px",
   },
 };
 
@@ -267,14 +285,14 @@ function OrderDetail_PaymentCompleted() {
                 <td style={styles.td}>{order.total}</td>
 
                 <td style={styles.td}>
-                  <div style={styles.orderActions}>
                     <button type="button" style={styles.btnOutline}>
                       주문 취소
                     </button>
+                </td>
+                <td style={styles.td}>
                     <button type="button" style={styles.btnFilled}>
                       문의하기
                     </button>
-                  </div>
                 </td>
               </tr>
             ))}
