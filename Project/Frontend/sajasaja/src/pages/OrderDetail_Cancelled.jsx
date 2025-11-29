@@ -180,16 +180,16 @@ const orderCounts = {
 
 /* 현재 활성 단계 = 상품 준비 중 */
 const steps = [
-  { id: 1, label: "주문 접수", value: orderCounts.received, path: "/orders/received" },
-  { id: 2, label: "결제 완료", value: orderCounts.payment, path: "/orders/payment" },
-  { id: 3, label: "상품 준비 중", value: orderCounts.preparing, path: "/orders/preparing" },
-  { id: 4, label: "배송 중", value: orderCounts.shipping, path: "/orders/shipping" },
-  { id: 5, label: "배송완료", value: orderCounts.delivered, path: "/orders/delivered" },
-  { id: 6, label: "주문 취소", value: orderCounts.cancelled, active: true, path: "/orders/cancelled" },
+  { id: 1, label: "주문 접수", value: orderCounts.received, path: "/order-detail" },
+  { id: 2, label: "결제 완료", value: orderCounts.payment, path: "/received" },
+  { id: 3, label: "상품 준비 중", value: orderCounts.preparing, path: "/preparing" },
+  { id: 4, label: "배송 중", value: orderCounts.shipping, path: "/shipping" },
+  { id: 5, label: "배송완료", value: orderCounts.delivered, path: "/delivered" },
+  { id: 6, label: "주문 취소", value: orderCounts.cancelled, active: true, path: "/cancelled" },
 ];
 
 /* 주문 리스트
-   🔹 expectedDate = 수령예정일
+   expectedDate = 수령예정일
    '-' 인 경우: 수령장소 수령이 아니거나, 아직 예정일이 정해지지 않은 케이스
 */
 const orders = [
@@ -243,7 +243,10 @@ function OrderDetail_PaymentCompleted() {
       <div style={styles.orderSteps}>
         {steps.map((step, index) => (
           <React.Fragment key={step.id}>
-            <div style={styles.orderStep}>
+           <div
+              style={styles.orderStep}
+              onClick={() => step.path && navigate(step.path)}
+            >
               <div
                 style={
                   step.active ? styles.stepNumberActive : styles.stepNumber
