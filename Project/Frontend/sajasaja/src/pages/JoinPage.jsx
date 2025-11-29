@@ -87,7 +87,7 @@ const ValidationMessage = styled.p`
 
 const SubmitButton = styled.button`
   width: 100%;
-  padding: 12px 16px;
+  padding: 8px 16px;
   background-color: #000;
   color: white;
   border: none;
@@ -122,7 +122,7 @@ const JoinPage = () => {
           return;
       }
 
-      navigate(`/verification`);
+      navigate(`/`);
     };
 
   // 상태 관리
@@ -155,7 +155,7 @@ const JoinPage = () => {
     }
   }
   
-  // 이메일 중복 확인
+  // 이메일 중복 확인 (com, net, ac.kr)
   const checkEmail = () => {
     const emailRegex = /^[A-Za-z0-9_.-]+@[A-Za-z0-9-]+\.[A-Za-z0-9-]{2,}$/; // 이메일 형식 체크
     if (!emailRegex.test(email)) {

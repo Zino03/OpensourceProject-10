@@ -141,7 +141,7 @@ const ProgressBarContainer = styled.div`
 const ProgressBarFill = styled.div`
   height: 100%;
   width: ${props => props.percent}%;
-  background-color: #FF7E36;
+  background-color: #FF7E00;
 `;
 
 // 상세 정보 리스트
@@ -244,7 +244,7 @@ const PurchaseButton = styled.button`
   border: none;
   padding: 10px 0;
   border-radius: 6px;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 500;
   cursor: pointer;
 
@@ -689,7 +689,7 @@ return (
             </tbody>
           </ParticipantTable>
         </Section>
-      )};
+      )}
     
   <PurchaseModal 
       isOpen={isModalOpen}

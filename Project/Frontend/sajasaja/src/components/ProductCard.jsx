@@ -30,7 +30,7 @@ const StatusTag = styled.div`
   top: 12px;
   left: 12px;
   padding: 5px 10px;
-  background-color: #FF7E00;
+  background-color: #FF3B30;
   color: white;
   font-size: 10px;
   font-weight: 500;
@@ -42,7 +42,7 @@ const InfoContainer = styled.div`
 `;
 
 const Title = styled.h4`
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   margin: 3px 0 12px 0;
 
@@ -56,27 +56,29 @@ const BottomInfo = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: #555;
 `;
 
 const Price = styled.div`
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 700;
-  color: #2C3E50;
 `;
 
 // 수량
 const DetailsContainer = styled.div`
-  font-size: 11px;
+  font-size: 10px;
 `;
 
+const BottomContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+`
 const Quantity = styled.div`
   text-align: right;
-  color: #FF7E00;
 `;
 
 const Deadline = styled.div`
-  color: #888;
+  text-align: right;
 `;
 
 
@@ -111,11 +113,15 @@ const ProductCard = ({ product }) => {
       <InfoContainer>
         <Title>{title}</Title>
         <BottomInfo>
-          <Price>{price.toLocaleString()}원</Price>
           <DetailsContainer>
-            <Quantity>수량: {totalCount}/{currentCount}</Quantity>
-            <Deadline>~{deadline}</Deadline>
+            <BottomContainer>
+              수량 <Quantity>{currentCount}/{totalCount}</Quantity>
+            </BottomContainer>
+            <BottomContainer>
+              기간 <Deadline>~{deadline}</Deadline>
+            </BottomContainer>
           </DetailsContainer>
+          <Price>{price.toLocaleString()}원</Price>
         </BottomInfo>
       </InfoContainer>
     </CardWrapper>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { FaMapMarkerAlt } from "react-icons/fa";
+import { FaMapMarkerAlt, FaPlus, FaMinus, FaSyncAlt, FaCrosshairs } from "react-icons/fa"; // 아이콘 추가
 
 const Container = styled.div`
   display: flex;
@@ -111,7 +111,6 @@ const MapArea = styled.div`
   position: relative;
   overflow: hidden;
   
-  /* 실제 지도 API 연동 전, 배경 이미지로 대체 */
   background-image: url('https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/preview_map.png');
   background-size: cover;
   background-position: center;
@@ -124,7 +123,7 @@ const Marker = styled.div`
   left: ${props => props.left};
   width: 30px;
   height: 30px;
-  background-color: #FF7E00; /* 오렌지색 마커 */
+  background-color: #FF7E00;
   border-radius: 50%;
   border: 2px solid #fff;
   box-shadow: 0 3px 10px rgba(0,0,0,0.2);
@@ -134,7 +133,7 @@ const Marker = styled.div`
   color: #fff;
   font-size: 20px;
   cursor: pointer;
-  transform: translate(-50%, -100%); /* 좌표 기준점 조정 */
+  transform: translate(-50%, -100%); 
   transition: transform 0.2s;
 
   &:hover {
@@ -143,8 +142,52 @@ const Marker = styled.div`
   }
 `;
 
+// 지도 컨트롤 버튼
+const ControlButton = styled.button`
+  width: 40px;
+  height: 40px;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 16px;
+  cursor: pointer;
+
+  &:hover { background-color: #f9f9f9; }
+  &:active { background-color: #eee; }
+`;
+
+// 확대/축소 그룹
+const ZoomControlGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  overflow: hidden;
+
+  button {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 0;
+    background-color: #fff;
+    
+    &:first-child { border-bottom: 1px solid #eee; }
+    &:hover { background-color: #f9f9f9; }
+    &:active { background-color: #eee; }
+  }
+`;
+
 const NearbyGroupPurchase = () => {
   const [selectedId, setSelectedId] = useState(1);
+
+  const handleZoomIn = () => console.log('확대');
+  const handleZoomOut = () => console.log('축소');
+  const handleRefresh = () => console.log('새로고침');
+  const handleCurrentLocation = () => console.log('현위치');
 
   // 더미 데이터
   const mockItems = [
@@ -195,7 +238,7 @@ const NearbyGroupPurchase = () => {
 
   return (
     <Container>
-      {/* 1. 좌측 사이드바 (리스트) */}
+      {/* 좌측 사이드바 (리스트) */}
       <Sidebar>
         <SidebarHeader>
           <Title>내 주변 공구</Title>
@@ -227,9 +270,8 @@ const NearbyGroupPurchase = () => {
         </ListContainer>
       </Sidebar>
 
-      {/* 2. 우측 지도 영역 */}
+      {/* 우측 지도 영역 */}
       <MapArea>
-        {/* 가상의 마커들 (실제 구현 시에는 Map API의 Marker 컴포넌트 사용) */}
         {mockItems.map((item) => (
           <Marker 
             key={item.id} 
@@ -241,6 +283,15 @@ const NearbyGroupPurchase = () => {
             <FaMapMarkerAlt />
           </Marker>
         ))}
+        {/*FaPlus, FaMinus, FaSyncAlt, FaCrosshairs */}
+        <ZoomControlGroup>
+          <FaPlus/>
+          <FaMinus/>
+        </ZoomControlGroup>
+        <ControlButton>
+          <FaSyncAlt/>
+          <FaCrosshairs/>
+        </ControlButton>
       </MapArea>
     </Container>
   );

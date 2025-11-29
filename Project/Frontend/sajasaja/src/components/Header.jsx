@@ -23,7 +23,8 @@ const LogoSection = styled.a`
   align-items: center;
   gap: 12px;
   text-decoration: none;
-  
+  margin-left: 125px;
+
   img { height: 30px; }
   h2 { 
     font-size: 20px;
@@ -36,7 +37,7 @@ const LogoSection = styled.a`
 const RightSection = styled.div`
   display: flex;
   align-items: center;
-  gap: 40px; 
+  gap: 60px; 
 
   nav { 
     display: flex; 
@@ -44,22 +45,24 @@ const RightSection = styled.div`
   }
   nav a { 
     text-decoration: none; 
-    color: #333; 
     font-weight: 700; 
     font-size: 13px; 
-  }
-  
-  .user-menu { 
-    display: flex; 
-    gap: 12px; 
-    align-items: center; 
-  }
-  .user-menu a { 
-    text-decoration: none; 
-    color: #555; 
-    font-size: 12px; 
+    color: #000;
   }
 `;
+
+const LoginSection = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px; 
+  a { 
+    text-decoration: none; 
+    font-weight: 500; 
+    font-size: 13px; 
+    color: #555; 
+  }
+  img { height: 16px; }
+`
 
 const Header = () => {
   return (
@@ -76,10 +79,10 @@ const Header = () => {
             <a href="/nearby">내 주변 공구</a>
             <a href="/write">공구 등록</a>
           </nav>
-          <div className="user-menu">
+          <LoginSection>
             <a href="/login">로그인</a>
-            <PiUserLight size={"24px"}/> 
-          </div>
+            <img src="/images/profile.png" alt="profile" /> 
+          </LoginSection>
         </RightSection>
       </HeaderContent>
     </HeaderWrapper>
