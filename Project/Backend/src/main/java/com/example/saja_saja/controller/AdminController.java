@@ -5,7 +5,6 @@ import com.example.saja_saja.dto.report.ReportProcessRequestDto;
 import com.example.saja_saja.dto.report.ReportType;
 import com.example.saja_saja.entity.member.Member;
 import com.example.saja_saja.entity.member.Role;
-import com.example.saja_saja.service.ReportService;
 import com.example.saja_saja.service.UserService;
 import com.example.saja_saja.service.admin.AdminBuyerService;
 import com.example.saja_saja.service.admin.AdminPostService;
@@ -33,11 +32,12 @@ public class AdminController {
     private final AdminReportService adminReportService;
     private final AdminBuyerService adminBuyerService;
 
+    // TODO: 검색기능추가
     @GetMapping("/reports/{type}")
     public ResponseEntity getReportList(
             @PathVariable ReportType type,
             @RequestParam(required = false, defaultValue = "-1") Integer status,
-            @PageableDefault(size = 15, sort = "reportedAt", direction = Sort.Direction.DESC) Pageable pageable
+            @PageableDefault(page = 0, size = 15, sort = "reportedAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         Member member = userService.getMember(SecurityUtil.getCurrentUserId());
         return adminReportService.getReportList(member, type, status, pageable);
@@ -71,10 +71,11 @@ public class AdminController {
         return adminReportService.processReport(member, type, reportId, req);
     }
 
+    // TODO: 검색기능추가
     @GetMapping("/posts")
     public ResponseEntity getAdminPostList(
             @RequestParam(required = false, defaultValue = "-1") Integer process,       // -1: 전체, 0: 대기, 1: 승인, 4: 반려
-            @PageableDefault(size = 15, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+            @PageableDefault(page = 0, size = 15, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         Member member = userService.getMember(SecurityUtil.getCurrentUserId());
         return adminPostService.getAdminPostList(member, process, pageable);
@@ -89,16 +90,16 @@ public class AdminController {
         return adminPostService.processPost(member, postId, process);
     }
 
+    // TODO: 검색 기능 추가
     @GetMapping("/buyers")
     public ResponseEntity getBuyerList(
             @RequestParam(required = false, defaultValue = "-1") Integer process,   // -1: 전체, 0: 대기, 1: 완료, 3: 취소
-            @PageableDefault(size = 15, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+            @PageableDefault(page = 0, size = 15, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         Member member = userService.getMember(SecurityUtil.getCurrentUserId());
         return adminBuyerService.getBuyerList(member, process, pageable);
     }
 
-    // TODO: 정산 처리
     @PutMapping("/buyer/{buyerId}")
     public ResponseEntity processBuyer(
             @PathVariable Long buyerId,

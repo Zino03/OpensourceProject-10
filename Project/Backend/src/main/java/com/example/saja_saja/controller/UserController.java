@@ -4,9 +4,13 @@ import com.example.saja_saja.config.SecurityUtil;
 import com.example.saja_saja.dto.user.UserAddressRequestDto;
 import com.example.saja_saja.dto.user.UserRequestDto;
 import com.example.saja_saja.entity.member.Member;
+import com.example.saja_saja.service.BuyerService;
 import com.example.saja_saja.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -21,6 +25,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final BuyerService buyerService;
 
 
     @GetMapping("/user/{nickname}")
@@ -76,5 +81,20 @@ public class UserController {
     }
 
     // TODO: 주문내역 조회
+    @GetMapping("/mypage/orders")
+    public ResponseEntity getOrderList(
+            // 0: 주문 접수, 1: 결제완료, 2: 상품 준비중, 3: 배송완료, 4: 구매확정 5: 주문 취소
+            @RequestParam(required = false, defaultValue = "0") Integer status,
+            @PageableDefault(page = 0, size = 15, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        Member member = userService.getMember(SecurityUtil.getCurrentUserId());
+        return buyerService.orderList(member, status, pageable);
+    }
+
+    // TODO: 주문 취소 (단순 변심)
+    // TODO: 구매확정
+    // TODO: 후기 작성
+
+    // TODO: 주문 상세
     // TODO: 주최 공구 조회
 }
