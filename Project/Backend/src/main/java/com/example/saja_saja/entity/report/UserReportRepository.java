@@ -29,4 +29,12 @@ public interface UserReportRepository extends JpaRepository<UserReport, Long> {
             @Param("status") Integer status,
             Pageable pageable
     );
+
+    // 🔍 reporter.name 검색
+    Page<UserReport> findAllByReporter_NameContaining(String name, Pageable pageable);
+    Page<UserReport> findAllByStatusAndReporter_NameContaining(Integer status, String name, Pageable pageable);
+
+    // 🔍 reportedUser.name 검색
+    Page<UserReport> findAllByReportedUser_NameContaining(String name, Pageable pageable);
+    Page<UserReport> findAllByStatusAndReportedUser_NameContaining(Integer status, String name, Pageable pageable);
 }

@@ -18,6 +18,11 @@ public interface BuyerRepository extends JpaRepository<Buyer, Long> {
     Page<Buyer> findAllByIsPaid(Integer isPaid, Pageable pageable);
     Page<Buyer> findAllByUserAndStatus(User user, Integer status, Pageable pageable);
 
+    Page<Buyer> findAllByPayerNameContaining(String payerName, Pageable pageable);
+    Page<Buyer> findAllByIsPaidInAndPayerNameContaining(List<Integer> isPaidList, String payerName, Pageable pageable);
+    Page<Buyer> findAllByIsPaidAndPayerNameContaining(Integer isPaid, String payerName, Pageable pageable);
+
+
     @Query("SELECT b.status, COUNT(b) FROM Buyer b WHERE b.user = :user GROUP BY b.status")
     List<Object[]> countOrderStatusByUser(@Param("user") User user);
 }

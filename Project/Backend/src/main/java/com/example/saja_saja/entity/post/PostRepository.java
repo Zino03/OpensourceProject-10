@@ -42,6 +42,11 @@ public interface PostRepository extends JpaRepository<Post, Long>, JpaSpecificat
 
     Page<Post> findByHost(User user, Pageable pageable);
 
+    Page<Post> findAllByTitleContaining(String title, Pageable pageable);
+    Page<Post> findAllByStatusAndTitleContaining(Integer status, String title, Pageable pageable);
+    Page<Post> findAllByStatusInAndTitleContaining(List<Integer> statuses, String title, Pageable pageable);
+
+
     @Query("SELECT p FROM Post p JOIN FETCH p.host WHERE p.status = :status")
     Page<Post> findAllByStatus(@Param("status") Integer status, Pageable pageable);
 

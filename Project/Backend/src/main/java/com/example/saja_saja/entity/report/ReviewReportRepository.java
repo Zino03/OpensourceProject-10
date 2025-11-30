@@ -29,4 +29,12 @@ public interface ReviewReportRepository extends JpaRepository<ReviewReport, Long
             @Param("status") Integer status,
             Pageable pageable
     );
+
+    // 🔍 reporter.name 검색
+    Page<ReviewReport> findAllByReporter_NameContaining(String name, Pageable pageable);
+    Page<ReviewReport> findAllByStatusAndReporter_NameContaining(Integer status, String name, Pageable pageable);
+
+    // 🔍 신고 대상 리뷰 작성자 이름 검색 (review.buyer.user.name)
+    Page<ReviewReport> findAllByReportedReview_Buyer_User_NameContaining(String name, Pageable pageable);
+    Page<ReviewReport> findAllByStatusAndReportedReview_Buyer_User_NameContaining(Integer status, String name, Pageable pageable);
 }

@@ -37,10 +37,12 @@ public class AdminController {
     public ResponseEntity getReportList(
             @PathVariable ReportType type,
             @RequestParam(required = false, defaultValue = "-1") Integer status,
+            @RequestParam(required = false, defaultValue = "0") Integer searchType,
+            @RequestParam(required = false, defaultValue = "") String searchName,
             @PageableDefault(page = 0, size = 15, sort = "reportedAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         Member member = userService.getMember(SecurityUtil.getCurrentUserId());
-        return adminReportService.getReportList(member, type, status, pageable);
+        return adminReportService.getReportList(member, type, status, searchType, searchName, pageable);
     }
 
     @GetMapping("/report/{type}/{reportId}")
@@ -75,10 +77,11 @@ public class AdminController {
     @GetMapping("/posts")
     public ResponseEntity getAdminPostList(
             @RequestParam(required = false, defaultValue = "-1") Integer process,       // -1: 전체, 0: 대기, 1: 승인, 4: 반려
+            @RequestParam(required = false, defaultValue = "") String title,
             @PageableDefault(page = 0, size = 15, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         Member member = userService.getMember(SecurityUtil.getCurrentUserId());
-        return adminPostService.getAdminPostList(member, process, pageable);
+        return adminPostService.getAdminPostList(member, process, title, pageable);
     }
 
     @PutMapping("/post/{postId}")
@@ -90,14 +93,14 @@ public class AdminController {
         return adminPostService.processPost(member, postId, process);
     }
 
-    // TODO: 검색 기능 추가
     @GetMapping("/buyers")
     public ResponseEntity getBuyerList(
             @RequestParam(required = false, defaultValue = "-1") Integer process,   // -1: 전체, 0: 대기, 1: 완료, 3: 취소
+            @RequestParam(required = false, defaultValue = "") String name,
             @PageableDefault(page = 0, size = 15, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         Member member = userService.getMember(SecurityUtil.getCurrentUserId());
-        return adminBuyerService.getBuyerList(member, process, pageable);
+        return adminBuyerService.getBuyerList(member, process, name, pageable);
     }
 
     @PutMapping("/buyer/{buyerId}")

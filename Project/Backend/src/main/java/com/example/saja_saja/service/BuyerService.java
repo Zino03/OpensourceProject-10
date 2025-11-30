@@ -3,6 +3,7 @@ package com.example.saja_saja.service;
 import com.example.saja_saja.dto.buyer.BuyerListResponseDto;
 import com.example.saja_saja.dto.buyer.CanceledOrderListResponseDto;
 import com.example.saja_saja.dto.buyer.OrderListResponseDto;
+import com.example.saja_saja.dto.buyer.OrderResponseDto;
 import com.example.saja_saja.dto.post.BuyerApplyRequestDto;
 import com.example.saja_saja.dto.post.BuyerApplyResponseDto;
 import com.example.saja_saja.dto.post.ReceivedAtRequestDto;
@@ -17,6 +18,7 @@ import com.example.saja_saja.entity.user.UserAddress;
 import com.example.saja_saja.entity.user.UserAddressRepository;
 import com.example.saja_saja.entity.user.UserRepository;
 import com.example.saja_saja.exception.BadRequestException;
+import com.example.saja_saja.exception.ResourceNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
@@ -476,6 +478,7 @@ public class BuyerService {
         return new ResponseEntity(buyer, HttpStatus.OK);
     }
 
+    @Transactional
     // 0: 주문 접수, 1: 결제완료, 2: 상품 준비중, 3: 배송완료, 4: 구매확정 5: 주문 취소
     public ResponseEntity orderList(Member member, Integer status, Pageable pageable) {
         if (status < 0 || status > 5) {
@@ -523,6 +526,51 @@ public class BuyerService {
             return new ResponseEntity(data, HttpStatus.OK);
         } catch (Exception e) {
             throw new RuntimeException("주문내역을 불러올 수 없습니다.");
+        }
+    }
+
+    @Transactional
+    public ResponseEntity confirmOrder(Member member, Long buyerId) {
+        Buyer buyer = buyerRepository.findById(buyerId)
+                .orElseThrow(() -> new ResourceNotFoundException("주문 내역을 찾을 수 없습니다."));
+
+        if (!buyer.getUser().equals(member.getUser())) {
+            throw new BadRequestException("본인의 주문만 구매 확정할 수 있습니다.", null);
+        }
+
+        if (buyer.getStatus() != 3) {
+            throw new BadRequestException("수령 완료된 주문만 구매 확정할 수 있습니다.", null);
+        }
+
+        try {
+            buyer.setStatus(4);
+
+            HashMap<String, Object> data = new HashMap<>();
+            data.put("buyerId", buyerId);
+            data.put("status", buyer.getStatus());
+            data.put("message", "구매 확정 되었습니다.");
+            return new ResponseEntity(data, HttpStatus.OK);
+        } catch (Exception e) {
+            throw new RuntimeException("구매 확정에 실패하였습니다.");
+        }
+    }
+
+    public ResponseEntity order(Member member, Long buyerId) {
+        Buyer buyer = buyerRepository.findById(buyerId)
+                .orElseThrow(() -> new ResourceNotFoundException("주문 내역을 찾을 수 없습니다."));
+
+        if (!buyer.getUser().equals(member.getUser())) {
+            throw new BadRequestException("본인의 주문만 조회할 수 있습니다.", null);
+        }
+
+        try {
+            OrderResponseDto order = OrderResponseDto.of(buyer);
+
+            HashMap<String, Object> data = new HashMap<>();
+            data.put("order", order);
+            return new ResponseEntity(data, HttpStatus.OK);
+        } catch (Exception e) {
+            throw new RuntimeException("주문 상세를 불러올 수 없습니다.");
         }
     }
 }
