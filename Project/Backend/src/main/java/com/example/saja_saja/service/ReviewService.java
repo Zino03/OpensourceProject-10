@@ -64,8 +64,8 @@ public class ReviewService {
                 .isBanned(Boolean.FALSE)
                 .build();
 
-        post.setTotalStar(post.getTotalStar()+review.getStar());
-        post.setReceivedReviewCount(post.getReceivedReviewCount()+1);
+        post.getHost().setTotalStar(post.getHost().getTotalStar()+review.getStar());
+        post.getHost().setReceivedReviewCount(post.getHost().getReceivedReviewCount()+1);
 
         review = reviewRepository.save(review);
         buyer.setReview(review);
