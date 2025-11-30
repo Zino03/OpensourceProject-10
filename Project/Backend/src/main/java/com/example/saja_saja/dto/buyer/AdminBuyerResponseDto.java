@@ -20,7 +20,19 @@ public class AdminBuyerResponseDto {
 
     private String buyerNickname;
 
+    private String buyerPhone;
+
+    private String buyerEmail;
+
     private Integer price;
+
+    private Integer buyerPrice;
+
+    private Integer quantity;
+
+    private String virtualAccountBank;
+
+    private String virtualAccount;
 
     private LocalDateTime postEndAt;
 
@@ -38,7 +50,13 @@ public class AdminBuyerResponseDto {
                 post.getId(),
                 post.getTitle(),
                 buyer.getUser().getNickname(),
+                buyer.getUser().getPhone(),
+                buyer.getUser().getMember().getEmail(),
+                post.getPrice(),
                 buyer.getPrice(),
+                buyer.getQuantity(),
+                buyer.getUser().getVirtualAccountBank(),
+                buyer.getUser().getVirtualAccount(),
                 post.getEndAt(),
                 buyer.getCreatedAt().plusDays(7),
                 buyer.getIsPaid(),

@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -14,6 +16,7 @@ public class UserPostListResponseDto {
     private Long id;
     private String title;
     private String image;
+    private LocalDateTime endAt;
     private Integer price;
     private Integer quantity;
     private Integer currentQuantity;
@@ -26,6 +29,7 @@ public class UserPostListResponseDto {
                 .id(post.getId())
                 .title(post.getTitle())
                 .image(post.getImage())
+                .endAt(post.getEndAt())
                 .price(post.getPrice())
                 .quantity(post.getQuantity())
                 .currentQuantity(post.getCurrentQuantity())
