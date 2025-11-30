@@ -158,6 +158,9 @@ public class BuyerService {
         if (post.getHost().equals(member.getUser())) {
             buyer.setIsPaid(1);
             buyer.setStatus(1);
+        } else {
+            buyer.setPayerName(req.getPayerName());
+            buyer.setPayerEmail(req.getPayerEmail());
         }
 
         post.getBuyers().add(buyer);
