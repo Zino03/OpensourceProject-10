@@ -106,7 +106,7 @@ smallButton: {
   border: "1px solid #ffffffff",
   fontSize: "11px",
   color: "#ffffffff", 
-  fontweight: "900",
+  fontWeight: "500",
   backgroundColor: "#bfbfbf",
   cursor: "pointer",
   whiteSpace: "nowrap",
@@ -128,12 +128,13 @@ smallButton: {
   },
 
   bankBadge: {
+    width: "50px",
     display: "inline-flex",
     alignItems: "center",
     gap: "4px",
     padding: "6px 10px",
     borderRadius: "999px",
-    backgroundColor: "#f5f6fa",
+    backgroundColor: "#f5f6fa", 
     fontSize: "12px",
   },
   bankLogoCircle: {
