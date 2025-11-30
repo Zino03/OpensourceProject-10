@@ -91,8 +91,11 @@ public class AdminController {
 
     // TODO: 정산 관리 -> get리스트, 정산 처리
     @GetMapping("/buyers")
-    public ResponseEntity getBuyerList(@RequestParam(required = false, defaultValue = "-1") Integer process) {
+    public ResponseEntity getBuyerList(
+            @RequestParam(required = false, defaultValue = "-1") Integer process,
+            @PageableDefault(size = 15, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
         Member member = userService.getMember(SecurityUtil.getCurrentUserId());
-        return adminBuyerService.getBuyerList(member, process);
+        return adminBuyerService.getBuyerList(member, process, pageable);
     }
 }

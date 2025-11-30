@@ -2,7 +2,9 @@ package com.example.saja_saja.service.admin;
 
 import com.example.saja_saja.entity.member.Member;
 import com.example.saja_saja.entity.member.Role;
+import com.example.saja_saja.entity.post.Buyer;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -12,11 +14,13 @@ import org.springframework.stereotype.Service;
 public class AdminBuyerService {
 
     // TODO: 결제 정산 list
-    public ResponseEntity getBuyerList(Member member, Integer process) {
+    public ResponseEntity getBuyerList(Member member, Integer process, Pageable pageable) {
         try {
             if (member.getRole() != Role.ADMIN) {
                 throw new AccessDeniedException("관리자 권한이 없습니다.");
             }
+
+            ;
             return null;
         } catch (AccessDeniedException e) {
             throw e;

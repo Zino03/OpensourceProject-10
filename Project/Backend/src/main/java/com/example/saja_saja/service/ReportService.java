@@ -87,10 +87,10 @@ public class ReportService {
                     }
 
                     Review reportedReview = reviewRepository.findById(reportedId)
-                            .orElseThrow(() -> new ResourceNotFoundException("신고 대상 리뷰를 찾을 수 없습니다."));
+                            .orElseThrow(() -> new ResourceNotFoundException("신고 대상 후기를 찾을 수 없습니다."));
 
                     if (reportedReview.getIsBanned()) {
-                        throw new IllegalArgumentException("이미 이용이 정지된 사용자입니다.");
+                        throw new IllegalArgumentException("이미 제재된 후기입니다.");
                     }
 
                     ReviewReport reviewReport = ReviewReport.builder()
@@ -109,10 +109,10 @@ public class ReportService {
                     }
 
                     Notice reportedNotice = noticeRepository.findById(reportedId)
-                            .orElseThrow(() -> new ResourceNotFoundException("신고 대상 공지사항을 찾을 수 없습니다."));
+                            .orElseThrow(() -> new ResourceNotFoundException("신고 대상 공지를 찾을 수 없습니다."));
 
                     if (reportedNotice.getIsBanned()) {
-                        throw new IllegalArgumentException("이미 이용이 정지된 사용자입니다.");
+                        throw new IllegalArgumentException("이미 제재된 공지입니다.");
                     }
 
                     NoticeReport noticeReport = NoticeReport.builder()
