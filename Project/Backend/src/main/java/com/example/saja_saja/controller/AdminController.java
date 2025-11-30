@@ -52,7 +52,7 @@ public class AdminController {
         return adminReportService.getReport(member, type, reportId);
     }
 
-    @PostMapping("/report/{type}/{reportId}")
+    @PutMapping("/report/{type}/{reportId}")
     public ResponseEntity processReport(
             @PathVariable ReportType type, @PathVariable Long reportId,
             @Valid @RequestBody ReportProcessRequestDto req,
@@ -80,7 +80,7 @@ public class AdminController {
         return adminPostService.getAdminPostList(member, process, pageable);
     }
 
-    @PostMapping("/post/{postId}")
+    @PutMapping("/post/{postId}")
     public ResponseEntity processPost(
             @PathVariable Long postId,
             @RequestParam(required = true) Integer process      // 1: 승인, 2: 반려
@@ -89,13 +89,22 @@ public class AdminController {
         return adminPostService.processPost(member, postId, process);
     }
 
-    // TODO: 정산 관리 -> get리스트, 정산 처리
     @GetMapping("/buyers")
     public ResponseEntity getBuyerList(
-            @RequestParam(required = false, defaultValue = "-1") Integer process,
+            @RequestParam(required = false, defaultValue = "-1") Integer process,   // -1: 전체, 0: 대기, 1: 완료, 3: 취소
             @PageableDefault(size = 15, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         Member member = userService.getMember(SecurityUtil.getCurrentUserId());
         return adminBuyerService.getBuyerList(member, process, pageable);
+    }
+
+    // TODO: 정산 처리
+    @PutMapping("/buyer/{buyerId}")
+    public ResponseEntity processBuyer(
+            @PathVariable Long buyerId,
+            @RequestParam(required = true) Integer process   // 1: 입금 완료, 2: 재입금 대기, 3: 주문취소
+    ) {
+        Member member = userService.getMember(SecurityUtil.getCurrentUserId());
+        return adminBuyerService.processBuyer(member, buyerId, process);
     }
 }

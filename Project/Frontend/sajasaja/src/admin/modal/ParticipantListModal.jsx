@@ -117,7 +117,6 @@ const SummaryRow = styled.div`
 
 const Label = styled.span`
   font-weight: 500;
-  color: #333;
 `;
 
 const Value = styled.span`
@@ -172,41 +171,41 @@ const ParticipantListModal = ({ onClose }) => {
         <SummaryBox>
           <SummaryColumn>
             <SummaryRow>
-              <Label>공구 참여자 수 :</Label>
+              <Label>공구 참여자 수 </Label>
               <Value>4명</Value>
             </SummaryRow>
             <SummaryRow>
-              <Label>결제 완료 :</Label>
+              <Label>결제 완료 </Label>
               <Value>2명</Value>
             </SummaryRow>
             <SummaryRow>
-              <Label>결제 대기 :</Label>
+              <Label>결제 대기 </Label>
               <Value>2명</Value>
             </SummaryRow>
           </SummaryColumn>
 
           <SummaryColumn>
             <SummaryRow>
-              <Label>총 결제 금액 :</Label>
+              <Label>총 결제 금액 </Label>
               <Value>28000원</Value>
             </SummaryRow>
             <SummaryRow>
-              <Label>정산 완료 금액 :</Label>
+              <Label>정산 완료 금액 </Label>
               <Value>14000원</Value>
             </SummaryRow>
             <SummaryRow>
-              <Label>미정산 금액 :</Label>
+              <Label>미정산 금액 </Label>
               <Value>14000원</Value>
             </SummaryRow>
           </SummaryColumn>
 
           <SummaryColumn>
             <SummaryRow>
-              <Label>결제 마감 일시 :</Label>
+              <Label>결제 마감 일시 </Label>
               <Value>2025-11-13 23:59 까지</Value>
             </SummaryRow>
             <SummaryRow>
-              <Label>공구 마감 일시 :</Label>
+              <Label>공구 마감 일시 </Label>
               <Value>2025-11-30 23:59 까지</Value>
             </SummaryRow>
           </SummaryColumn>

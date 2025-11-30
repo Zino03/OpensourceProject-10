@@ -28,11 +28,11 @@ public class AdminPostService {
     private final BuyerService buyerService;
 
     public ResponseEntity getAdminPostList(Member member, Integer process, Pageable pageable) {
-        try {
-            if (member.getRole() != Role.ADMIN) {
-                throw new AccessDeniedException("관리자 권한이 없습니다.");
-            }
+        if (member.getRole() != Role.ADMIN) {
+            throw new AccessDeniedException("관리자 권한이 없습니다.");
+        }
 
+        try {
             Page<Post> postPage;
 
             switch (process) {
@@ -67,8 +67,6 @@ public class AdminPostService {
             data.put("posts", postList);
             data.put("hasMore", hasMore);
             return new ResponseEntity(data, HttpStatus.OK);
-        } catch (AccessDeniedException e) {
-            throw e;
         } catch (BadRequestException e) {
             throw e;
         } catch (Exception e) {
@@ -79,11 +77,11 @@ public class AdminPostService {
 
     @Transactional
     public ResponseEntity processPost(Member member, Long postId, Integer process) {
-        try {
-            if (member.getRole() != Role.ADMIN) {
-                throw new AccessDeniedException("관리자 권한이 없습니다.");
-            }
+        if (member.getRole() != Role.ADMIN) {
+            throw new AccessDeniedException("관리자 권한이 없습니다.");
+        }
 
+        try {
             Post post = postRepository.findById(postId)
                     .orElseThrow(() -> new ResourceNotFoundException("공동 구매 게시글을 찾을 수 없습니다."));
 
@@ -91,23 +89,24 @@ public class AdminPostService {
                 throw new BadRequestException("대기 중인 공동 구매 게시글만 처리 가능합니다.", null);
             }
 
-            if (process == 1) {
-                post.setStatus(process);
-            } else if (process == 4) {
-                buyerService.cancel(post.getHost(), postId, 1);
-                
-                post.setStatus(process);
-                post.setIsCanceled(true);
-            } else {
-                throw new BadRequestException("처리 불가능한 process값입니다.", null);
+            switch (process) {
+                case 1:
+                    post.setStatus(process);
+                    break;
+                case 4:
+                    buyerService.cancel(post.getHost(), postId, 1);
+
+                    post.setStatus(process);
+                    post.setIsCanceled(true);
+                    break;
+                default:
+                    throw new BadRequestException("처리 불가능한 process값입니다.", null);
             }
 
             HashMap<String, Object> data = new HashMap<>();
             data.put("postId", postId);
             data.put("postStatus", post.getStatus());
             return new ResponseEntity(data, HttpStatus.OK);
-        } catch (AccessDeniedException e) {
-            throw e;
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (BadRequestException e) {

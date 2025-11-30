@@ -38,11 +38,11 @@ public class AdminReportService {
 
 
     public ResponseEntity getReportList(Member member, ReportType reportType, Integer status, Pageable pageable) {
-        try {
-            if (member.getRole() != Role.ADMIN) {
-                throw new AccessDeniedException("관리자 권한이 없습니다.");
-            }
+        if (member.getRole() != Role.ADMIN) {
+            throw new AccessDeniedException("관리자 권한이 없습니다.");
+        }
 
+        try {
             Page<?> reportPage;
 
             switch (reportType) {
@@ -82,8 +82,6 @@ public class AdminReportService {
             data.put("reports", reports);
             data.put("hasMore", hasMore);
             return new ResponseEntity<>(data, HttpStatus.OK);
-        } catch (AccessDeniedException e) {
-            throw e;
         } catch (BadRequestException e) {
             throw new BadRequestException(e.getMessage(), null);
         } catch (Exception e) {
@@ -94,11 +92,11 @@ public class AdminReportService {
 
     @Transactional
     public ResponseEntity processReport(Member member, ReportType type, Long reportId, ReportProcessRequestDto req) {
-        try {
-            if (member.getRole() != Role.ADMIN) {
-                throw new AccessDeniedException("신고 처리 권한이 없습니다.");
-            }
+        if (member.getRole() != Role.ADMIN) {
+            throw new AccessDeniedException("신고 처리 권한이 없습니다.");
+        }
 
+        try {
             ReportResponseDto reportResponse = null;
 
             switch (type) {
@@ -170,12 +168,10 @@ public class AdminReportService {
             data.put("message", "신고 처리가 완료되었습니다.");
             data.put("report", reportResponse);
             return new ResponseEntity(data, HttpStatus.OK);
-        } catch (AccessDeniedException e) {
-            throw e;
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (BadRequestException e) {
-            throw new BadRequestException(e.getMessage(), null);
+            throw e;
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("신고 처리에 실패하였습니다.", e);
@@ -183,6 +179,10 @@ public class AdminReportService {
     }
 
     public ResponseEntity getReport(Member member, ReportType type, Long reportId) {
+        if (member.getRole() != Role.ADMIN) {
+            throw new AccessDeniedException("신고 처리 권한이 없습니다.");
+        }
+
         try {
             Object reportEntity = null;
             switch (type) {
@@ -209,10 +209,6 @@ public class AdminReportService {
                 reporterId = userReport.getReporter().getId();
             } else if (reportEntity instanceof NoticeReport noticeReport) {
                 reporterId = noticeReport.getReporter().getId();
-            }
-
-            if (member.getRole() == Role.USER && !member.getUser().getId().equals(reporterId)) {
-                throw new AccessDeniedException("본인이 신고한 내역만 조회할 수 있습니다.");
             }
 
             ReportResponseDto reportDto = ReportResponseDto.of(reportEntity);

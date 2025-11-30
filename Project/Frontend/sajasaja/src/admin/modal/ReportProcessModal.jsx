@@ -7,7 +7,7 @@ const Overlay = styled.div`
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.4);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -17,7 +17,7 @@ const ModalContainer = styled.div`
   background-color: #fff;
   width: 600px;
   border-radius: 12px;
-  padding: 24px;
+  padding: 24px 16px 16px;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -27,6 +27,7 @@ const ModalContainer = styled.div`
 const InfoSection = styled.div`
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
   gap: 16px;
 `;
 
@@ -66,7 +67,7 @@ const Divider = styled.hr`
 // 처리 영역
 const ProcessArea = styled.div`
   display: flex;
-  gap: 12px;
+  gap: 60px;
   align-items: stretch;
 `;
 
@@ -79,12 +80,12 @@ const ControlColumn = styled.div`
 `;
 
 const StyledSelect = styled.select`
-  width: 80%;
   padding: 10px;
-  font-size: 13px;
+  font-size: 11px;
   border: 1px solid #ddd;
   border-radius: 4px;
   cursor: pointer;
+  margin-right: 20px;
   
   &:focus {
     outline: none;
@@ -100,7 +101,7 @@ const InputColumn = styled.div`
 `;
 
 const InputLabel = styled.label`
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 700;
   margin-bottom: 8px;
   color: #000;
@@ -126,18 +127,18 @@ const ButtonGroup = styled.div`
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  margin-top: 20px;
+  margin-top: 16px;
 `;
 
 const ActionButton = styled.button`
-  padding: 8px 16px;
-  border-radius: 6px;
+  padding: 4px 16px;
+  border-radius: 5px;
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
   border: none;
 
-  background-color: ${props => props.primary ? '#FF7E36' : '#bbb'};
+  background-color: ${props => props.primary ? '#000' : '#bbb'};
   color: white;
 
   &:hover {
@@ -176,22 +177,22 @@ const ReportProcessModal = ({ isOpen, onClose, type = 'user', data }) => {
       <ModalContainer onClick={(e) => e.stopPropagation()}>
         <InfoSection>
           <InfoRow>
-            <Label>신고 대상 :</Label>
+            <Label>신고 대상 </Label>
             <Value>{data?.target || '사자사자'}</Value>
           </InfoRow>
           <InfoRow>
-            <Label>신고자 :</Label>
+            <Label>신고자 </Label>
             <Value>{data?.reporter || '최지우'}</Value>
           </InfoRow>
 
           <Divider style={{ margin: '5px 0' }} />
 
           <InfoRow>
-            <Label>신고 제목 :</Label>
+            <Label>신고 제목 </Label>
             <Value>{data?.title || '사자사자 유지님에게 사기를 당했습니다.'}</Value>
           </InfoRow>
           <InfoRow>
-            <Label>신고 사유 :</Label>
+            <Label>신고 사유 </Label>
             <ReportReason>
               {data?.reason || '상대 사용자는 대화 주제와 전혀 관련 없는 외부 사이트 링크를 여러 번 전송하며 특정 상품 구매를 유도했습니다. 제가 관심 없음을 밝혔음에도 불구하고 “들어가서 확인만 해보라”는 메시지를 포함해 같은 링크를 반복적으로 보냈습니다. 특히 몇 초 간격으로 동일한 문구를 연달아 보내는 도배 행위로 인해 정상적인 대화 진행이 사실상 불가능한 상태가 되었고, 자동 메시지를 사용하는 듯한 패턴도 확인되어 신고 요청합니다.'}
             </ReportReason>

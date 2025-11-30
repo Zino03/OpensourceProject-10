@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, BrowserRouter as Router} from 'react-router-dom';
+import { Routes, Route, useLocation} from 'react-router-dom';
 
 import GlobalStyle from './styles/GlobalStyle';
 import Header from './components/Header';
@@ -41,8 +41,17 @@ import MyProfile from './pages/MyProfile.jsx';
 
 
 function App() {
+  const location = useLocation(); // 현재 경로 정보
+  // Footer 숨길 페이지들
+  const hideFooterPaths = ['/nearby'];
+  const isFooterHidden = 
+    hideFooterPaths.includes(location.pathname) || location.pathname.startsWith('/admin'); 
+
+  // 반대로 뒤집어서 showFooter 결정
+  const showFooter = !isFooterHidden;
+
   return (
-    <Router>
+    <>
       <GlobalStyle/>
       <div>
         <Header/>
@@ -84,9 +93,9 @@ function App() {
             <Route path="payment/:id" element={<AdminSettlement />} />
           </Route>
         </Routes>
-        <Footer/>
+        {showFooter && <Footer/>}
       </div>
-    </Router>
+    </>
   );
 }
 

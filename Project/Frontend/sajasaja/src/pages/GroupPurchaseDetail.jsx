@@ -342,17 +342,11 @@ const UserInfo = styled.div`
   gap: 10px;
 `;
 
-const UserIcon = styled.div`
-  width: 36px;
-  height: 36px;
-  background-color: #FFF5E0;
-  color: #FF7E00;
-  border-radius: 50%;
+const UserIcon = styled.img`
+  height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
-  font-weight: 700;
 `;
 
 const UserName = styled.span`
@@ -610,7 +604,7 @@ const GroupPurchaseDetail = () => {
                 <ProfileIcon>🦁</ProfileIcon>
                 <OrganizerName>{product.organizer}</OrganizerName>
                 <MannerLabel>매너점수 {product.mannerScore}점</MannerLabel>
-                <ContactButton>연락하기</ContactButton>
+                <ContactButton>문의하기</ContactButton>
               </OrganizerBadge>
             </OrganizerRow>
           </DetailList>
@@ -656,7 +650,7 @@ const GroupPurchaseDetail = () => {
               <CommentItem key={notice.id}>
                 <CommentHeader>
                   <UserInfo>
-                    <UserIcon>🦁</UserIcon>
+                    <UserIcon src="/images/filledprofile.svg" alt="user" />
                     <UserName>{notice.writer}</UserName>
                   </UserInfo>
                   <ReportButton>
@@ -679,7 +673,7 @@ const GroupPurchaseDetail = () => {
               <CommentItem key={review.id}>
                 <CommentHeader>
                   <UserInfo>
-                    <UserIcon>🦁</UserIcon>
+                    <UserIcon src="/images/filledprofile.svg" alt="user"/>
                     <UserName>{review.writer}</UserName>
                     <RatingText>{review.rating}</RatingText>
                   </UserInfo>
