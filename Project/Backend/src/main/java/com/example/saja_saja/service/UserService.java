@@ -200,6 +200,7 @@ public class UserService {
             if (image != null && !image.isEmpty()) {
                 user.setProfileImg(imageService.uploadProfileImage(image));
             }
+            if (req.getAccountBank() != null) user.setAccountBank(req.getAccountBank());
             if (req.getAccount() != null) user.setAccount(req.getAccount());
 
             HashMap<String, Object> data = new HashMap<>();
