@@ -390,7 +390,6 @@ const NearbyGroupPurchase = () => {
           onCreate={setMap} // 지도 객체 저장 
         >
           {Object.entries(groupedItems).map(([key, group]) => {
-            const isGroup = group.items.length > 1; 
             const isActive = selectedLocationKey === key; 
 
             return (
