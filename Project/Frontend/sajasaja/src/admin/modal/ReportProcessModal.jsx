@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import CustomSelect from '../../components/CustomSelect';
 
 const Overlay = styled.div`
   position: fixed;
@@ -79,20 +80,6 @@ const ControlColumn = styled.div`
   gap: 20px;
 `;
 
-const StyledSelect = styled.select`
-  padding: 10px;
-  font-size: 11px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-right: 20px;
-  
-  &:focus {
-    outline: none;
-    border-color: #FF7E00;
-  }
-`;
-
 // 사유 입력
 const InputColumn = styled.div`
   flex: 2;
@@ -150,14 +137,13 @@ const ActionButton = styled.button`
 const STATUS_OPTIONS = {
   user: [
     { value: 'waiting', label: '처리 대기' },
-    { value: 'dismiss', label: '조치 없음(신고 기각)' },
-    { value: 'sanction', label: '사용자 제재' },
+    { value: 'dismiss', label: '조치 없음 (신고 기각)' },
+    { value: 'sanction', label: '사용자 제재 (영구 정지)' },
   ],
   review: [ // 후기, 공지 공통
     { value: 'waiting', label: '처리 대기' },
-    { value: 'keep', label: '유지' },
+    { value: 'dismiss', label: '조치 없음 (신고 기각)' },
     { value: 'hide', label: '숨김' },
-    { value: 'delete', label: '삭제' },
   ]
 };
 
@@ -165,7 +151,7 @@ const STATUS_OPTIONS = {
 const ReportProcessModal = ({ isOpen, onClose, type = 'user', data }) => {
   // 상태 관리
   const [processStatus, setProcessStatus] = useState('waiting'); // 처리 상태
-  const [reason, setReason] = useState('');                      // 제재 사유
+  const [reason, setReason] = useState('');  // 제재 사유
 
   if (!isOpen) return null;
 
@@ -203,14 +189,12 @@ const ReportProcessModal = ({ isOpen, onClose, type = 'user', data }) => {
 
         <ProcessArea>
           <ControlColumn>
-              <StyledSelect 
+              <CustomSelect
                 value={processStatus} 
                 onChange={(e) => setProcessStatus(e.target.value)}
+                options={currentStatusOptions}
               >
-                {currentStatusOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </StyledSelect>
+              </CustomSelect>
           </ControlColumn>
 
           <InputColumn>

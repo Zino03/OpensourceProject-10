@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+import CustomSelect from '../components/CustomSelect';
 
 const SearchBar = styled.div`
   display: flex;
@@ -101,6 +102,12 @@ const mockPayments = [
   { id: 3, title: '피자 공구', depositor: '변진호', buyer: '김서연', amount: '28900', deadline: '2025.01.20', paymentDeadline: '2025.11.13', status: 'completed' },
 ];
 
+const statusOptions = [
+    { value: 'all', label: '전체' },
+    { value: 'waiting', label: '대기' },
+    { value: 'completed', label: '완료' },
+    { value: 'rejected', label: '취소' },
+  ];
 
 const AdminPaymentManage = () => {
   const navigate = useNavigate();
@@ -143,14 +150,12 @@ const AdminPaymentManage = () => {
           value={searchInputValue}
           onChange={(e) => setSearchInputValue(e.target.value)}
           onKeyDown={handleKeyDown}/>
-        <select
+        <CustomSelect
           value={filterStatus} 
-          onChange={(e) => setFilterStatus(e.target.value)}>
-          <option value="all">전체</option>
-          <option value="waiting">대기</option>
-          <option value="rejected">취소</option>
-          <option value="completed">완료</option>
-        </select>
+          onChange={(val) => setFilterStatus(val)} 
+          options={statusOptions}
+          style={{width: "80px"}}>
+        </CustomSelect>
       </SearchBar>
 
       <Table>
