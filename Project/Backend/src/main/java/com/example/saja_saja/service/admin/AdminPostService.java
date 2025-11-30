@@ -7,6 +7,7 @@ import com.example.saja_saja.entity.post.Post;
 import com.example.saja_saja.entity.post.PostRepository;
 import com.example.saja_saja.exception.BadRequestException;
 import com.example.saja_saja.exception.ResourceNotFoundException;
+import com.example.saja_saja.service.BuyerService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -24,6 +25,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AdminPostService {
     private final PostRepository postRepository;
+    private final BuyerService buyerService;
 
     public ResponseEntity getAdminPostList(Member member, Integer process, Pageable pageable) {
         try {
@@ -92,6 +94,8 @@ public class AdminPostService {
             if (process == 1) {
                 post.setStatus(process);
             } else if (process == 4) {
+                buyerService.cancel(post.getHost(), postId, 1);
+                
                 post.setStatus(process);
                 post.setIsCanceled(true);
             } else {
