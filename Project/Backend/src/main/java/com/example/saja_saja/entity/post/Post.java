@@ -58,6 +58,10 @@ public class Post {
     // 0 : 대기, 1 : 진행중, 2 : 마감임박, 3 : 마감, 4 : 반려
     private Integer status;
 
+    private Integer currentPaidQuantity;
+
+    private LocalDateTime lastPaymentEndAt;
+
     private Category category;
 
     @OneToMany(mappedBy = "post")
