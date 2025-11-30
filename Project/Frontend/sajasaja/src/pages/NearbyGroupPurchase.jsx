@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import styled from 'styled-components';
-import { FaMapMarkerAlt, FaPlus, FaMinus, FaSyncAlt, FaCrosshairs } from "react-icons/fa"; // 아이콘 추가
+import { FaPlus, FaMinus, FaSyncAlt, FaCrosshairs, FaList } from "react-icons/fa";
 
 const Container = styled.div`
   display: flex;
@@ -16,55 +16,61 @@ const Sidebar = styled.div`
   border-right: 1px solid #ddd;
   display: flex;
   flex-direction: column;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
 `;
 
 const SidebarHeader = styled.div`
   padding: 18px;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 `;
 
 const Title = styled.h2`
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 700;
   margin: 0;
+  color: #333;
 `;
 
-// 리스트 스크롤 영역
+const ResetButton = styled.button`
+  background: none;
+  border: none;
+  font-size: 12px;
+  color: #FF7E00;
+  cursor: pointer;
+  font-weight: 600;
+  &:hover { text-decoration: underline; }
+`;
+
 const ListContainer = styled.div`
   flex: 1;
   overflow-y: auto;
-  
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-  &::-webkit-scrollbar-thumb {
-    background-color: #ccc;
-    border-radius: 3px;
-  }
+  background-color: #f9f9f9;
 `;
 
-// 개별 아이템 카드
 const ItemCard = styled.div`
   display: flex;
-  padding: 20px;
+  padding: 16px;
   border-bottom: 1px solid #eee;
   cursor: pointer;
-  
-  background-color: ${props => props.active ? '#FFF5E0' : '#fff'};
+  background-color: ${props => props.$active ? '#FFF5E0' : '#fff'};
+  border-left: ${props => props.$active ? '4px solid #FF7E00' : '4px solid transparent'};
 
   &:hover {
-    background-color: ${props => props.active ? '#FFF5E0' : '#f9f9f9'};
+    background-color: ${props => props.$active ? '#FFF5E0' : '#fafafa'};
   }
 `;
 
 const Thumbnail = styled.div`
-  width: 80px;
-  height: 80px;
-  border: 1px solid #eee;
-  border-radius: 4px;
-  margin-right: 16px;
+  width: 70px;
+  height: 70px;
+  border-radius: 6px;
+  margin-right: 14px;
   flex-shrink: 0;
   overflow: hidden;
+  background-color: #eee;
 
   img {
     width: 100%;
@@ -78,213 +84,234 @@ const InfoArea = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 2px 0;
 `;
 
 const ItemTitle = styled.h3`
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   margin: 0 0 4px 0;
-
+  line-height: 1.3;
+  
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 `;
 
-const Price = styled.div`
-  font-size: 13px;
-  font-weight: 600;
-  color: #FF7E00;
+const ItemCount = styled.span`
+  
+`
+
+const PriceRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 `;
 
-const MetaInfo = styled.div`
-  text-align: right;
+const Price = styled.span`
+  font-size: 14px;
+  font-weight: 700;
+`;
+
+const CountInfo = styled.span`
   font-size: 11px;
   color: #888;
+  background-color: #f0f0f0;
+  padding: 2px 6px;
+  border-radius: 4px;
 `;
 
 // 지도 영역
 const MapArea = styled.div`
   flex: 1;
-  background-color: #f0f0f0;
   position: relative;
   overflow: hidden;
-  
-  background-size: cover;
-  background-position: center;
+  background-color: #e8e8e8;
 `;
 
-// 지도 위 마커
-const Marker = styled.div`
+const MapBackground = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+`;
+
+// 마커 컨테이너
+const MarkerContainer = styled.div`
   position: absolute;
   top: ${props => props.top};
   left: ${props => props.left};
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  transform: translate(-50%, -100%);
   cursor: pointer;
-  transform: translate(-50%, -100%); 
-  transition: transform 0.2s;
+  z-index: ${props => props.$isActive ? 100 : 1};
 
-  img {height: 30px; }
   &:hover {
     transform: translate(-50%, -110%) scale(1.1);
-    z-index: 100;
+    z-index: 200;
   }
 `;
 
-// 지도 컨트롤 버튼
-const ControlButton = styled.button`
+// 실제 마커 이미지/아이콘
+const MarkerPin = styled.div`
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+`;
+
+// 지도 컨트롤 컨테이너 (우측 상단)
+const MapControls = styled.div`
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+`;
+
+const ControlGroup = styled.div`
+  background-color: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+
+  display: flex;
+  flex-direction: column;
+`;
+
+const ControlBtn = styled.button`
   width: 40px;
   height: 40px;
   background-color: #fff;
-  border: 1px solid #ddd;
-  border-radius: 50%;
+  border: none;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 16px;
+  color: #555;
   cursor: pointer;
+  border-bottom: 1px solid #eee;
 
-  &:hover { background-color: #f9f9f9; }
-  &:active { background-color: #eee; }
-`;
-
-// 확대/축소 그룹
-const ZoomControlGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  background-color: #fff;
-  border: 1px solid #ddd;
-  border-radius: 20px;
-  overflow: hidden;
-
-  button {
-    width: 40px;
-    height: 40px;
-    border: none;
-    border-radius: 0;
-    background-color: #fff;
-    
-    &:first-child { border-bottom: 1px solid #eee; }
-    &:hover { background-color: #f9f9f9; }
-    &:active { background-color: #eee; }
-  }
+  &:last-child { border-bottom: none; }
+  &:hover { background-color: #f5f5f5; color: #333; }
+  &:active { background-color: #e0e0e0; }
 `;
 
 const NearbyGroupPurchase = () => {
-  const [selectedId, setSelectedId] = useState(1);
-
-  const handleZoomIn = () => console.log('확대');
-  const handleZoomOut = () => console.log('축소');
-  const handleRefresh = () => console.log('새로고침');
-  const handleCurrentLocation = () => console.log('현위치');
-
-  // 더미 데이터
+  const [selectedLocationKey, setSelectedLocationKey] = useState(null); // 선택된 '위치' 키
+  
+  // 더미 데이터 (위치 정보 pos가 같은 아이템을 일부러 포함)
   const mockItems = [
-    {
-      id: 1,
-      title: '애니 피완크 미니 프레첼 스낵 150g',
-      price: 890,
-      current: 87,
-      total: 100,
-      deadline: '25. 11. 30',
-      image: 'https://via.placeholder.com/80',
-      pos: { top: '40%', left: '45%' } // 지도상 가상 위치
-    },
-    {
-      id: 2,
-      title: '애니 피완크 미니 프레첼 스낵 150g',
-      price: 890,
-      current: 87,
-      total: 100,
-      deadline: '25. 11. 30',
-      image: 'https://via.placeholder.com/80',
-      pos: { top: '55%', left: '60%' }
-    },
-    {
-      id: 3,
-      title: '애니 피완크 미니 프레첼 스낵 150g',
-      price: 890,
-      current: 87,
-      total: 100,
-      deadline: '25. 11. 30',
-      image: 'https://via.placeholder.com/80',
-      pos: { top: '30%', left: '70%' }
-    },
-    {
-      id: 4,
-      title: '애니 피완크 미니 프레첼 스낵 150g',
-      price: 890,
-      current: 87,
-      total: 100,
-      deadline: '25. 11. 30',
-      image: 'https://via.placeholder.com/80',
-      pos: { top: '70%', left: '30%' }
-    },
-    // 스크롤 테스트용 데이터 추가
-    { id: 5, title: '제주 감귤 10kg', price: 12000, current: 5, total: 10, deadline: '25. 12. 01', image: 'https://via.placeholder.com/80', pos: { top: '20%', left: '20%' } },
-    { id: 6, title: '코스트코 베이글', price: 6000, current: 1, total: 2, deadline: '25. 12. 05', image: 'https://via.placeholder.com/80', pos: { top: '80%', left: '80%' } },
+    { id: 1, title: '애니 피욘크 미니 프레첼 150g', price: 890, current: 87, total: 100, image: '', pos: { top: '40%', left: '45%' } },
+    { id: 2, title: '제주 감귤 10kg 공구', price: 12900, current: 3, total: 10, image: '', pos: { top: '40%', left: '45%' } }, // id:1과 같은 위치
+    { id: 3, title: '코스트코 베이글 1+1', price: 6500, current: 5, total: 8, image: '', pos: { top: '30%', left: '70%' } },
+    { id: 4, title: '대파 한 단 나눔 공구', price: 1500, current: 2, total: 5, image: '', pos: { top: '70%', left: '30%' } },
+    { id: 5, title: '생수 2L 6개입', price: 3000, current: 5, total: 10, image: '', pos: { top: '70%', left: '30%' } }, // id:4와 같은 위치
+    { id: 6, title: '고구마 5kg', price: 15000, current: 1, total: 2, image: '', pos: { top: '70%', left: '30%' } }, // id:4와 같은 위치 (3개 중첩)
+    { id: 7, title: '짱 멋진 가방', price: 50000, current: 1, total: 1, image: '', pos: { top: '55%', left: '60%' } },
   ];
+
+  // 1. 데이터를 위치 기준으로 그룹화 (Memoization)
+  const groupedItems = useMemo(() => {
+    const groups = {};
+    mockItems.forEach(item => {
+      // 위치를 고유 키로 생성 (예: "40%-45%")
+      const locationKey = `${item.pos.top}-${item.pos.left}`;
+      if (!groups[locationKey]) {
+        groups[locationKey] = {
+          pos: item.pos,
+          items: []
+        };
+      }
+      groups[locationKey].items.push(item);
+    });
+    return groups;
+  }, [mockItems]);
+
+  // 사이드바에 표시할 아이템 필터링
+  // 위치가 선택되어 있다면 그 위치 아이템만, 아니면 전체 표시
+  const displayItems = selectedLocationKey 
+    ? groupedItems[selectedLocationKey].items 
+    : mockItems;
+
+  const handleMarkerClick = (key) => {
+    setSelectedLocationKey(key);
+  };
+
+  const handleReset = () => {
+    setSelectedLocationKey(null);
+  };
 
   return (
     <Container>
-      {/* 좌측 사이드바 (리스트) */}
       <Sidebar>
         <SidebarHeader>
-          <Title>내 주변 공구</Title>
+          <Title>
+            {selectedLocationKey ? '선택된 지역 상품' : '내 주변 공구'} 
+            <ItemCount>
+              ({displayItems.length}건)
+            </ItemCount>
+          </Title>
+          {selectedLocationKey && (
+            <ResetButton onClick={handleReset}>전체 보기</ResetButton>
+          )}
         </SidebarHeader>
 
         <ListContainer>
-          {mockItems.map((item) => (
-            <ItemCard 
-              key={item.id} 
-              active={selectedId === item.id}
-              onClick={() => setSelectedId(item.id)}
-            >
-              <Thumbnail>
-                <img src={item.image} alt="썸네일" />
-              </Thumbnail>
-              
-              <InfoArea>
-                <div>
+          {displayItems.length > 0 ? (
+            displayItems.map((item) => (
+              <ItemCard 
+                key={item.id} 
+                $active={false}
+              >
+                <Thumbnail>
+                  <img src={item.image || "https://via.placeholder.com/70"} alt="thumb" />
+                </Thumbnail>
+                <InfoArea>
                   <ItemTitle>{item.title}</ItemTitle>
-                  <Price>{item.price.toLocaleString()} 원</Price>
-                </div>
-                <MetaInfo>
-                  <div>수량 : {item.current}/{item.total}</div>
-                  <div>~{item.deadline}</div>
-                </MetaInfo>
-              </InfoArea>
-            </ItemCard>
-          ))}
+                  <PriceRow>
+                    <Price>{item.price.toLocaleString()}원</Price>
+                    <CountInfo>{item.current}/{item.total}</CountInfo>
+                  </PriceRow>
+                </InfoArea>
+              </ItemCard>
+            ))
+          ) : (
+            <div style={{padding: '20px', textAlign: 'center', color: '#999'}}>상품이 없습니다.</div>
+          )}
         </ListContainer>
       </Sidebar>
 
-      {/* 우측 지도 영역 */}
       <MapArea>
-        <img src="/images/getTileMap.png" alt="marker" />
-        {mockItems.map((item) => (
-          <Marker 
-            key={item.id} 
-            top={item.pos.top} 
-            left={item.pos.left}
-            onClick={() => setSelectedId(item.id)}
-            title={item.title}
-          >
-            <img src="/images/marker.png" alt="marker" />
-          </Marker>
-        ))}
-        {/*FaPlus, FaMinus, FaSyncAlt, FaCrosshairs */}
-        <ZoomControlGroup>
-          <FaPlus/>
-          <FaMinus/>
-        </ZoomControlGroup>
-        <ControlButton>
-          <FaSyncAlt/>
-          <FaCrosshairs/>
-        </ControlButton>
+        <MapBackground/>
+
+        <MapControls>
+          <ControlGroup>
+            <ControlBtn onClick={() => console.log("확대")}><FaPlus /></ControlBtn>
+            <ControlBtn onClick={() => console.log("축소")}><FaMinus /></ControlBtn>
+          </ControlGroup>
+          <ControlGroup>
+            <ControlBtn onClick={handleReset} title="전체보기"><FaList /></ControlBtn>
+            <ControlBtn onClick={() => console.log("새로고침")}><FaSyncAlt /></ControlBtn>
+            <ControlBtn onClick={() => console.log("현위치")}><FaCrosshairs /></ControlBtn>
+          </ControlGroup>
+        </MapControls>
+
+        {Object.entries(groupedItems).map(([key, group]) => {
+          const isGroup = group.items.length > 1; // 2개 이상이면 그룹
+          const isActive = selectedLocationKey === key; // 현재 선택된 핀
+
+          return (
+            <MarkerContainer 
+              key={key} 
+              top={group.pos.top} 
+              left={group.pos.left}
+              $isActive={isActive}
+              onClick={() => handleMarkerClick(key)}
+            >
+              <MarkerPin $isGroup={isGroup}>
+                <img src="/images/marker.png" alt="marker" style={{height: "30px"}}/>
+              </MarkerPin>
+            </MarkerContainer>
+          );
+        })}
       </MapArea>
     </Container>
   );
