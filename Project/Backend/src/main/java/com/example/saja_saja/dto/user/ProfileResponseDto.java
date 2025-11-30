@@ -43,11 +43,15 @@ public class ProfileResponseDto {
                 .map(PostListResponseDto::of)
                 .collect(Collectors.toList());
 
+        Double calculatedMannerScore = 0.0;
+        if (user.getIsBanned()) calculatedMannerScore = -1.0;
+        else if (user.getReceivedReviewCount() != 0.0) calculatedMannerScore = user.getTotalStar().doubleValue() / user.getReceivedReviewCount();
+
         return ProfileResponseDto.builder()
                 .name(user.getName())
                 .nickname(user.getNickname())
                 .profileImg(user.getProfileImg())
-                .mannerScore(user.getTotalStar().doubleValue() / user.getReceivedReviewCount())
+                .mannerScore(calculatedMannerScore)
                 .isBanned(user.getIsBanned())
                 .activePosts(activePostList)
                 .closedPosts(closedPostList)

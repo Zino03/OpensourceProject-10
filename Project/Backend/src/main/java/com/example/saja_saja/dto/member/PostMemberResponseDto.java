@@ -18,10 +18,14 @@ public class PostMemberResponseDto {
     private Double mannerScore;
 
     public static PostMemberResponseDto of(User host) {
-        return new PostMemberResponseDto().builder()
+        Double calculatedMannerScore = 0.0;
+        if (host.getIsBanned()) calculatedMannerScore = -1.0;
+        else if (host.getReceivedReviewCount() != 0.0) calculatedMannerScore = host.getTotalStar().doubleValue() / host.getReceivedReviewCount();
+
+        return PostMemberResponseDto.builder()
                 .nickname(host.getNickname())
                 .profileImg(host.getProfileImg())
-                .mannerScore(host.getTotalStar().doubleValue() /  host.getReceivedReviewCount())
+                .mannerScore(calculatedMannerScore)
                 .build();
     }
 }

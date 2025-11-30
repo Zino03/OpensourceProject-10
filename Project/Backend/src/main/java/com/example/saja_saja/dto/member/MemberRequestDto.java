@@ -53,8 +53,11 @@ public class MemberRequestDto {
         User user = User.builder()
                 .name(name)
                 .nickname(nickname)
-//                .phone(phone)
-                .account(generateRandomNumberString())
+                .phone(phone)
+                .totalStar(0)
+                .receivedReviewCount(0)
+                .virtualAccountBank("사자은행")
+                .virtualAccount(generateRandomNumberString())
                 .isBanned(false)
                 .build();
 
