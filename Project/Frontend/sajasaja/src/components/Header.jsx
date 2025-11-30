@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { useNavigate } from 'react-router-dom';
 
 // 상단 헤더
 const HeaderWrapper = styled.header`
@@ -68,7 +67,6 @@ const LogoutButton = styled.span`
 `;
 
 const Header = () => {
-  const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
@@ -89,7 +87,7 @@ const Header = () => {
       <HeaderContent>
         <LogoSection href="/">
           <img src="/images/sajasaja.png" alt="SajaSaja Logo" style={{height: 30}}/> 
-          <img src="/images/LogoText.png" alt="SajaSaja LogoText" style={{height: 20}} /> 
+          <img src="/images/LogoText.png" alt="SajaSaja LogoText" style={{height: 20}}/> 
         </LogoSection>
 
         <RightSection>

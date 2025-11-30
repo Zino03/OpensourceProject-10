@@ -2,6 +2,15 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { FaCamera } from "react-icons/fa";
 import AddressFindModal from './modal/AddressFindModal';
+import RegisterModal from './modal/RegisterModal';
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: 'http://192.168.31.28:8080', // 백엔드 주소
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
 const Container = styled.div`
   width: 100%;
@@ -17,21 +26,29 @@ const PageTitle = styled.h2`
   margin-bottom: 30px;
 `;
 
+const ImageSectionWrapper = styled.div`
+  width: 200px;
+  margin: 0 auto 40px; 
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+`;
+
 // 이미지 업로드 박스
 const ImageUploadBox = styled.label`
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 200px;
+  width: 100%;
   height: 200px;
   border: 1px solid #ddd;
   border-radius: 10px;
-  margin: 0 auto 40px;
   cursor: pointer;
   color: #999;
   gap: 10px;
   font-size: 12px;
+  background-color: #fff;
 
   &:hover {
     background-color: #f9f9f9;
@@ -41,6 +58,14 @@ const ImageUploadBox = styled.label`
   input {
     display: none;
   }
+`;
+
+// 경고 문구 스타일
+const WarningText = styled.span`
+  margin-top: 8px;
+  font-size: 10px;
+  color: #D32F2F;
+  font-weight: 500;
 `;
 
 // 폼 섹션
@@ -54,7 +79,7 @@ const Label = styled.div`
   width: 150px;
   font-weight: 500;
   font-size: 12px;
-  padding-top: 4px;
+  padding-top: 7px;
   flex-shrink: 0;
 `;
 
@@ -202,6 +227,19 @@ const GroupPurchaseRegister = () => {
   const [address, setAddress] = useState('');
   const [detailAddress, setDetailAddress] = useState(''); 
   const [isAddressOpen, setIsAddressOpen] = useState(false); 
+  const [deadLine, setDeadLine] = useState('')
+
+  // // 1. 유효성 검사
+  //   if (!title || !selectedCategory || !quantity || !price || !content || !imgFile) {
+  //     alert("모든 필수 항목(이미지 포함)을 입력해주세요.");
+  //     setIsConfirmModalOpen(false);
+  //     return;
+  //   }
+
+  //   // 2. 백엔드가 원하는 JSON 구조 생성
+  //   // (endAt은 현재 날짜 기준 7일 뒤로 임시 설정했습니다. 필요 시 날짜 입력창을 만드세요)
+  //   const expiryDate = new Date();
+  //   expiryDate.setDate(expiryDate.getDate() + 7);
 
   const handleAddressComplete = (selectedAddress) => {
     setAddress(selectedAddress);
@@ -216,15 +254,23 @@ const GroupPurchaseRegister = () => {
   // 1개당 가격 계산
   const unitPrice = (quantity && price) ? Math.floor(Number(price) / Number(quantity)) : 0;
 
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const handleFinalSubmit = () => {
+    setIsConfirmModalOpen(false);
+  };
+
   return (
     <Container>
       <PageTitle>공구 등록</PageTitle>
 
-      <ImageUploadBox>
-        <FaCamera size={24} color="#ccc" />
-        <span>이미지 등록</span>
-        <input type="file" accept="image/*" />
-      </ImageUploadBox>
+      <ImageSectionWrapper>
+        <ImageUploadBox>
+          <FaCamera size={24} color="#ccc" />
+          <span>이미지 등록</span>
+          <input type="file" accept="image/*" />
+        </ImageUploadBox>
+        <WarningText>공동구매 상품 사진을 1개 이상 첨부해주세요</WarningText>
+      </ImageSectionWrapper>
 
       <FormSection>
         <Label>제목</Label>
@@ -326,7 +372,7 @@ const GroupPurchaseRegister = () => {
             <div style={{ width: '300px', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <SubLabel style={{ width: '60px', marginRight: 0 }}>배송비</SubLabel>
               <StyledInput 
-                type="text" 
+                type="text"   
                 placeholder="배송비 입력" 
                 disabled={!isDelivery}
                 style={{ flex: 1 }}
@@ -337,13 +383,30 @@ const GroupPurchaseRegister = () => {
       </FormSection>
 
       <FormSection>
-        <Label>연락수단</Label>
-        <InputArea>
-          <StyledInput type="text" placeholder="전화번호" style={{ width: '290px' }} />
-        </InputArea>
+          <Label>연락수단</Label>
+          <InputArea>
+            <ComplexRow>
+              <StyledInput type="text" placeholder="전화번호" style={{ width: '290px' }} />
+            </ComplexRow>
+          </InputArea>
+          
+          <div style={{width: '300px', display: 'flex', alignItems: 'center', gap: '10px'}}>
+          <SubLabel style={{ width: '60px', marginRight: 0 }}>마감 일자</SubLabel>
+          <InputArea>
+            <ComplexRow>
+            <StyledInput 
+              type="text" 
+              placeholder="ex)20210304"
+              style={{ flex: 1 }}
+              value={deadLine}
+              onChange={(e) => setDeadLine(e.target.value)}
+              />
+            </ComplexRow>
+          </InputArea>
+          </div>
       </FormSection>
 
-      <SubmitButton>등록하기</SubmitButton>
+      <SubmitButton onClick={() => setIsConfirmModalOpen(true)}>등록하기</SubmitButton>
 
       <AddressFindModal 
         isOpen={isAddressOpen}
@@ -351,6 +414,11 @@ const GroupPurchaseRegister = () => {
         onComplete={handleAddressComplete}
       />
 
+      <RegisterModal 
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)} 
+        onConfirm={handleFinalSubmit} 
+      />
     </Container>
   );
 };

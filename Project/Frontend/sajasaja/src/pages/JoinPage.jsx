@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: 'http://192.168.31.28:8080', // 백엔드 주소
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
 // 회원가입 전체 폼
 const PageWrapper = styled.div`
@@ -115,11 +122,10 @@ const SubmitButton = styled.button`
 `;
 
 const JoinPage = () => {
-  const navigate = useNavigate();
   
     // 가입하기 버튼
-    const Join = () => {
-      // 모든 필수 입력 항목이 채워져 있는지 확인
+    const Join = async () => {
+    // 유효성 검사
       if (!username || !tel || !nickname || !email || !password || !confirmPassword) {
         alert('모든 항목을 작성해주세요.');
         return;
@@ -134,8 +140,46 @@ const JoinPage = () => {
           return;
       }
 
-      navigate(`/`);
-    };
+    try {
+      // POST 요청 보내기
+      const response = await api.post('/auth/signup', {
+        email: email,
+        password: password,
+        passwordck: confirmPassword,
+        name: username, 
+        nickname: nickname,
+        phone: tel,
+      });
+
+      //  토큰 저장 로직
+      // response.data.accessToken
+      const token = response.data.accessToken || response.data.token; 
+
+      if (token) {
+        // 토큰을 로컬 스토리지에 저장 (자동 로그인을 위함)
+        localStorage.setItem('accessToken', token);
+        
+        // 회원가입 성공 시 메인 페이지로 이동
+        window.location.href = '/'; 
+      } else {
+        // 토큰이 없는 경우에도 이동이 필요하다면
+        window.location.href = '/';
+      }
+
+    } catch (error) {
+      console.error('회원가입 실패:', error);
+      
+      if (error.response) {
+        // 서버가 에러 응답을 보낸 경우 (401, 404 등)
+        if (error.response.status === 401) {
+          alert(`회원가입 오류: ${error.response.data.message || '알 수 없는 오류'}`);
+        }
+      } else {
+        // 네트워크 오류 등
+        alert("서버와 연결할 수 없습니다.");
+      }
+    }
+  };
 
   // 상태 관리
   const [username, setUsername] = useState('');
@@ -167,7 +211,7 @@ const JoinPage = () => {
     }
   };
 
-  // 전화번호가 변경될 때마다 실행 (11자리가 찼을 때 검사)
+  // 전화번호 (11자리가 찼을 때 검사)
   useEffect(() => {
     if (tel.length === 0) {
       setTelMessage(null);
@@ -251,7 +295,7 @@ const JoinPage = () => {
       setConfirmMessage({ text: "비밀번호가 일치합니다.", type: "success" });
     }
   }, [password, confirmPassword]);
-
+  
   return (
     <>
       <PageWrapper>
