@@ -47,7 +47,7 @@ public class ProfileResponseDto {
                 .name(user.getName())
                 .nickname(user.getNickname())
                 .profileImg(user.getProfileImg())
-                .mannerScore(user.getMannerScore())
+                .mannerScore(user.getTotalStar().doubleValue() / user.getReceivedReviewCount())
                 .isBanned(user.getIsBanned())
                 .activePosts(activePostList)
                 .closedPosts(closedPostList)

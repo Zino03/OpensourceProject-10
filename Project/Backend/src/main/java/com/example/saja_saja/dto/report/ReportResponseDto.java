@@ -3,6 +3,7 @@ package com.example.saja_saja.dto.report;
 import com.example.saja_saja.entity.report.NoticeReport;
 import com.example.saja_saja.entity.report.ReviewReport;
 import com.example.saja_saja.entity.report.UserReport;
+import com.example.saja_saja.exception.BadRequestException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -28,6 +29,8 @@ public class ReportResponseDto {
     // 0: 처리 대기, 1: 신고 기각, 2: 사용자 제재
     private Integer status;
 
+    private String BannedReason;
+
     public static ReportResponseDto of(Object reportEntity) {
         if (reportEntity instanceof ReviewReport reviewReport) {
             return new ReportResponseDto(
@@ -37,7 +40,8 @@ public class ReportResponseDto {
                     reviewReport.getTitle(),
                     reviewReport.getContent(),
                     reviewReport.getReportedAt(),
-                    reviewReport.getStatus()
+                    reviewReport.getStatus(),
+                    null
             );
         } else if (reportEntity instanceof UserReport userReport) {
             return new ReportResponseDto(
@@ -47,7 +51,8 @@ public class ReportResponseDto {
                     userReport.getTitle(),
                     userReport.getContent(),
                     userReport.getReportedAt(),
-                    userReport.getStatus()
+                    userReport.getStatus(),
+                    userReport.getReportedUser().getBannedReason()
             );
         } else if (reportEntity instanceof NoticeReport noticeReport) {
             return new ReportResponseDto(
@@ -57,10 +62,11 @@ public class ReportResponseDto {
                     noticeReport.getTitle(),
                     noticeReport.getContent(),
                     noticeReport.getReportedAt(),
-                    noticeReport.getStatus()
+                    noticeReport.getStatus(),
+                    null
             );
         }
 
-        throw new IllegalArgumentException("지원하지 않는 Report Entity 타입입니다.");
+        throw new BadRequestException("지원하지 않는 Report Entity 타입입니다.", null);
     }
 }

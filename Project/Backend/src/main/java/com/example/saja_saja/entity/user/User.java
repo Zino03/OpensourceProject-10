@@ -44,9 +44,9 @@ public class User {
 
     private String virtualAccount;
 
-    @Column(nullable = false, columnDefinition = "double precision default 0.0")
-    @Builder.Default
-    private Double mannerScore = 0.0;
+    private Integer totalStar;
+
+    private Integer receivedReviewCount;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false, unique = true)

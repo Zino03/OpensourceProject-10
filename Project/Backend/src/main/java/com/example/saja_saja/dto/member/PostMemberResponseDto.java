@@ -21,7 +21,7 @@ public class PostMemberResponseDto {
         return new PostMemberResponseDto().builder()
                 .nickname(host.getNickname())
                 .profileImg(host.getProfileImg())
-                .mannerScore(host.getMannerScore())
+                .mannerScore(host.getTotalStar().doubleValue() /  host.getReceivedReviewCount())
                 .build();
     }
 }
