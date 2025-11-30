@@ -1,9 +1,10 @@
-// 파일명: OrderDetail_PaymentCompleted.jsx
-import React from "react";
+// 파일명: OrderDetail_PaymentReceived.jsx
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import CancelModal from "./modal/CancelModal"; // 🔥 모달 import
 
 /* ============================================
-    🔥 SVG 화살표 아이콘 (색 변경 가능)
+    🔥 SVG 화살표 아이콘
 =============================================== */
 const ArrowIcon = ({ color = "#b0b0b0" }) => (
   <svg
@@ -23,14 +24,15 @@ const ArrowIcon = ({ color = "#b0b0b0" }) => (
   </svg>
 );
 
+/* ============================================
+    🔥 스타일
+=============================================== */
 const styles = {
   orderPage: {
     maxWidth: "1200px",
     margin: "60px auto",
     color: "#222",
   },
-
-  //숫자랑 화살표 사이 갭
   orderSteps: {
     display: "flex",
     alignItems: "flex-start",
@@ -38,13 +40,10 @@ const styles = {
     marginBottom: "50px",
     justifyContent: "center",
   },
-
   orderStep: {
     textAlign: "center",
     cursor: "pointer",
   },
-
-  /* 비활성 숫자 */
   stepNumber: {
     fontSize: "60px",
     fontWeight: 401,
@@ -52,8 +51,6 @@ const styles = {
     lineHeight: 1,
     fontFamily: "Pretendard",
   },
-
-  /* 활성 숫자 */
   stepNumberActive: {
     fontSize: "60px",
     fontWeight: 401,
@@ -61,18 +58,14 @@ const styles = {
     lineHeight: 1,
     fontFamily: "Pretendard",
   },
-
   stepLabel: {
     fontSize: "13px",
     marginTop: "8px",
     color: "#555",
   },
-
-  /* 표, 뒤 코드는 동일 */
   orderListWrapper: {
     marginTop: "20px",
   },
-
   orderListHeader: {
     display: "flex",
     justifyContent: "space-between",
@@ -82,28 +75,21 @@ const styles = {
     borderBottom: "1px solid #000",
     paddingBottom: "8px",
   },
-
   orderListTitle: {
     fontSize: "16px",
     fontWeight: 900,
   },
-
   orderListNotice: {
     fontSize: "12px",
     color: "#D32F2F",
   },
-
   orderTable: {
     width: "77%",
     margin: "0 auto",
     borderCollapse: "collapse",
     fontSize: "13px",
   },
-
-  tableHeadRow: {
-    borderBottom: "1px solid #000",
-  },
-
+  tableHeadRow: { borderBottom: "1px solid #000" },
   th: {
     padding: "20px 8px",
     textAlign: "center",
@@ -111,34 +97,20 @@ const styles = {
     color: "#555",
     fontSize: "13.5px",
   },
-
   td: {
     padding: "10px 8px",
     textAlign: "center",
     fontSize: "11.5px",
   },
-
-  bodyRow: {
-    borderBottom: "1px solid #f1f1f1",
-  },
-
-  lastBodyRow: {
-    borderBottom: "1px solid #e1e1e1",
-  },
-
+  bodyRow: { borderBottom: "1px solid #f1f1f1" },
+  lastBodyRow: { borderBottom: "1px solid #e1e1e1" },
   productName: {
     maxWidth: "200px",
     whiteSpace: "nowrap",
-    textAlign: "left",
     overflow: "hidden",
     textOverflow: "ellipsis",
+    textAlign: "left",
   },
-
-  orderActions: {
-    display: "flex",
-    gap: "8px",
-  },
-
   btnOutline: {
     minWidth: "90px",
     padding: "4px 14px",
@@ -148,9 +120,7 @@ const styles = {
     border: "1px solid #000",
     backgroundColor: "#fff",
     color: "#444",
-    margin: "0 -8px 0 -4px",
   },
-
   btnFilled: {
     minWidth: "90px",
     padding: "4px 14px",
@@ -160,18 +130,15 @@ const styles = {
     border: "1px solid #FF7E00",
     backgroundColor: "#FF7E00",
     color: "#fff",
-    margin: "0 -4px 0 -8px",
   },
 };
 
 /* ============================================
-    🔥 화살표 색상 배열
-    index 순서대로: 
-    1→2, 2→3, 3→4, 4→5, 5→6
+    🔥 화살표 색상
 =============================================== */
 const arrowColors = ["#828282", "#000000ff", "#828282", "#828282", "#ffffffff"];
 
-/* 단계별 주문 개수 */
+/* 단계별 주문 수 */
 const orderCounts = {
   received: 4,
   payment: 4,
@@ -181,7 +148,7 @@ const orderCounts = {
   cancelled: 4,
 };
 
-/* 현재 활성 단계 = 결제 완료 */
+/* 현재 단계 = 결제 완료 */
 const steps = [
   { id: 1, label: "주문 접수", value: orderCounts.received, path: "/order-detail" },
   { id: 2, label: "결제 완료", value: orderCounts.payment, active: true, path: "/received" },
@@ -202,37 +169,49 @@ const orders = [
 /* ============================================
     🔥 메인 컴포넌트
 =============================================== */
-function OrderDetail_PaymentCompleted() {
+function OrderDetail_PaymentReceived() {
   const navigate = useNavigate();
+
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+
+  const openCancelModal = (order) => {
+    setSelectedOrder(order);
+    setIsCancelModalOpen(true);
+  };
+
+  const closeCancelModal = () => {
+    setIsCancelModalOpen(false);
+    setSelectedOrder(null);
+  };
+
+  const handleConfirmCancel = () => {
+    console.log("취소된 주문:", selectedOrder);
+    navigate("/cancelled");
+
+    setIsCancelModalOpen(false);
+    setSelectedOrder(null);
+  };
 
   return (
     <div style={styles.orderPage}>
-      {/* 🔥 상단 주문 단계 + SVG 화살표 */}
+      {/* 🔥 상단 단계 */}
       <div style={styles.orderSteps}>
         {steps.map((step, index) => (
           <React.Fragment key={step.id}>
-            {/* ✅ 여기 onClick 추가됨 */}
-            <div
-              style={styles.orderStep}
-              onClick={() => step.path && navigate(step.path)}
-            >
+            <div style={styles.orderStep} onClick={() => navigate(step.path)}>
               <div style={step.active ? styles.stepNumberActive : styles.stepNumber}>
                 {step.value}
               </div>
               <div style={styles.stepLabel}>{step.label}</div>
             </div>
 
-            {/* 마지막 단계 전까지 화살표 출력 */}
-            {index < steps.length - 1 && (
-              <ArrowIcon color={arrowColors[index]} />
-            )}
+            {index < steps.length - 1 && <ArrowIcon color={arrowColors[index]} />}
           </React.Fragment>
         ))}
       </div>
 
-      {/* ============================
-          주문 내역 테이블
-      ============================ */}
+      {/* 🔥 테이블 */}
       <div style={styles.orderListWrapper}>
         <div style={styles.orderListHeader}>
           <h2 style={styles.orderListTitle}>주문 내역</h2>
@@ -273,10 +252,15 @@ function OrderDetail_PaymentCompleted() {
                 <td style={styles.td}>{order.total}</td>
 
                 <td style={styles.td}>
-                  <button type="button" style={styles.btnOutline}>
+                  <button
+                    type="button"
+                    style={styles.btnOutline}
+                    onClick={() => openCancelModal(order)} // 🔥 모달 열기
+                  >
                     주문 취소
                   </button>
                 </td>
+
                 <td style={styles.td}>
                   <button type="button" style={styles.btnFilled}>
                     문의하기
@@ -285,11 +269,18 @@ function OrderDetail_PaymentCompleted() {
               </tr>
             ))}
           </tbody>
-
         </table>
       </div>
+
+      {/* 🔥 취소 모달 */}
+      <CancelModal
+        isOpen={isCancelModalOpen}
+        onClose={closeCancelModal}
+        onConfirm={handleConfirmCancel}
+        order={selectedOrder}
+      />
     </div>
   );
 }
 
-export default OrderDetail_PaymentCompleted;
+export default OrderDetail_PaymentReceived;

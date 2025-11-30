@@ -1,6 +1,7 @@
 // 파일명: OrderDetail_PaymentCompleted.jsx
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import CancelModal from "./modal/CancelModal"; // 🔥 모달 import
 
 /* ============================================
     🔥 SVG 화살표 아이콘 (색 변경 가능)
@@ -104,7 +105,8 @@ const styles = {
     borderBottom: "1px solid #000",
   },
 
-  th: { //표 헤더 내용 스타일 수정
+  th: {
+    //표 헤더 내용 스타일 수정
     padding: "20px 8px",
     textAlign: "center",
     fontWeight: 500,
@@ -112,7 +114,8 @@ const styles = {
     fontSize: "13.5px",
   },
 
-  td: { //표 바디 내용 스타일 수정
+  td: {
+    //표 바디 내용 스타일 수정
     padding: "10px 8px",
     textAlign: "center",
     fontSize: "11.5px",
@@ -139,7 +142,8 @@ const styles = {
     gap: "8px",
   },
 
-  btnOutline: { //버튼 스타일 수정
+  btnOutline: {
+    //버튼 스타일 수정
     minWidth: "90px",
     padding: "4px 14px",
     fontSize: "11px",
@@ -151,7 +155,8 @@ const styles = {
     margin: "0 -8px 0 -4px",
   },
 
-  btnFilled: { //버튼 스타일 수정
+  btnFilled: {
+    //버튼 스타일 수정
     minWidth: "90px",
     padding: "4px 14px",
     fontSize: "11px",
@@ -166,10 +171,8 @@ const styles = {
 
 /* ============================================
     🔥 화살표 색상 배열
-    index 순서대로: 
-    1→2, 2→3, 3→4, 4→5, 5→6
 =============================================== */
-const arrowColors = ["#000000ff", "#828282", "#828282", "#828282", "#ffffffff"]; // 화살표 색상 변경
+const arrowColors = ["#000000ff", "#828282", "#828282", "#828282", "#ffffffff"];
 
 /* 단계별 주문 개수 */
 const orderCounts = {
@@ -183,7 +186,7 @@ const orderCounts = {
 
 /* 현재 활성 단계 = 결제 완료 */
 const steps = [
-  { id: 1, label: "주문 접수", value: orderCounts.received,active: true, path: "/order-detail" },
+  { id: 1, label: "주문 접수", value: orderCounts.received, active: true, path: "/order-detail" },
   { id: 2, label: "결제 완료", value: orderCounts.payment, path: "/received" },
   { id: 3, label: "상품 준비 중", value: orderCounts.preparing, path: "/preparing" },
   { id: 4, label: "배송 중", value: orderCounts.shipping, path: "/shipping" },
@@ -193,21 +196,73 @@ const steps = [
 
 /* 주문 리스트 */
 const orders = [
-  { id: 1, name: "애니 피오르크 미니 프레첼 스낵 150g", host: "사자사자", quantity: 1, date: "2025-11-12", total: "7,000 원" },
-  { id: 2, name: "비로드슴 실온 닭가슴살 7종 10팩 골라담기", host: "빈지노", quantity: 2, date: "2025-05-20", total: "12,400 원" },
-  { id: 3, name: "연평도 자연 간장게장 100% 알베기 암꽃게 ...", host: "간장게장맛있어요요요", quantity: 2, date: "2025-01-13", total: "23,600 원" },
-  { id: 4, name: "[아이앤비] 섬유유연제 건조기", host: "김우민호", quantity: 1, date: "2025-01-07", total: "5,200 원" },
+  {
+    id: 1,
+    name: "애니 피오르크 미니 프레첼 스낵 150g",
+    host: "사자사자",
+    quantity: 1,
+    date: "2025-11-12",
+    total: "7,000 원",
+  },
+  {
+    id: 2,
+    name: "비로드슴 실온 닭가슴살 7종 10팩 골라담기",
+    host: "빈지노",
+    quantity: 2,
+    date: "2025-05-20",
+    total: "12,400 원",
+  },
+  {
+    id: 3,
+    name: "연평도 자연 간장게장 100% 알베기 암꽃게 ...",
+    host: "간장게장맛있어요요요",
+    quantity: 2,
+    date: "2025-01-13",
+    total: "23,600 원",
+  },
+  {
+    id: 4,
+    name: "[아이앤비] 섬유유연제 건조기",
+    host: "김우민호",
+    quantity: 1,
+    date: "2025-01-07",
+    total: "5,200 원",
+  },
 ];
 
 /* ============================================
     🔥 메인 컴포넌트
 =============================================== */
-function OrderDetail_PaymentCompleted() {
+function OrderDetail_OrderReceived() {
   const navigate = useNavigate();
+
+  // 🔥 모달 on/off + 어떤 주문을 취소할지
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+
+  const openCancelModal = (order) => {
+    setSelectedOrder(order);
+    setIsCancelModalOpen(true);
+  };
+
+  const closeCancelModal = () => {
+    setIsCancelModalOpen(false);
+    setSelectedOrder(null);
+  };
+
+  const handleConfirmCancel = () => {
+    // TODO: 실제로 주문 상태 변경 / API 호출이 있다면 여기서 처리
+    console.log("취소할 주문:", selectedOrder);
+
+    // 예시로: 주문 취소 페이지로 이동
+    navigate("/cancelled");
+
+    setIsCancelModalOpen(false);
+    setSelectedOrder(null);
+  };
 
   return (
     <div style={styles.orderPage}>
-      
       {/* 🔥 상단 주문 단계 + SVG 화살표 */}
       <div style={styles.orderSteps}>
         {steps.map((step, index) => (
@@ -216,16 +271,16 @@ function OrderDetail_PaymentCompleted() {
               style={styles.orderStep}
               onClick={() => step.path && navigate(step.path)}
             >
-              <div style={step.active ? styles.stepNumberActive : styles.stepNumber}>
+              <div
+                style={step.active ? styles.stepNumberActive : styles.stepNumber}
+              >
                 {step.value}
               </div>
               <div style={styles.stepLabel}>{step.label}</div>
             </div>
 
             {/* 마지막 단계 전까지 화살표 출력 */}
-            {index < steps.length - 1 && (
-              <ArrowIcon color={arrowColors[index]} />
-            )}
+            {index < steps.length - 1 && <ArrowIcon color={arrowColors[index]} />}
           </React.Fragment>
         ))}
       </div>
@@ -258,7 +313,11 @@ function OrderDetail_PaymentCompleted() {
             {orders.map((order, idx) => (
               <tr
                 key={order.id}
-                style={idx === orders.length - 1 ? styles.lastBodyRow : styles.bodyRow}
+                style={
+                  idx === orders.length - 1
+                    ? styles.lastBodyRow
+                    : styles.bodyRow
+                }
               >
                 <td
                   style={{ ...styles.td, ...styles.productName, cursor: "pointer" }}
@@ -267,29 +326,39 @@ function OrderDetail_PaymentCompleted() {
                   {order.name}
                 </td>
 
-                <td style={{...styles.td, minWidth: "100px"}}>{order.host}</td>
+                <td style={{ ...styles.td, minWidth: "100px" }}>{order.host}</td>
                 <td style={styles.td}>{order.quantity}</td>
                 <td style={styles.td}>{order.date}</td>
                 <td style={styles.td}>{order.total}</td>
 
                 <td style={styles.td}>
-                    <button type="button" style={styles.btnOutline}>
-                      주문 취소
-                    </button>
+                  <button
+                    type="button"
+                    style={styles.btnOutline}
+                    onClick={() => openCancelModal(order)} // 🔥 모달 오픈
+                  >
+                    주문 취소
+                  </button>
                 </td>
                 <td style={styles.td}>
-                    <button type="button" style={styles.btnFilled}>
-                      문의하기
-                    </button>
-                  </td>
+                  <button type="button" style={styles.btnFilled}>
+                    문의하기
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
-
         </table>
       </div>
+
+      {/* 🔥 주문 취소 모달 */}
+      <CancelModal
+        isOpen={isCancelModalOpen}
+        onClose={closeCancelModal}
+        onConfirm={handleConfirmCancel}
+      />
     </div>
   );
 }
 
-export default OrderDetail_PaymentCompleted;
+export default OrderDetail_OrderReceived;
