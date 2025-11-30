@@ -1,5 +1,6 @@
 // 파일 위치: src/pages/MyProfile.jsx
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 // 🔥 은행 리스트 (파일은 public/images/banklogo/*.svg 기준)
 const bankOptions = [
@@ -59,7 +60,7 @@ const styles = {
     justifyContent: "center",
     alignItems: "center",
     overflow: "hidden",
-    position: "relative", // 🔥 프로필 수정 아이콘 포지셔닝 위해 추가
+    position: "relative",
   },
   profileImg: {
     width: "100%",
@@ -67,8 +68,8 @@ const styles = {
     objectFit: "cover",
   },
   profileEditButton: {
-    marginLeft: "-30px", // 원 오른쪽으로 이동
-    marginBottom: "-110px", // 밑으로 살짝 내리기 (조절 가능)
+    marginLeft: "-30px",
+    marginBottom: "-110px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -214,7 +215,8 @@ const styles = {
 };
 
 function MyProfile() {
-  // 🔹 기본 폼 값
+  const navigate = useNavigate();
+
   const [form, setForm] = useState({
     name: "최지우",
     nickname: "간장게장",
@@ -226,20 +228,22 @@ function MyProfile() {
     accountNumber: "110-123-123456",
   });
 
-  // 🔹 최초에 가지고 있던 닉네임 (내 정보 수정 페이지 들어왔을 때 닉네임)
-  //    - 실제 서비스에서는 API로 받아온 user.nickname을 여기에 넣어주면 됨
+  // 🔹 최초에 가지고 있던 닉네임 / 이메일
   const [originalNickname] = useState("간장게장");
+  const [originalEmail] = useState("example@example.com");
 
   const [profileImage, setProfileImage] = useState(null);
 
-  const [emailError, setEmailError] = useState("");
+  const [emailError, setEmailError] = useState(""); // 형식 오류용
   const [passwordError, setPasswordError] = useState("");
   const [passwordMatchMessage, setPasswordMatchMessage] = useState("");
   const [bankOpen, setBankOpen] = useState(false);
 
   const [nicknameMessage, setNicknameMessage] = useState("");
-  // ✅ 초기값을 true로 : "처음 들어왔을 때 원래 닉네임은 이미 사용 가능하다고 간주"
-  const [isNicknameValid, setIsNicknameValid] = useState(true); // true / false / null
+  const [isNicknameValid, setIsNicknameValid] = useState(true); // 닉네임 중복확인 상태
+
+  const [emailMessage, setEmailMessage] = useState("");
+  const [isEmailValid, setIsEmailValid] = useState(true); // 이메일 중복확인 상태
 
   const selectedBank =
     bankOptions.find((b) => b.id === form.bank) || bankOptions[0];
@@ -248,18 +252,27 @@ function MyProfile() {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
 
-    // 🔥 닉네임 입력이 바뀔 때의 처리
+    // 🔥 닉네임 입력 변경 시
     if (name === "nickname") {
       const trimmed = value.trim();
-
-      // 1) 원래 닉네임 그대로면 → 이미 검증된 것으로 취급
       if (trimmed === originalNickname) {
         setIsNicknameValid(true);
-        setNicknameMessage(""); // 굳이 메시지 안 띄워도 됨
+        setNicknameMessage("");
       } else {
-        // 2) 새 닉네임이면 → 다시 중복확인 받아야 하므로 상태 초기화
         setIsNicknameValid(null);
-        setNicknameMessage(""); // "닉네임 중복확인을 해주세요."는 제출 시에만 띄움
+        setNicknameMessage("");
+      }
+    }
+
+    // 🔥 이메일 입력 변경 시
+    if (name === "email") {
+      const trimmed = value.trim();
+      setEmailError("");
+      setEmailMessage("");
+      if (trimmed === originalEmail) {
+        setIsEmailValid(true);
+      } else {
+        setIsEmailValid(null);
       }
     }
   };
@@ -286,19 +299,15 @@ function MyProfile() {
       return;
     }
 
-    // 🔥 현재 닉네임이 "원래 내 닉네임"인 경우
-    // → 굳이 서버에 물어볼 필요 없이 그냥 사용 가능 처리
     if (nickname === originalNickname) {
       setNicknameMessage("현재 사용 중인 닉네임입니다.");
       setIsNicknameValid(true);
       return;
     }
 
-    // 실제로는 서버에서 체크하지만, 여기서는 하드코딩 예시
+    // 실제로는 서버에서 체크해야 함 (예시)
     const usedNicknames = ["간장게장", "사자사자"];
 
-    // 🔥 위에서 originalNickname인 경우는 이미 return 했으니,
-    //    여기서는 "내가 아닌 다른 사람"의 닉네임이라고 가정
     if (usedNicknames.includes(nickname)) {
       setNicknameMessage("이미 사용중인 닉네임입니다.");
       setIsNicknameValid(false);
@@ -308,14 +317,58 @@ function MyProfile() {
     }
   };
 
+  // 이메일 중복확인
+  const handleEmailCheck = () => {
+    const email = (form.email || "").trim();
+
+    if (!email) {
+      setEmailMessage("이메일을 입력해주세요.");
+      setIsEmailValid(false);
+      return;
+    }
+
+    // 형식 체크 먼저
+    const hasAt = email.includes("@");
+    const allowedDomains = [".com", ".net", ".co.kr"];
+    const hasValidDomain = allowedDomains.some((domain) =>
+      email.endsWith(domain)
+    );
+
+    if (!hasAt || !hasValidDomain) {
+      setEmailError("이메일 형식이 올바르지 않습니다.");
+      setEmailMessage("");
+      setIsEmailValid(false);
+      return;
+    }
+
+    // 원래 이메일이면 바로 통과
+    if (email === originalEmail) {
+      setEmailError("");
+      setEmailMessage("현재 사용 중인 이메일입니다.");
+      setIsEmailValid(true);
+      return;
+    }
+
+    // 실제로는 서버에서 체크해야 함 (예시)
+    const usedEmails = ["example@example.com", "test@test.com"];
+
+    if (usedEmails.includes(email)) {
+      setEmailError("");
+      setEmailMessage("이미 사용중인 이메일입니다.");
+      setIsEmailValid(false);
+    } else {
+      setEmailError("");
+      setEmailMessage("사용가능한 이메일입니다.");
+      setIsEmailValid(true);
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
     let hasError = false;
 
-    // 🔥 닉네임 중복확인 관련 검증
-    // - isNicknameValid === true 인 경우만 통과
-    // - (원래 닉네임이면 isNicknameValid가 true로 유지되기 때문에 막히지 않음)
+    // 🔥 닉네임 중복확인
     if (isNicknameValid !== true) {
       if (!nicknameMessage) {
         setNicknameMessage("닉네임 중복확인을 해주세요.");
@@ -323,7 +376,15 @@ function MyProfile() {
       hasError = true;
     }
 
-    // 이메일 검사
+    // 🔥 이메일 중복확인
+    if (isEmailValid !== true) {
+      if (!emailMessage) {
+        setEmailMessage("이메일 중복확인을 해주세요.");
+      }
+      hasError = true;
+    }
+
+    // 이메일 형식 최종 검사 (혹시 중복확인 안 하고 저장 눌렀을 수도 있으니까)
     const email = (form.email || "").trim();
     const hasAt = email.includes("@");
     const allowedDomains = [".com", ".net", ".co.kr"];
@@ -357,6 +418,7 @@ function MyProfile() {
     if (hasError) return;
 
     alert("정보가 저장되었습니다.");
+    navigate("/mypage");
   };
 
   const handleCancel = () => {
@@ -451,23 +513,44 @@ function MyProfile() {
             <span style={styles.smallHelper}>변경 불가한 항목입니다.</span>
           </div>
 
-          {/* 이메일 */}
+          {/* 아이디(이메일) */}
           <div style={styles.field}>
             <label style={styles.label}>아이디(이메일)</label>
-            <input
-              name="email"
-              style={styles.input}
-              value={form.email}
-              onChange={(e) => {
-                setEmailError("");
-                handleChange(e);
-              }}
-              placeholder="ID@example.com"
-            />
+            <div style={styles.inputRow}>
+              <input
+                name="email"
+                style={styles.input}
+                value={form.email}
+                onChange={handleChange}
+                placeholder="ID@example.com"
+              />
+              <button
+                type="button"
+                style={styles.smallButton}
+                onClick={handleEmailCheck}
+              >
+                중복확인
+              </button>
+            </div>
 
-          {emailError && (
+            {/* 이메일 형식 오류 */}
+            {emailError && (
               <span style={{ fontSize: "12px", color: "#D32F2F" }}>
                 {emailError}
+              </span>
+            )}
+
+            {/* 이메일 중복 여부 메시지 */}
+            {emailMessage && (
+              <span
+                style={{
+                  fontSize: "12px",
+                  color: isEmailValid === true ? "#2E7D32" : "#D32F2F",
+                  display: "block",
+                  marginTop: emailError ? "2px" : "4px",
+                }}
+              >
+                {emailMessage}
               </span>
             )}
           </div>
