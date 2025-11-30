@@ -35,6 +35,7 @@ import OrderDetail_Delivered from './pages/OrderDetail_Delivered';
 import OrderDetail_Cancelled from './pages/OrderDetail_Cancelled';
 
 import Mypage from './pages/Mypage';
+import MyProfile from './pages/MyProfile.jsx';
 
 
 function App() {
@@ -58,6 +59,7 @@ function App() {
           <Route path="/cancelled" element={<OrderDetail_Cancelled />} />
 
           <Route path="/mypage" element={<Mypage />} />
+          <Route path="/myprofile" element={<MyProfile />} />
 
 
           <Route path="/write" element={<GroupPurchaseRegister/>} />
