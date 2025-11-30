@@ -239,6 +239,7 @@ const AdminPaymentManage = () => {
           post={selectedPost}
           onClose={handleCloseModal}
           onAction={handleModalAction}
+          style={{transition: "all 1s"}}
         />
       )}
     </>

@@ -1,6 +1,14 @@
-import React from 'react';
+import React, { useState }from 'react';
 import styled from 'styled-components';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: 'http://192.168.31.28:8080', // 백엔드 주소
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
 // 로그인 전체 폼
 const LoginWrapper = styled.div`
@@ -100,6 +108,62 @@ const LoginSignupButton = styled.button`
 const LoginPage = () => {
   const navigate = useNavigate();
 
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [autoLogin, setAutoLogin] = useState(false); // 자동 로그인 체크 여부
+
+  const handleLogin = async () => {
+    // 유효성 검사
+    if (!email) {
+      alert("아이디(이메일)를 입력해주세요.");
+      return;
+    }
+    if (!password) {
+      alert("비밀번호를 입력해주세요.");
+      return;
+    }
+
+    try {
+      // POST 요청 보내기
+      const response = await api.post('/auth/login', {
+        email: email,
+        password: password
+      });
+
+      console.log('로그인 성공:', response.data);
+
+      // 4. 토큰 저장 로직 (백엔드 응답 구조에 따라 수정 필요)
+      // 보통 response.data.accessToken 또는 response.headers['authorization'] 등에 담겨옵니다.
+      const token = response.data.accessToken || response.data.token; 
+
+      if (token) {
+        // 토큰을 로컬 스토리지에 저장 (자동 로그인을 위함)
+        localStorage.setItem('accessToken', token);
+        
+        // 로그인 성공 시 메인 페이지로 이동
+        navigate('/'); 
+      } else {
+        // 토큰이 없더라도 성공 처리하는 경우 (구조에 따라 다름)
+        navigate('/');
+      }
+
+    } catch (error) {
+      console.error('로그인 실패:', error);
+      
+      if (error.response) {
+        // 서버가 에러 응답을 보낸 경우 (401, 404 등)
+        if (error.response.status === 401) {
+          alert("아이디 또는 비밀번호가 일치하지 않습니다.");
+        } else {
+          alert(`로그인 오류: ${error.response.data.message || '알 수 없는 오류'}`);
+        }
+      } else {
+        // 네트워크 오류 등
+        alert("서버와 연결할 수 없습니다.");
+      }
+    }
+  };
+
   // 회원가입 버튼
   const JoinClick = () => {
     navigate(`/join`);
@@ -115,24 +179,30 @@ const LoginPage = () => {
 
         <InputField>
           <label htmlFor="email">ID (Email)</label>
-          <input type="email" id="email" />
+          <input type="email" id="email" 
+            value={email}
+            onChange={(e) => setEmail(e.target.value)} />
         </InputField>
 
         <InputField>
           <label htmlFor="password">PW (Password)</label>
-          <input type="password" id="password" />
+          <input type="password" id="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)} />
         </InputField>
 
         <OptionsWrapper>
           <label>
-            <input type="checkbox" />
+            <input type="checkbox" 
+              checked={autoLogin}
+              onChange={(e) => setAutoLogin(e.target.checked)}/>
             자동 로그인
           </label>
           <a href="/find-password">비밀번호 찾기</a>
         </OptionsWrapper>
 
         <ButtonWrapper>
-          <LoginSignupButton>LOGIN</LoginSignupButton>
+          <LoginSignupButton onClick={handleLogin}>LOGIN</LoginSignupButton>
           <LoginSignupButton onClick={JoinClick}>SIGN UP</LoginSignupButton>
         </ButtonWrapper>
       </LoginWrapper>

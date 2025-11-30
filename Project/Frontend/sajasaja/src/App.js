@@ -26,7 +26,6 @@ import AdminReviewReport from './admin/AdminReviewReport'
 import AdminNoticeReport from './admin/AdminNoticeReport'
 import AdminPaymentManage from './admin/AdminPaymentManage';
 import AdminPostManage from './admin/AdminPostManage';
-import AdminSettlement from './admin/AdminSettlement';
 import OrderCompletePage from './pages/OrderCompletePage';
 
 import OrderDetail_OrderReceived from './pages/OrderDetail_OrderReceived';
@@ -90,7 +89,6 @@ function App() {
             <Route path="report-notice" element={<AdminNoticeReport/>} />
             <Route path="payment" element={<AdminPaymentManage/>} />
             <Route path="posts" element={<AdminPostManage/>} />
-            <Route path="payment/:id" element={<AdminSettlement />} />
           </Route>
         </Routes>
         {showFooter && <Footer/>}
