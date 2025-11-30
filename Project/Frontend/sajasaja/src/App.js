@@ -38,6 +38,7 @@ import OrderDetail_Cancelled from './pages/OrderDetail_Cancelled';
 import Mypage from './pages/Mypage';
 import MyProfile from './pages/MyProfile.jsx';
 import NewDeliveryInfo from './pages/NewDeliveryInfo.jsx';
+import MyDeliveryInfo from './pages/MyDeliveryInfo.jsx';
 
 
 function App() {
@@ -72,6 +73,7 @@ function App() {
           <Route path="/mypage" element={<Mypage />} />
           <Route path="/myprofile" element={<MyProfile />} />
           <Route path="/newdelivery" element={<NewDeliveryInfo />} />
+          <Route path="/mydelivery" element={<MyDeliveryInfo />} />
           <Route path="/terms" element={<TermsOfUsePage/>} />
           <Route path="/privacy" element={<PrivacyPolicyPage/>} />
 
