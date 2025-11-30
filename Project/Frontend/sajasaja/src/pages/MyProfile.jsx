@@ -140,7 +140,7 @@ const styles = {
 
   smallHelper: {
     fontSize: "12px",
-    color: "#D32F2F",
+    color: "#979797",
   },
 
   footerButtons: {
@@ -334,7 +334,7 @@ function MyProfile() {
     window.history.back();
   };
 
-  const defaultProfile = "/images/profilecircle.svg";
+  const defaultProfile = "/images/profile.png";
 
   return (
     <div style={styles.pageWrapper}>
