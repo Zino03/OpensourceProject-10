@@ -60,7 +60,8 @@ function App() {
 
           <Route path="/mypage" element={<Mypage />} />
           <Route path="/myprofile" element={<MyProfile />} />
-
+          <Route path="/terms" element={<TermsOfUsePage/>} />
+          <Route path="/privacy" element={<PrivacyPolicyPage/>} />
 
           <Route path="/write" element={<GroupPurchaseRegister/>} />
           <Route path="/nearby" element={<NearbyGroupPurchase/>} />
