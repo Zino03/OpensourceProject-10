@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import styled from 'styled-components';
 import PostManageModal from './modal/PostManageModal';
 
 const SearchBar = styled.div`
   display: flex;
   overflow: visible;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
   gap: 18px;
 
   input {
@@ -13,7 +13,7 @@ const SearchBar = styled.div`
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 8px;
-    font-size: 12px;
+    font-size: 11px;
     &:focus { outline: none; }
   }
   
@@ -21,7 +21,7 @@ const SearchBar = styled.div`
     padding: 8px 10px;
     border: 1px solid #ddd;
     border-radius: 8px;
-    font-size: 12px;
+    font-size: 11px;
     cursor: pointer;
   }
 `;
@@ -29,47 +29,45 @@ const SearchBar = styled.div`
 const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
-  font-size: 12px;
+  font-size: 11px;
 
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis; 
-
-  th, td {
-    padding: 12px;
+  th{
+    padding: 16px 8px;
+    background-color: #f9f9f9;
+    font-weight: 600;
     border-bottom: 1px solid #eee;
     text-align: center;
   }
   
-  th {
-    background-color: #f9f9f9;
-    font-weight: 600;
+  td {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+    text-align: center;
   }
 
-  th:nth-child(4), td:nth-child(4) {
-    width: 20%;
+  th:nth-child(2), td:nth-child(2) {
+    width: 30%;
   }
 `;
 
 const StatusButton = styled.button`
-  padding: 6px 12px;
+  padding: 4px 12px;
   border: none;
-  border-radius: 4px;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 600;
   cursor: pointer;
-
+  
+  &.waiting {
+    background-color: #fff;
+    color: #555;
+  }
   &.companion {
-    background-color: #FFF5E0;
+    background-color: #fff;
     color: #FF5A5A;
   }
   &.approve {
-    background-color: #FFF5E0;
+    background-color: #fff;
     color: #44824A;
-  }
-  &.waiting {
-    background-color: #FFF5E0;
-    color: #555;
   }
 `;
 
@@ -77,7 +75,8 @@ const Pagination = styled.div`
   display: flex;
   justify-content: center;
   gap: 8px;
-  margin-top: 32px;
+  margin-top: 20px;
+  font-size: 11px;
 
   span {
     cursor: pointer;
@@ -87,6 +86,14 @@ const Pagination = styled.div`
     }
   }
 `;
+
+const NoResult = styled.div`
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 50px 0;
+  color: #888;
+  font-size: 14px;
+`
 
 const mockPosts = [
   { id: 1, title: '닭가슴살 공구', writer: '변진호', deadline: '2025.11.20', date: '2025.11.10', status: 'waiting' },
@@ -129,12 +136,44 @@ const AdminPaymentManage = () => {
     );
   };
 
+
+  const [searchInputValue, setSearchInputValue] = useState('');
+  const [confirmedSearchTerm, setConfirmedSearchTerm] = useState(''); 
+  const [filterStatus, setFilterStatus] = useState('all');
+
+  // 엔터 감지
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      setConfirmedSearchTerm(searchInputValue); 
+    }
+  };
+
+  const filteredPost = useMemo(() => {
+    return mockPosts.filter((post) => {
+      // 상태 필터링
+      const statusMatch = filterStatus === 'all' || post.status === filterStatus;
+
+      // 검색어 필터링 (모든 필드 검사)
+      // 데이터 객체의 값들(Values)만 뽑아서 배열로 만든 뒤, 하나라도 검색어를 포함하는지 확인
+      const searchMatch = Object.values(post).some((val) => 
+        String(val).toLowerCase().includes(confirmedSearchTerm.toLowerCase())
+      );
+
+      return statusMatch && searchMatch; // 두 조건 모두 만족해야 함
+    });
+  }, [confirmedSearchTerm, filterStatus]);
+
   // 콘텐츠 렌더링
   return (
     <>
       <SearchBar>
-        <input type="text" placeholder="검색" />
-        <select>
+        <input type="text" placeholder="검색" 
+          value={searchInputValue}
+          onChange={(e) => setSearchInputValue(e.target.value)}
+          onKeyDown={handleKeyDown}/>
+        <select
+          value={filterStatus} 
+          onChange={(e) => setFilterStatus(e.target.value)}>
           <option value="all">전체</option>
           <option value="approve">승인</option>
           <option value="companion">반려</option>
@@ -154,22 +193,30 @@ const AdminPaymentManage = () => {
           </tr>
         </thead>
         <tbody>
-          {mockPosts.map((post) => (
-            <tr key={post.id}>
-              <td>{post.id}</td>
-              <td>{post.title}</td>
-              <td>{post.writer}</td>
-              <td>{post.deadline}</td>
-              <td>{post.date}</td>
-              <td>
+        {filteredPost.length > 0 ? (
+            filteredPost.map((post) => (
+              <tr key={post.id}>
+                <td>{post.id}</td>
+                <td>{post.title}</td>
+                <td>{post.writer}</td>
+                <td>{post.deadline}</td>
+                <td>{post.date}</td>
+                <td>
                 <StatusButton className={post.status} onClick={() => handleManageClick(post)}>
                   {post.status === 'approve' ? '승인' : post.status === 'companion' ? '반려' : '대기'}
                 </StatusButton>
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="7">
+                <NoResult>검색 결과가 없습니다.</NoResult>
               </td>
             </tr>
-          ))}
-        </tbody>
-      </Table>
+          )}
+          </tbody>
+        </Table>
 
       <Pagination>
         <span>&lt;&lt;</span>

@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import styled from 'styled-components';
 import ReportProcessModal from './modal/ReportProcessModal';
 
 const SearchBar = styled.div`
   display: flex;
   overflow: visible;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
   gap: 18px;
 
   input {
@@ -13,7 +13,7 @@ const SearchBar = styled.div`
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 8px;
-    font-size: 12px;
+    font-size: 11px;
     &:focus { outline: none; }
   }
   
@@ -21,7 +21,7 @@ const SearchBar = styled.div`
     padding: 8px 10px;
     border: 1px solid #ddd;
     border-radius: 8px;
-    font-size: 12px;
+    font-size: 11px;
     cursor: pointer;
   }
 `;
@@ -29,42 +29,44 @@ const SearchBar = styled.div`
 const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
-  font-size: 12px;
+  font-size: 11px;
 
-  th, td {
-    padding: 12px;
+  th{
+    padding: 16px 8px;
+    background-color: #f9f9f9;
+    font-weight: 600;
     border-bottom: 1px solid #eee;
     text-align: center;
   }
   
-  th {
-    background-color: #f9f9f9;
-    font-weight: 600;
+  td {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+    text-align: center;
   }
 
   th:nth-child(4), td:nth-child(4) {
-    width: 20%;
+    width: 30%;
   }
 `;
 
 const StatusButton = styled.button`
-  padding: 6px 12px;
+  padding: 4px 12px;
   border: none;
-  border-radius: 4px;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 600;
   cursor: pointer;
   
   &.waiting {
-    background-color: #FFF5E0;
+    background-color: #fff;
     color: #555;
   }
   &.rejected {
-    background-color: #FFF5E0;
+    background-color: #fff;
     color: #FF5A5A;
   }
-  &.complete {
-    background-color: #FFF5E0;
+  &.completed {
+    background-color: #fff;
     color: #44824A;
   }
 `;
@@ -73,7 +75,8 @@ const Pagination = styled.div`
   display: flex;
   justify-content: center;
   gap: 8px;
-  margin-top: 32px;
+  margin-top: 20px;
+  font-size: 11px;
 
   span {
     cursor: pointer;
@@ -84,10 +87,25 @@ const Pagination = styled.div`
   }
 `;
 
+const NoResult = styled.div`
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 50px 0;
+  color: #888;
+  font-size: 14px;
+`
+
 const mockReports = [
   { id: 1, reporter: '김서연', target: '변진호', content: '옥상으로 따라왕', date: '2025.11.10', status: 'waiting' },
   { id: 2, reporter: '최지우', target: '변진호', content: '지금 모여주세요', date: '2025.11.13', status: 'rejected' },
-  { id: 2, reporter: '최지우', target: '변진호', content: '내일 볼까요 말까요', date: '2025.11.13', status: 'complete' },
+  { id: 3, reporter: '최지우', target: '변진호', content: '내일 볼까요 말까요', date: '2025.11.13', status: 'completed' },
+  { id: 4, reporter: '김서연', target: '변진호', content: '옥상으로 따라왕', date: '2025.11.10', status: 'waiting' },
+  { id: 5, reporter: '최지우', target: '변진호', content: '지금 모여주세요', date: '2025.11.13', status: 'rejected' },
+  { id: 6, reporter: '최지우', target: '변진호', content: '내일 볼까요 말까요', date: '2025.11.13', status: 'completed' },
+  { id: 7, reporter: '김서연', target: '변진호', content: '옥상으로 따라왕', date: '2025.11.10', status: 'waiting' },
+  { id: 8, reporter: '최지우', target: '변진호', content: '지금 모여주세요', date: '2025.11.13', status: 'rejected' },
+  { id: 9, reporter: '최지우', target: '변진호', content: '내일 볼까요 말까요', date: '2025.11.13', status: 'completed' },
+  { id: 10, reporter: '최지우', target: '변진호', content: '내일 볼까요 말까요', date: '2025.11.13', status: 'completed' },
 ];
 
 
@@ -105,12 +123,43 @@ const AdminNoticePage = () => {
     setSelectedReport(null);
   };
 
+  const [searchInputValue, setSearchInputValue] = useState('');
+  const [confirmedSearchTerm, setConfirmedSearchTerm] = useState(''); 
+  const [filterStatus, setFilterStatus] = useState('all');
+
+  // 엔터 감지
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      setConfirmedSearchTerm(searchInputValue); 
+    }
+  };
+
+  const filteredNotice = useMemo(() => {
+    return mockReports.filter((notice) => {
+      // 상태 필터링
+      const statusMatch = filterStatus === 'all' || notice.status === filterStatus;
+
+      // 검색어 필터링 (모든 필드 검사)
+      // 데이터 객체의 값들(Values)만 뽑아서 배열로 만든 뒤, 하나라도 검색어를 포함하는지 확인
+      const searchMatch = Object.values(notice).some((val) => 
+        String(val).toLowerCase().includes(confirmedSearchTerm.toLowerCase())
+      );
+
+      return statusMatch && searchMatch; // 두 조건 모두 만족해야 함
+    });
+  }, [confirmedSearchTerm, filterStatus]);
+
   // 콘텐츠 렌더링
   return (
     <>
       <SearchBar>
-        <input type="text" placeholder="검색" />
-        <select>
+        <input type="text" placeholder="검색" 
+          value={searchInputValue}
+          onChange={(e) => setSearchInputValue(e.target.value)}
+          onKeyDown={handleKeyDown}/>
+        <select
+          value={filterStatus} 
+          onChange={(e) => setFilterStatus(e.target.value)}>
           <option value="all">전체</option>
           <option value="waiting">대기</option>
           <option value="rejected">반려</option>
@@ -130,20 +179,28 @@ const AdminNoticePage = () => {
           </tr>
         </thead>
         <tbody>
-          {mockReports.map((report) => (
-            <tr key={report.id}>
-              <td>{report.id}</td>
-              <td>{report.reporter}</td>
-              <td>{report.target}</td>
-              <td>{report.content}</td>
-              <td>{report.date}</td>
-              <td>
-                <StatusButton className={report.status} onClick={() => handleOpenModal(report)}>
-                  {report.status === 'waiting' ? '대기' : report.status === 'rejected' ? '반려' : '제재'}
+        {filteredNotice.length > 0 ? (
+            filteredNotice.map((notice) => (
+              <tr key={notice.id}>
+                <td>{notice.id}</td>
+                <td>{notice.reporter}</td>
+                <td>{notice.target}</td>
+                <td>{notice.content}</td>
+                <td>{notice.date}</td>
+                <td>
+                <StatusButton className={notice.status} onClick={() => handleOpenModal(notice)}>
+                  {notice.status === 'waiting' ? '대기' : notice.status === 'rejected' ? '반려' : '제재'}
                 </StatusButton>
               </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="7">
+                <NoResult>검색 결과가 없습니다.</NoResult>
+              </td>
             </tr>
-          ))}
+          )}
         </tbody>
       </Table>
 
