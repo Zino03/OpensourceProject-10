@@ -1,10 +1,14 @@
 package com.example.saja_saja.controller;
 
 import com.example.saja_saja.config.SecurityUtil;
+import com.example.saja_saja.dto.post.ReviewRequestDto;
 import com.example.saja_saja.dto.user.UserAddressRequestDto;
 import com.example.saja_saja.dto.user.UserRequestDto;
 import com.example.saja_saja.entity.member.Member;
+import com.example.saja_saja.entity.post.BuyerRepository;
+import com.example.saja_saja.entity.user.User;
 import com.example.saja_saja.service.BuyerService;
+import com.example.saja_saja.service.ReviewService;
 import com.example.saja_saja.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +30,8 @@ import java.util.Map;
 public class UserController {
     private final UserService userService;
     private final BuyerService buyerService;
+    private final BuyerRepository buyerRepository;
+    private final ReviewService reviewService;
 
 
     @GetMapping("/user/{nickname}")
@@ -91,10 +97,38 @@ public class UserController {
         return buyerService.orderList(member, status, pageable);
     }
 
-    // TODO: 주문 취소 (단순 변심)
-    // TODO: 구매확정
+    // 주문 취소 (단순 변심)
+    @PutMapping("/mypage/order/{buyerId}/cancel")
+    public ResponseEntity cancelOrder(@PathVariable Long buyerId) {
+        User user = userService.getMember(SecurityUtil.getCurrentUserId()).getUser();
+        Long postId = buyerRepository.findById(buyerId).get().getPost().getId();
+        return buyerService.cancel(user, postId, 0);
+    }
+
+    // 구매확정
+    @PutMapping("/mypage/order/{buyerId}/confirm")
+    public ResponseEntity confirmOrder(@PathVariable Long buyerId) {
+        Member member = userService.getMember(SecurityUtil.getCurrentUserId());
+        return buyerService.confirmOrder(member, buyerId);
+    }
+
     // TODO: 후기 작성
+    @PostMapping("/mypage/order/{buyerId}/review")
+    public ResponseEntity review(
+            @PathVariable Long buyerId,
+            @RequestBody ReviewRequestDto req
+    ) {
+        Member member = userService.getMember(SecurityUtil.getCurrentUserId());
+        Long postId = buyerRepository.findById(buyerId).get().getPost().getId();
+        return reviewService.save(member, postId, req);
+    }
 
     // TODO: 주문 상세
+    @GetMapping("mypage/order/{buyerId}")
+    public ResponseEntity getOrder(@PathVariable Long buyerId) {
+        Member member = userService.getMember(SecurityUtil.getCurrentUserId());
+        return buyerService.order(member, buyerId);
+    }
+
     // TODO: 주최 공구 조회
 }
