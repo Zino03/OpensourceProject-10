@@ -1,6 +1,28 @@
 // 파일 위치: src/pages/MyProfile.jsx
 import React, { useState } from "react";
 
+// 🔥 은행 리스트 (파일은 public/images/banklogo/*.svg 기준)
+const bankOptions = [
+  { id: "shinhan", name: "신한", logo: "/images/banklogo/shinhan.svg" },
+  { id: "kb", name: "국민", logo: "/images/banklogo/kb.svg" },
+  { id: "nh", name: "농협", logo: "/images/banklogo/nh.svg" },
+  { id: "suhyup", name: "수협", logo: "/images/banklogo/suhyup.svg" },
+  { id: "woori", name: "우리", logo: "/images/banklogo/woori.svg" },
+  { id: "citibank", name: "한국씨티", logo: "/images/banklogo/citibank.svg" },
+  { id: "kbank", name: "케이뱅크", logo: "/images/banklogo/kbank.svg" },
+  { id: "kdbsanup", name: "산업", logo: "/images/banklogo/kdbsanup.svg" },
+  { id: "ibk", name: "기업", logo: "/images/banklogo/ibk.svg" },
+  { id: "mg", name: "새마을", logo: "/images/banklogo/mg.svg" },
+  { id: "shinhyup", name: "신협", logo: "/images/banklogo/shinhyup.svg" },
+  { id: "gwangju", name: "광주", logo: "/images/banklogo/gwangju.svg" },
+  { id: "busan", name: "부산", logo: "/images/banklogo/busan.svg" },
+  { id: "post", name: "우체국", logo: "/images/banklogo/post.svg" },
+  { id: "kakao", name: "카카오뱅크", logo: "/images/banklogo/kakao.svg" },
+  { id: "toss", name: "토스뱅크", logo: "/images/banklogo/toss.svg" },
+  { id: "sbi", name: "SBI저축", logo: "/images/banklogo/sbi.svg" },
+  { id: "imbank", name: "전북/제주", logo: "/images/banklogo/imbank.svg" },
+];
+
 const styles = {
   pageWrapper: {
     maxWidth: "1200px",
@@ -9,18 +31,18 @@ const styles = {
     color: "#000000ff",
   },
   title: {
-    fontSize: "22px",
+    fontSize: "18px",
     fontWeight: "800",
     marginBottom: "15px",
     paddingLeft: "79px",
   },
-  card: { //전체 박스 스타일 수정
-  width: "900px",
-  margin: "0 auto",
-  backgroundColor: "#fff",
-  borderRadius: "20px",
-  padding: "48px 72px 56px",
-  border: "1px solid #eee",
+  card: {
+    width: "900px",
+    margin: "0 auto",
+    backgroundColor: "#fff",
+    borderRadius: "20px",
+    padding: "48px 72px 56px",
+    border: "1px solid #eee",
   },
   profileRow: {
     display: "flex",
@@ -32,33 +54,29 @@ const styles = {
     width: "135px",
     height: "135px",
     borderRadius: "50%",
-    backgroundColor: "#ffffffff",
+    backgroundColor: "#ffffff",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    position: "relative",
     overflow: "hidden",
+    position: "relative", // 🔥 프로필 수정 아이콘 포지셔닝 위해 추가
   },
   profileImg: {
     width: "100%",
     height: "100%",
     objectFit: "cover",
   },
-  profileEditIcon: {
-    position: "absolute",
-    right: "4px",
-    bottom: "4px",
-    width: "26px",
-    height: "26px",
-    borderRadius: "50%",
-    backgroundColor: "#ffffff",
-    border: "1px solid #ddd",
-    fontSize: "13px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    cursor: "pointer",
-  },
+  profileEditButton: {
+  marginLeft: "-30px",   // 원 오른쪽으로 이동
+  marginBottom: "-110px",  // 밑으로 살짝 내리기 (조절 가능)
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  border: "none",
+  background: "transparent",
+  cursor: "pointer",
+},
+
   form: {
     display: "flex",
     flexDirection: "column",
@@ -73,75 +91,56 @@ const styles = {
     fontSize: "13px",
     fontWeight: "600",
   },
- inputRow: {
-  display: "flex",
-  gap: "8px",
-  alignItems: "center",
-  width: "100%",
-  position: "relative",
-},
 
-input: {
-  width: "100%",
-  height: "39px",
-  borderRadius: "6px",
-  border: "1.5px solid #e3e3e3",
-  padding: "0 16px",
-  fontSize: "12px",
-  outline: "none",
-  fontweight: "600",
-  boxSizing: "border-box",
-},
+  inputRow: {
+    display: "flex",
+    gap: "8px",
+    alignItems: "center",
+    width: "100%",
+    position: "relative",
+  },
 
-smallButton: {
-  position: "absolute",
-  top: 5,
-  bottom: 5,
-  right:5,
-  flexShrink: 0,
-  height: "25px",
-  padding: "0 10px",
-  minWidth: "100px",
-  borderRadius: "10px",
-  border: "1px solid #ffffffff",
-  fontSize: "11px",
-  color: "#ffffffff", 
-  fontWeight: "500",
-  backgroundColor: "#bfbfbf",
-  cursor: "pointer",
-  whiteSpace: "nowrap",
-},
+  input: {
+    width: "100%",
+    height: "39px",
+    borderRadius: "6px",
+    border: "1.5px solid #e3e3e3",
+    padding: "0 16px",
+    fontSize: "12px",
+    outline: "none",
+    fontWeight: "600",
+    boxSizing: "border-box",
+  },
+
+  disabledInput: {
+    backgroundColor: "#f5f5f5",
+    borderColor: "#e0e0e0",
+    color: "#999999",
+    cursor: "not-allowed",
+  },
+
+  smallButton: {
+    position: "absolute",
+    top: 5,
+    bottom: 5,
+    right: 5,
+    flexShrink: 0,
+    height: "25px",
+    padding: "0 10px",
+    minWidth: "70px",
+    borderRadius: "10px",
+    border: "1px solid #ffffff",
+    fontSize: "11px",
+    color: "#ffffff",
+    fontWeight: "500",
+    backgroundColor: "#bfbfbf",
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+  },
+
   smallHelper: {
     fontSize: "12px",
     color: "#D32F2F",
-  },
-  grayHelper: {
-    fontSize: "12px",
-    color: "#999",
-  },
-  
-
-  accountBox: {
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-  },
-
-  bankBadge: {
-    width: "50px",
-    display: "inline-flex",
-    alignItems: "center",
-    gap: "4px",
-    padding: "6px 10px",
-    borderRadius: "999px",
-    backgroundColor: "#f5f6fa", 
-    fontSize: "12px",
-  },
-  bankLogoCircle: {
-    width: "18px",
-    height: "18px",
-    borderRadius: "50%",
-    backgroundColor: "#0052a4",
   },
 
   footerButtons: {
@@ -169,30 +168,91 @@ smallButton: {
     fontWeight: "500",
     cursor: "pointer",
   },
+
+  // 은행 드롭다운 관련
+  bankSelectBox: {
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+    cursor: "pointer",
+    padding: 0,
+    backgroundColor: "transparent",
+    border: "none",
+    height: "24px",
+  },
+  bankLogo: {
+    width: "24px",
+    height: "24px",
+    borderRadius: "50%",
+    objectFit: "cover",
+  },
+  bankName: {
+    fontSize: "12px",
+    fontWeight: "600",
+  },
+  bankDropdown: {
+    position: "absolute",
+    top: "44px",
+    left: "12px",
+    width: "220px",
+    maxHeight: "260px",
+    overflowY: "auto",
+    borderRadius: "12px",
+    border: "1px solid #ddd",
+    backgroundColor: "#fff",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
+    zIndex: 10,
+  },
+  bankDropdownItem: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    padding: "8px 12px",
+    fontSize: "12px",
+    cursor: "pointer",
+  },
 };
 
 function MyProfile() {
   const [form, setForm] = useState({
-    name: "신형근",
-    nickname: "",
-    phone: "",
-    email: "",
-    password: "",
-    passwordConfirm: "",
-    accountNumber: "",
-    depositor: "",
+    name: "최지우",
+    nickname: "간장게장",
+    phone: "01012345678",
+    email: "example@example.com",
+    password: "********",
+    passwordConfirm: "********",
+    bank: "shinhan",
+    accountNumber: "110-123-123456",
   });
 
   const [profileImage, setProfileImage] = useState(null);
 
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordMatchMessage, setPasswordMatchMessage] = useState("");
+  const [bankOpen, setBankOpen] = useState(false);
+
+  const [nicknameMessage, setNicknameMessage] = useState("");
+  const [isNicknameValid, setIsNicknameValid] = useState(null); // true / false / null
+
+  const selectedBank =
+    bankOptions.find((b) => b.id === form.bank) || bankOptions[0];
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+
+    if (name === "nickname") {
+      setNicknameMessage("");
+      setIsNicknameValid(null);
+    }
   };
 
+  // 🔥 프로필 이미지 변경
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files && e.target.files[0];
     if (!file) return;
+
     const reader = new FileReader();
     reader.onloadend = () => {
       setProfileImage(reader.result);
@@ -200,8 +260,73 @@ function MyProfile() {
     reader.readAsDataURL(file);
   };
 
+  // 닉네임 중복확인
+  const handleNicknameCheck = () => {
+    const nickname = (form.nickname || "").trim();
+
+    if (!nickname) {
+      setNicknameMessage("닉네임을 입력해주세요.");
+      setIsNicknameValid(false);
+      return;
+    }
+
+    const usedNicknames = ["간장게장", "사자사자"];
+
+    if (usedNicknames.includes(nickname)) {
+      setNicknameMessage("이미 사용중인 닉네임입니다.");
+      setIsNicknameValid(false);
+    } else {
+      setNicknameMessage("사용가능한 닉네임입니다.");
+      setIsNicknameValid(true);
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    let hasError = false;
+
+    // 닉네임 중복확인 안했거나 사용 불가
+    if (isNicknameValid !== true) {
+      if (!nicknameMessage) {
+        setNicknameMessage("닉네임 중복확인을 해주세요.");
+      }
+      hasError = true;
+    }
+
+    // 이메일 검사
+    const email = (form.email || "").trim();
+    const hasAt = email.includes("@");
+    const allowedDomains = [".com", ".net", ".co.kr"];
+    const hasValidDomain = allowedDomains.some((domain) =>
+      email.endsWith(domain)
+    );
+
+    if (!hasAt || !hasValidDomain) {
+      setEmailError("이메일 형식이 올바르지 않습니다.");
+      hasError = true;
+    } else {
+      setEmailError("");
+    }
+
+    // 비밀번호 길이
+    if (!form.password || form.password.length < 8) {
+      setPasswordError("비밀번호는 최소 8자 이상이어야 합니다.");
+      hasError = true;
+    } else {
+      setPasswordError("");
+    }
+
+    // 비밀번호 일치
+    if (form.password !== form.passwordConfirm) {
+      setPasswordMatchMessage("비밀번호가 일치하지 않습니다.");
+      hasError = true;
+    } else {
+      setPasswordMatchMessage("비밀번호가 일치합니다.");
+    }
+
+    if (hasError) return;
+
     alert("정보가 저장되었습니다.");
   };
 
@@ -218,61 +343,76 @@ function MyProfile() {
       <div style={styles.card}>
         {/* 프로필 */}
         <div style={styles.profileRow}>
-          <div style={styles.profileImgWrapper}>
+  <div style={styles.profileImgWrapper}>
+    <img src={profileImage || defaultProfile} style={styles.profileImg} />
+  </div>
+
+          {/* 👍 반드시 profileRow 내부에 둬야 함 */}
+          <label style={styles.profileEditButton}>
             <img
-              src={profileImage || defaultProfile}
-              alt="프로필"
-              style={styles.profileImg}
+              src="/images/profileedit.svg"
+              alt="edit"
+              style={{ width: "21px", height: "21px" }}
             />
-          </div>
+            <input type="file" accept="image/*" onChange={handleImageChange} style={{ display: "none" }} />
+          </label>
         </div>
+
 
         {/* 폼 */}
         <form style={styles.form} onSubmit={handleSubmit}>
-
-          {/* 이름 */}
+          {/* 이름 (변경 불가) */}
           <div style={styles.field}>
             <label style={styles.label}>이름</label>
             <input
               name="name"
-              style={styles.input}
+              style={{ ...styles.input, ...styles.disabledInput }}
               value={form.name}
-              onChange={handleChange}
+              readOnly
             />
             <span style={styles.smallHelper}>변경 불가한 항목입니다.</span>
           </div>
 
           {/* 닉네임 */}
-        <div style={styles.field}>
-          <label style={styles.label}>닉네임</label>
+          <div style={styles.field}>
+            <label style={styles.label}>닉네임</label>
+            <div style={styles.inputRow}>
+              <input
+                name="nickname"
+                value={form.nickname}
+                onChange={handleChange}
+                style={styles.input}
+                placeholder="간편하게 작성하세요"
+              />
+              <button
+                type="button"
+                style={styles.smallButton}
+                onClick={handleNicknameCheck}
+              >
+                중복확인
+              </button>
+            </div>
 
-          <div style={styles.inputRow}>
-            <input
-              name="nickname"
-              value={form.nickname}
-              onChange={handleChange}
-              style={styles.input}
-              placeholder="간편하게 작성하세요"
-            />
-
-            <button
-              type="button"
-              style={styles.smallButton}
-            >
-              중복확인
-            </button>
+            {nicknameMessage && (
+              <span
+                style={{
+                  fontSize: "12px",
+                  color: isNicknameValid === true ? "#2E7D32" : "#D32F2F",
+                }}
+              >
+                {nicknameMessage}
+              </span>
+            )}
           </div>
-        </div>
 
-
-          {/* 전화번호 */}
+          {/* 전화번호 (변경 불가) */}
           <div style={styles.field}>
             <label style={styles.label}>전화번호</label>
             <input
               name="phone"
-              style={styles.input}
+              style={{ ...styles.input, ...styles.disabledInput }}
               value={form.phone}
-              onChange={handleChange}
+              readOnly
               placeholder="예) 01012345678"
             />
             <span style={styles.smallHelper}>변경 불가한 항목입니다.</span>
@@ -285,8 +425,18 @@ function MyProfile() {
               name="email"
               style={styles.input}
               value={form.email}
-              onChange={handleChange}
+              onChange={(e) => {
+                setEmailError("");
+                handleChange(e);
+              }}
+              placeholder="ID@example.com"
             />
+
+            {emailError && (
+              <span style={{ fontSize: "12px", color: "#D32F2F" }}>
+                {emailError}
+              </span>
+            )}
           </div>
 
           {/* 비밀번호 */}
@@ -297,8 +447,32 @@ function MyProfile() {
               name="password"
               style={styles.input}
               value={form.password}
-              onChange={handleChange}
+              onChange={(e) => {
+                handleChange(e);
+                const value = e.target.value;
+                if (!value || value.length < 8) {
+                  setPasswordError("비밀번호는 최소 8자 이상이어야 합니다.");
+                } else {
+                  setPasswordError("");
+                }
+
+                if (form.passwordConfirm !== "") {
+                  if (value === form.passwordConfirm && value.length >= 8) {
+                    setPasswordMatchMessage("비밀번호가 일치합니다.");
+                  } else {
+                    setPasswordMatchMessage(
+                      "비밀번호가 일치하지 않습니다."
+                    );
+                  }
+                }
+              }}
             />
+
+            {passwordError && (
+              <span style={{ fontSize: "12px", color: "#D32F2F" }}>
+                {passwordError}
+              </span>
+            )}
           </div>
 
           {/* 비밀번호 확인 */}
@@ -309,36 +483,139 @@ function MyProfile() {
               name="passwordConfirm"
               style={styles.input}
               value={form.passwordConfirm}
-              onChange={handleChange}
+              onChange={(e) => {
+                handleChange(e);
+                const value = e.target.value;
+
+                if (value === form.password && value.length >= 8) {
+                  setPasswordMatchMessage("비밀번호가 일치합니다.");
+                } else {
+                  setPasswordMatchMessage("비밀번호가 일치하지 않습니다.");
+                }
+              }}
             />
+
+            {passwordMatchMessage && (
+              <span
+                style={{
+                  fontSize: "12px",
+                  color:
+                    passwordMatchMessage === "비밀번호가 일치합니다."
+                      ? "#2E7D32"
+                      : "#D32F2F",
+                }}
+              >
+                {passwordMatchMessage}
+              </span>
+            )}
           </div>
 
           {/* 계좌 */}
           <div style={styles.field}>
             <label style={styles.label}>계좌</label>
-            <div style={styles.accountBox}>
-              <div style={styles.bankBadge}>
-                <span style={styles.bankLogoCircle} />
-                <span>신한</span>
-              </div>
-              <input
-                name="accountNumber"
-                style={styles.input}
-                value={form.accountNumber}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
 
-          {/* 예금주 */}
-          <div style={styles.field}>
-            <label style={styles.label}>예금주</label>
-            <input
-              name="depositor"
-              style={styles.input}
-              value={form.depositor}
-              onChange={handleChange}
-            />
+            <div style={{ display: "flex", gap: "8px", width: "100%" }}>
+              {/* 왼쪽: 계좌주 이름 (변경 불가) */}
+              <div
+                style={{
+                  padding: "0 16px",
+                  minWidth: "90px",
+                  height: "39px",
+                  borderRadius: "6px",
+                  border: "1.5px solid #e3e3e3",
+                  backgroundColor: "#f5f5f5",
+                  fontSize: "12px",
+                  fontWeight: "600",
+                  color: "#555",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  whiteSpace: "nowrap",
+                  boxSizing: "border-box",
+                }}
+              >
+                {form.name}
+              </div>
+
+              {/* 오른쪽: 은행 선택 + 계좌번호 */}
+              <div
+                style={{
+                  flex: 1,
+                  height: "39px",
+                  borderRadius: "6px",
+                  border: "1.5px solid #e3e3e3",
+                  padding: "0 12px",
+                  boxSizing: "border-box",
+                  backgroundColor: "#ffffff",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  position: "relative",
+                }}
+              >
+                {/* 은행 선택 */}
+                <div
+                  style={styles.bankSelectBox}
+                  onClick={() => setBankOpen((prev) => !prev)}
+                >
+                  <img
+                    src={selectedBank.logo}
+                    alt={selectedBank.name}
+                    style={styles.bankLogo}
+                  />
+                  <span style={styles.bankName}>{selectedBank.name}</span>
+                  <img
+                    src="/images/undertriangle.svg"
+                    alt="arrow"
+                    style={{ width: "7px", height: "7px", marginLeft: "3px" }}
+                  />
+                </div>
+
+                {/* 계좌번호 입력 */}
+                <input
+                  name="accountNumber"
+                  value={form.accountNumber}
+                  onChange={handleChange}
+                  style={{
+                    flex: 1,
+                    border: "none",
+                    outline: "none",
+                    backgroundColor: "transparent",
+                    color: "#444",
+                    fontSize: "12px",
+                    boxSizing: "border-box",
+                  }}
+                  placeholder="예) 110-123-123456"
+                />
+
+                {/* 드롭다운 리스트 */}
+                {bankOpen && (
+                  <div style={styles.bankDropdown}>
+                    {bankOptions.map((bank) => (
+                      <div
+                        key={bank.id}
+                        style={styles.bankDropdownItem}
+                        onClick={() => {
+                          setForm((prev) => ({ ...prev, bank: bank.id }));
+                          setBankOpen(false);
+                        }}
+                      >
+                        <img
+                          src={bank.logo}
+                          alt={bank.name}
+                          style={styles.bankLogo}
+                        />
+                        <span style={styles.bankName}>{bank.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <span style={styles.smallHelper}>
+              본인 명의의 계좌만 사용할 수 있습니다.
+            </span>
           </div>
 
           {/* 버튼 */}

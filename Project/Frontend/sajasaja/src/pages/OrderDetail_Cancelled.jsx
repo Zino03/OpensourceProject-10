@@ -3,7 +3,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 
 /* ============================================
-    🔥 SVG 화살표 아이콘 (색 변경 가능)
+    🔥 SVG 화살표 아이콘
 =============================================== */
 const ArrowIcon = ({ color = "#b0b0b0" }) => (
   <svg
@@ -30,7 +30,6 @@ const styles = {
     color: "#222",
   },
 
-  // 숫자랑 화살표 사이 갭
   orderSteps: {
     display: "flex",
     alignItems: "flex-start",
@@ -44,7 +43,6 @@ const styles = {
     cursor: "pointer",
   },
 
-  /* 비활성 숫자 */
   stepNumber: {
     fontSize: "60px",
     fontWeight: 401,
@@ -53,7 +51,6 @@ const styles = {
     fontFamily: "Pretendard",
   },
 
-  /* 활성 숫자 */
   stepNumberActive: {
     fontSize: "60px",
     fontWeight: 401,
@@ -68,7 +65,6 @@ const styles = {
     color: "#555",
   },
 
-  /* 표 영역 */
   orderListWrapper: {
     marginTop: "20px",
   },
@@ -99,7 +95,6 @@ const styles = {
     borderBottom: "1px solid #000",
   },
 
-  // 표 헤더 내용 스타일
   th: {
     padding: "20px 8px",
     textAlign: "center",
@@ -108,7 +103,6 @@ const styles = {
     fontSize: "13.5px",
   },
 
-  // 표 바디 내용 스타일
   td: {
     padding: "10px 8px",
     textAlign: "center",
@@ -130,43 +124,12 @@ const styles = {
     overflow: "hidden",
     textOverflow: "ellipsis",
   },
-
-  orderActions: {
-    display: "flex",
-    gap: "8px",
-    justifyContent: "center",
-  },
-
-  // (지금은 주문취소 버튼 안 쓰지만 스타일은 남겨둠)
-  btnOutline: {
-    minWidth: "90px",
-    padding: "4px 14px",
-    fontSize: "11px",
-    borderRadius: "6px",
-    cursor: "pointer",
-    border: "1px solid #000",
-    backgroundColor: "#fff",
-    color: "#444",
-    margin: "0 -8px 0 -4px",
-  },
-
-  btnFilled: {
-    minWidth: "90px",
-    padding: "4px 14px",
-    fontSize: "11px",
-    borderRadius: "6px",
-    cursor: "pointer",
-    border: "1px solid #FF7E00",
-    backgroundColor: "#FF7E00",
-    color: "#fff",
-    margin: "0 -4px 0 -8px",
-  },
 };
 
 /* ============================================
-    🔥 화살표 색상 배열 (1→2, 2→3, 3→4, 4→5, 5→6)
+    🔥 화살표 색상 배열
 =============================================== */
-const arrowColors = ["#828282", "#828282", "#000000ff", "#828282", "#ffffffff"];
+const arrowColors = ["#828282", "#828282", "#828282", "#828282", "#ffffffff"];
 
 /* 단계별 주문 개수 */
 const orderCounts = {
@@ -178,7 +141,9 @@ const orderCounts = {
   cancelled: 4,
 };
 
-/* 현재 활성 단계 = 상품 준비 중 */
+/* ============================================
+    🔥 상단 단계
+=============================================== */
 const steps = [
   { id: 1, label: "주문 접수", value: orderCounts.received, path: "/order-detail" },
   { id: 2, label: "결제 완료", value: orderCounts.payment, path: "/received" },
@@ -188,19 +153,19 @@ const steps = [
   { id: 6, label: "주문 취소", value: orderCounts.cancelled, active: true, path: "/cancelled" },
 ];
 
-/* 주문 리스트
-   expectedDate = 수령예정일
-   '-' 인 경우: 수령장소 수령이 아니거나, 아직 예정일이 정해지지 않은 케이스
-*/
+/* ============================================
+    🔥 ✨ 주문 리스트 (내용만 수정됨)
+=============================================== */
 const orders = [
   {
     id: 1,
     name: "애니 피오르크 미니 프레첼 스낵 150g",
     host: "사자사자",
     quantity: 1,
-    date: "2025-11-10",       // 주문일
-    total: "7,000 원",        // 주문금액
-    expectedDate: "2025-11-12", // 수령예정일
+    date: "2025-11-10",
+    total: "7,000 원",
+    expectedDate: "2025-11-12",
+    reason: "단순변심",
   },
   {
     id: 2,
@@ -210,6 +175,7 @@ const orders = [
     date: "2025-05-20",
     total: "12,400 원",
     expectedDate: "2025-05-23",
+    reason: "공구취소",
   },
   {
     id: 3,
@@ -218,7 +184,8 @@ const orders = [
     quantity: 2,
     date: "2025-01-13",
     total: "23,600 원",
-    expectedDate: "-",        // 수령예정일 없음 (예: 택배 배송만 있는 경우 등)
+    expectedDate: "2025-01-13",
+    reason: "결제 미완료",
   },
   {
     id: 4,
@@ -228,22 +195,20 @@ const orders = [
     date: "2025-01-07",
     total: "5,200 원",
     expectedDate: "2025-01-10",
+    reason: "단순변심",
   },
 ];
 
-/* ============================================
-    🔥 메인 컴포넌트
-=============================================== */
 function OrderDetail_PaymentCompleted() {
   const navigate = useNavigate();
 
   return (
     <div style={styles.orderPage}>
-      {/* 🔥 상단 주문 단계 + SVG 화살표 */}
+      {/* 상단 단계 */}
       <div style={styles.orderSteps}>
         {steps.map((step, index) => (
           <React.Fragment key={step.id}>
-           <div
+            <div
               style={styles.orderStep}
               onClick={() => step.path && navigate(step.path)}
             >
@@ -257,7 +222,6 @@ function OrderDetail_PaymentCompleted() {
               <div style={styles.stepLabel}>{step.label}</div>
             </div>
 
-            {/* 마지막 단계 전까지 화살표 출력 */}
             {index < steps.length - 1 && (
               <ArrowIcon color={arrowColors[index]} />
             )}
@@ -265,9 +229,7 @@ function OrderDetail_PaymentCompleted() {
         ))}
       </div>
 
-      {/* ============================
-          주문 내역 테이블
-      ============================ */}
+      {/* 주문 내역 테이블 */}
       <div style={styles.orderListWrapper}>
         <div style={styles.orderListHeader}>
           <h2 style={styles.orderListTitle}>주문 내역</h2>
@@ -280,53 +242,46 @@ function OrderDetail_PaymentCompleted() {
               <th style={styles.th}>주최자정보</th>
               <th style={styles.th}>수량</th>
               <th style={styles.th}>주문일</th>
-              <th style={styles.th}>결제금액</th>
-              <th style={styles.th}>수령예정일</th>
-              <th style={styles.th}>문의하기</th>
+              <th style={styles.th}>취소일</th>
+              <th style={styles.th}>취소사유</th>
             </tr>
           </thead>
 
           <tbody>
-            {orders.map((order, idx) => (
-              <tr
-                key={order.id}
-                style={
-                  idx === orders.length - 1
-                    ? styles.lastBodyRow
-                    : styles.bodyRow
-                }
-              >
-                {/* 상품명: 클릭 시 상품 상세로 이동 */}
-                <td
-                  style={{
-                    ...styles.td,
-                    ...styles.productName,
-                    cursor: "pointer",
-                  }}
-                  onClick={() => navigate(`/products/${order.id}`)}
-                >
-                  {order.name}
-                </td>
+  {orders.map((order, idx) => (
+    <tr
+      key={order.id}
+      style={
+        idx === orders.length - 1
+          ? styles.lastBodyRow
+          : styles.bodyRow
+      }
+    >
+      <td
+        style={{
+          ...styles.td,
+          ...styles.productName,
+          cursor: "pointer",
+        }}
+        onClick={() => navigate(`/products/${order.id}`)}
+      >
+        {order.name}
+      </td>
 
-                <td style={{ ...styles.td, minWidth: "100px" }}>
-                  {order.host}
-                </td>
-                <td style={styles.td}>{order.quantity}</td>
-                <td style={styles.td}>{order.date}</td>
-                <td style={styles.td}>{order.total}</td>
+      <td style={styles.td}>{order.host}</td>
+      <td style={styles.td}>{order.quantity}</td>
+      <td style={styles.td}>{order.date}</td>
+      <td style={styles.td}>{order.expectedDate}</td>
+      <td style={styles.td}>{order.reason}</td>
 
-                {/* 🔥 주문취소 자리 → 수령예정일 표시 */}
-                <td style={styles.td}>{order.expectedDate}</td>
+      {/* 🔥 버튼 삭제 BUT 표 높이 유지용 placeholder 추가 */}
+      <td style={styles.td}>
+        <div style={{ height: "28px" }}></div>
+      </td>
+    </tr>
+  ))}
+</tbody>
 
-                {/* 문의하기 버튼 */}
-                <td style={styles.td}>
-                  <button type="button" style={styles.btnFilled}>
-                    문의하기
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
         </table>
       </div>
     </div>
