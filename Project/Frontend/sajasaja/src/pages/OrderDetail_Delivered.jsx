@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ConfirmationPurchase from "./modal/ConfirmationPurchase";
-
+import ReviewModal from "./modal/ReviewModal"; // ✅ 후기 모달
 
 /* ============================================
     🔥 SVG 화살표 아이콘 (색 변경 가능)
@@ -32,7 +32,6 @@ const styles = {
     color: "#222",
   },
 
-  // 숫자랑 화살표 사이 갭
   orderSteps: {
     display: "flex",
     alignItems: "flex-start",
@@ -133,7 +132,6 @@ const styles = {
     gap: "8px",
   },
 
-  /* 🔥 구매확정 버튼 (확정 전 – 기본형) */
   btnConfirmDefault: {
     minWidth: "90px",
     padding: "4px 14px",
@@ -145,7 +143,6 @@ const styles = {
     color: "#000",
   },
 
-  /* 🔥 구매확정 완료된 버튼 (회색 처리) */
   btnConfirmDone: {
     minWidth: "90px",
     padding: "4px 14px",
@@ -157,7 +154,6 @@ const styles = {
     color: "#000",
   },
 
-  /* 후기 버튼 */
   btnFilled: {
     minWidth: "90px",
     padding: "4px 14px",
@@ -175,7 +171,6 @@ const styles = {
 =============================================== */
 const arrowColors = ["#828282", "#828282", "#828282", "#828282", "#ffffffff"];
 
-/* 단계별 주문 개수 */
 const orderCounts = {
   received: 4,
   payment: 4,
@@ -185,7 +180,6 @@ const orderCounts = {
   cancelled: 4,
 };
 
-/* 현재 활성 단계 = 배송 완료 */
 const steps = [
   { id: 1, label: "주문 접수", value: orderCounts.received, path: "/order-detail" },
   { id: 2, label: "결제 완료", value: orderCounts.payment, path: "/received" },
@@ -203,8 +197,9 @@ const initialOrders = [
     host: "사자사자",
     quantity: 1,
     date: "2025-11-12",
-    total: "7,000 원",
+    total: "1,890 원",
     confirmed: false,
+    imageUrl: "/images/products/pretzel.png", // 없어도 동작, 예시
   },
   {
     id: 2,
@@ -235,21 +230,19 @@ const initialOrders = [
   },
 ];
 
-/* ============================================
-    🔥 메인 컴포넌트
-=============================================== */
 function OrderDetail_Delivered() {
   const navigate = useNavigate();
 
-  // 주문 리스트 상태
   const [orders, setOrders] = useState(initialOrders);
 
-  // 모달 on/off
+  // 구매확정 모달
   const [showModal, setShowModal] = useState(false);
-  // 어느 주문을 구매확정하려는지
   const [selectedOrderId, setSelectedOrderId] = useState(null);
 
-  // 모달에서 "구매 확정" 눌렀을 때
+  // 후기 모달
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewOrderId, setReviewOrderId] = useState(null);
+
   const handleConfirmPurchase = () => {
     setOrders((prev) =>
       prev.map((o) =>
@@ -260,11 +253,31 @@ function OrderDetail_Delivered() {
     setSelectedOrderId(null);
   };
 
-  // 모달 닫기
   const handleCancelModal = () => {
     setShowModal(false);
     setSelectedOrderId(null);
   };
+
+  // 후기 모달 열기
+  const handleOpenReviewModal = (orderId) => {
+    setReviewOrderId(orderId);
+    setShowReviewModal(true);
+  };
+
+  // 후기 모달 닫기
+  const handleCloseReviewModal = () => {
+    setShowReviewModal(false);
+    setReviewOrderId(null);
+  };
+
+  // 후기 등록 콜백
+  const handleSubmitReview = (orderId, rating, reviewText) => {
+    console.log("리뷰 등록:", { orderId, rating, reviewText });
+    setShowReviewModal(false);
+    setReviewOrderId(null);
+  };
+
+  const reviewOrder = orders.find((o) => o.id === reviewOrderId) || null;
 
   return (
     <div style={styles.orderPage}>
@@ -340,7 +353,7 @@ function OrderDetail_Delivered() {
                 <td style={styles.td}>{order.date}</td>
                 <td style={styles.td}>{order.total}</td>
 
-                {/* 🔥 구매확정 버튼 */}
+                {/* 구매확정 버튼 */}
                 <td style={styles.td}>
                   <button
                     type="button"
@@ -350,7 +363,6 @@ function OrderDetail_Delivered() {
                         : styles.btnConfirmDefault
                     }
                     onClick={() => {
-                      // 이미 확정된 주문은 클릭해도 아무 동작 X
                       if (order.confirmed) return;
                       setSelectedOrderId(order.id);
                       setShowModal(true);
@@ -360,8 +372,13 @@ function OrderDetail_Delivered() {
                   </button>
                 </td>
 
+                {/* 후기 작성 버튼 */}
                 <td style={styles.td}>
-                  <button type="button" style={styles.btnFilled}>
+                  <button
+                    type="button"
+                    style={styles.btnFilled}
+                    onClick={() => handleOpenReviewModal(order.id)}
+                  >
                     후기 작성
                   </button>
                 </td>
@@ -371,11 +388,24 @@ function OrderDetail_Delivered() {
         </table>
       </div>
 
-      {/* 🔥 구매확정 모달 */}
+      {/* 구매확정 모달 */}
       {showModal && (
         <ConfirmationPurchase
           onCancel={handleCancelModal}
           onConfirm={handleConfirmPurchase}
+        />
+      )}
+
+      {/* 후기 작성 모달 */}
+      {showReviewModal && reviewOrder && (
+        <ReviewModal
+          orderId={reviewOrder.id}
+          productName={reviewOrder.name}
+          host={reviewOrder.host}
+          price={reviewOrder.total}
+          imageUrl={reviewOrder.imageUrl}
+          onClose={handleCloseReviewModal}
+          onSubmit={handleSubmitReview}
         />
       )}
     </div>
