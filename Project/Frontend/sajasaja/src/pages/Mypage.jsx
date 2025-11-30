@@ -191,7 +191,7 @@ const MyPage = () => {
 
   <div
     style={styles.menuItem}
-    onClick={() => handleClick("/myaddress")}
+    onClick={() => handleClick("/mydelivery")}
   >
     <span>배송지 관리</span>
     <ChevronRight />
