@@ -245,7 +245,7 @@ function OrderDetail_PaymentCompleted() {
               <th style={styles.th}>주최자정보</th>
               <th style={styles.th}>수량</th>
               <th style={styles.th}>주문일</th>
-              <th style={styles.th}>주문금액</th>
+              <th style={styles.th}>결제금액</th>
               <th style={styles.th}>배송정보</th>
               <th style={styles.th}>문의하기</th>
             </tr>
