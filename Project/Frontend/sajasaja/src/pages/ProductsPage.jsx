@@ -75,6 +75,13 @@ const mockData = [ // 임시 데이터
   }
 ];
 
+// 카테고리
+const CATEGORIES = [
+  "식품", "생활용품", "가전/전자기기", "뷰티/미용", 
+  "패션", "잡화/액세서리", "리빙/인테리어", "반려동물", 
+  "문구/취미", "스포츠", "유아/아동", "교육"
+];
+
 // 검색 및 필터
 const FilterSection = styled.section`
   padding: 36px 200px;
@@ -125,6 +132,14 @@ const SubCategoryTags = styled.div`
   }
 `;
 
+const CategoryTag = styled.span`
+  padding: 6px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  cursor: pointer;
+  background-color: ${props => props.$isActive ? '#FFF5E0' : 'transparent'};
+`;
+
 // 상품 목록 
 const ProductListContainer = styled.div`
   background-color: #fff;
@@ -136,8 +151,64 @@ const ProductListContainer = styled.div`
   margin: 0 125px;
 `;
 
+const NoResult = styled.div`
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 50px 0;
+  color: #888;
+  font-size: 14px;
+`
+
 const ProductsPage = () => {
   const [products, setProducts] = useState([]);
+  const [searchInputValue, setSearchInputValue] = useState(""); 
+  const [confirmedSearchTerm, setConfirmedSearchTerm] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("전체");
+  const [selectedCategory, setSelectedCategory] = useState("전체");
+
+  const handleSearch = () => {
+    setConfirmedSearchTerm(searchInputValue); // 입력 검색어
+  };
+
+  // 검색 엔터 감지
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
+  useEffect(() => {
+    let filtered = mockData;
+
+    // 검색어 필터 (제목 기준)
+    if (confirmedSearchTerm) {
+      filtered = filtered.filter(item => 
+        item.title.toLowerCase().includes(confirmedSearchTerm.toLowerCase())
+      );
+    }
+
+    // 모집 상태 필터
+    if (selectedStatus !== "전체") {
+      filtered = filtered.filter(item => item.currentStatus === selectedStatus);
+    }
+
+    // 카테고리 필터
+    if (selectedCategory !== "전체") {
+      filtered = filtered.filter(item => item.category === selectedCategory);
+    }
+
+    setProducts(filtered);
+  }, [confirmedSearchTerm, selectedStatus, selectedCategory]);
+
+  const handleCategoryClick = (category) => {
+    if (selectedCategory === category) {
+      // 이미 선택된 카테고리를 다시 누르면 -> (선택 해제)
+      setSelectedCategory("전체");
+    } else {
+      // 다른 카테고리를 누르면 -> 해당 카테고리 선택
+      setSelectedCategory(category);
+    }
+  };
 
   useEffect(() => {
     setProducts(mockData);
@@ -147,35 +218,42 @@ const ProductsPage = () => {
     <>
       <FilterSection>
         <SearchBar>
-          <select>
+          <select 
+            value={selectedStatus} 
+            onChange={(e) => setSelectedStatus(e.target.value)}
+          >
             <option>전체</option>
             <option>모집 중</option>
             <option>마감</option>
             <option>마감 임박</option>
           </select>
-          <input type="text" placeholder="공동 구매 게시물 검색" />
-          <img src="/images/search.png" alt="search" /> 
+          <input type="text" placeholder="공동 구매 게시물 검색" 
+            value={searchInputValue}
+            onChange={(e) => setSearchInputValue(e.target.value)}
+            onKeyDown={handleKeyDown}/>
+          <img src="/images/search.png" alt="search" onClick={handleSearch}/> 
         </SearchBar>
         <SubCategoryTags>
-          <span>식품</span>
-          <span>생활용품</span>
-          <span>가전/전자기기</span>
-          <span>뷰티/미용</span>
-          <span>패션</span>
-          <span>잡화/액세서리</span>
-          <span>리빙/인테리어</span>
-          <span>반려동물</span>
-          <span>문구/취미</span>
-          <span>스포츠</span>
-          <span>유아/아동</span>
-          <span>교육</span>
+          {CATEGORIES.map((category) => (
+            <CategoryTag 
+              key={category}
+              $isActive={selectedCategory === category}
+              onClick={() => handleCategoryClick(category)}
+            >
+              {category}
+            </CategoryTag>
+          ))}
         </SubCategoryTags>
       </FilterSection>
 
       <ProductListContainer>
-        {products.map(product => (
-          <ProductCard key={product.id} product={product} />
-        ))}
+        {products.length > 0 ? (
+          products.map(product => (
+            <ProductCard key={product.id} product={product} />
+          ))
+        ) : (
+          <NoResult>조건에 맞는 상품이 없습니다.</NoResult>
+        )}
       </ProductListContainer>
     </>
   );
