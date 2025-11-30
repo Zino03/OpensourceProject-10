@@ -29,7 +29,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AdminController {
     private final UserService userService;
-    private final ReportService reportService;
     private final AdminPostService adminPostService;
     private final AdminReportService adminReportService;
     private final AdminBuyerService adminBuyerService;

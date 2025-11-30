@@ -8,5 +8,5 @@ import java.util.Optional;
 
 public interface BuyerRepository extends JpaRepository<Buyer, Long> {
     Optional<Buyer> findByUser(User user);
-    Optional<Buyer> findByUserAndPost(User user, Post post);
+    Optional<Buyer> findByUserAndPostAndIsCanceled(User user, Post post, Boolean isCanceled);
 }

@@ -4,6 +4,7 @@ import com.example.saja_saja.dto.post.PostListResponseDto;
 import com.example.saja_saja.dto.post.PostRequestDto;
 import com.example.saja_saja.dto.post.PostResponseDto;
 import com.example.saja_saja.entity.member.Member;
+import com.example.saja_saja.entity.member.Role;
 import com.example.saja_saja.entity.post.*;
 import com.example.saja_saja.entity.user.User;
 import com.example.saja_saja.exception.BadRequestException;
@@ -64,6 +65,7 @@ public class PostService {
         }
     }
 
+    //TODO: post/{id} 대기, 반려, 취소 등 admin 조회가능
     public ResponseEntity post(Member member, long id) {
         Post postEntity = postRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("공동구매 게시글을 찾을 수 없습니다"));
@@ -72,13 +74,21 @@ public class PostService {
 
         HashMap<String, Object> data = new HashMap<>();
 
-        if (member == null) {
+        if (member == null) { // 로그인 안한 사용자이면
             if (post.getStatus().equals(0)||post.getStatus().equals(4)) {
                 throw new BadRequestException("확인할 수 없는 공동구매 게시글입니다.", null);
             }
+            List<Notice> notices = post.getNotices().stream()
+                    .map(n -> {
+                        if(n.getIsBanned()) n.setContent(null);
+                        return n;
+                    })
+                    .toList();
         }
 
-        if(member != null && !post.getHost().equals(member.getUser())) {
+        if(member != null
+                && !member.getRole().equals(Role.ADMIN)
+                && !post.getHost().equals(member.getUser())) { // 주최자가 아닌 일반 사용자이면
             if (post.getStatus().equals(0)||post.getStatus().equals(4)) {
                 throw new BadRequestException("확인할 수 없는 공동구매 게시글입니다.", null);
             }
@@ -204,6 +214,20 @@ public class PostService {
                 if (now.isAfter(endAt)) {
                     // 마감
                     p.setStatus(3);
+                    if(p.getQuantity()>p.getCurrentQuantity()) {
+                        this.cancel(p.getHost(), p.getId());
+                    }
+
+                    if(p.getQuantity().equals(p.getCurrentPaidQuantity())) {
+                        List<Buyer> buyerList = p.getBuyers().stream().map(b->{
+                            b.setStatus(2);
+                            return b;
+                        }).toList();
+                    } else {
+                        if(now.isAfter(p.getLastPaymentEndAt())) {
+                            this.cancel(p.getHost(), p.getId());
+                        }
+                    }
                 } else {
                     // endAt 30일 전 ~ endAt 사이면 마감임박
                     if (!now.isBefore(endAt.minusDays(30)) && !now.isAfter(endAt)) {

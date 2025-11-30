@@ -34,15 +34,11 @@ public class ReviewService {
 
         Post post = optionalP.get();
 
-        if (Boolean.TRUE.equals(post.getIsCanceled())) {
-            throw new BadRequestException("취소된 공동구매 게시글입니다.", null);
-        }
-
         if (!member.getUser().equals(post.getHost())) {
             throw new BadRequestException("주최자는 후기를 등록할 수 없습니다.", null);
         }
 
-        Optional<Buyer> optionalB = buyerRepository.findByUserAndPost(member.getUser(), post);
+        Optional<Buyer> optionalB = buyerRepository.findByUserAndPostAndIsCanceled(member.getUser(), post, false);
 
         if (optionalB.isEmpty()) {
             throw new BadRequestException("해당 사용자의 구매 정보가 없습니다.", null);

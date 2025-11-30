@@ -2,6 +2,7 @@ package com.example.saja_saja.service;
 
 import com.example.saja_saja.dto.buyer.BuyerListResponseDto;
 import com.example.saja_saja.dto.post.BuyerApplyRequestDto;
+import com.example.saja_saja.dto.post.BuyerApplyResponseDto;
 import com.example.saja_saja.dto.post.ReceivedAtRequestDto;
 import com.example.saja_saja.dto.post.TrackingNumberRequestDto;
 import com.example.saja_saja.entity.member.Member;
@@ -38,7 +39,7 @@ public class BuyerService {
 
     // host가 자기 공구 만들 때 기본 수량으로 자동 신청할 때 사용
     public ResponseEntity save(Member member, long postId, int requestQuantity) {
-        return this.save(member, postId, new BuyerApplyRequestDto(false, null, requestQuantity));
+        return this.save(member, postId, new BuyerApplyRequestDto("-","-",false, null, requestQuantity));
     }
 
     // 구매자/주최자 공구 신청
@@ -62,9 +63,17 @@ public class BuyerService {
         }
 
         // 이미 참여한 경우
-        Optional<Buyer> optionalB = buyerRepository.findByUserAndPost(member.getUser(), post);
+        Optional<Buyer> optionalB = buyerRepository.findByUserAndPostAndIsCanceled(member.getUser(), post, false);
         if (optionalB.isPresent()) {
             throw new BadRequestException("이미 참여한 공동구매입니다.", null);
+        }
+
+        if(member.getUser().getAccount().isEmpty() || member.getUser().getAccountBank().isEmpty()) {
+            throw new BadRequestException("계좌를 등록한 후 주문해주세요.", null);
+        }
+
+        if(member.getUser().getAddresses().isEmpty()) {
+            throw new BadRequestException("배송지를 등록한 후 주문해주세요.", null);
         }
 
         int currentQuantity = post.getCurrentQuantity();
@@ -150,7 +159,9 @@ public class BuyerService {
 
         buyer = buyerRepository.save(buyer);
 
-        return new ResponseEntity(buyer, HttpStatus.OK);
+        BuyerApplyResponseDto responseDto = BuyerApplyResponseDto.of(buyer);
+
+        return new ResponseEntity(responseDto, HttpStatus.OK);
     }
 
     // 구매 취소
@@ -164,10 +175,6 @@ public class BuyerService {
             throw new BadRequestException("공동구매 게시글을 찾을 수 없습니다.", null);
         }
 
-        if (user.getIsBanned().equals(Boolean.TRUE)) {
-            throw new BadRequestException("이용이 정지된 사용자입니다.", null);
-        }
-
         Post post = optionalP.get();
 
         // 취소된 공구에서 일반 취소는 불가 (공구 취소 사유만 허용)
@@ -175,11 +182,11 @@ public class BuyerService {
             throw new BadRequestException("이미 취소된 공동구매 게시글입니다.", null);
         }
 
-        if (post.getStatus().equals(4)) {
+        if (post.getStatus().equals(4)) { // 주최자취소는 admin에서 처리
             throw new BadRequestException("반려된 공동구매 게시글입니다.", null);
         }
 
-        Optional<Buyer> optionalB = buyerRepository.findByUserAndPost(user, post);
+        Optional<Buyer> optionalB = buyerRepository.findByUserAndPostAndIsCanceled(user, post, false);
 
         if (optionalB.isEmpty()) {
             throw new BadRequestException("구매 정보를 찾을 수 없습니다.", null);
@@ -201,7 +208,8 @@ public class BuyerService {
         }
 
         // 마감 이후에는 (공구 취소 사유 1 외) 취소 불가
-        if (post.getStatus().equals(3) && canceledReason != 1) {
+//        if (post.getStatus().equals(3) && canceledReason != 1) {
+        if (post.getStatus().equals(3) && post.getCurrentPaidQuantity().equals(post.getQuantity()) && canceledReason != 1) {
             throw new BadRequestException("취소할 수 있는 기간이 아닙니다.", null);
         }
 
@@ -213,6 +221,7 @@ public class BuyerService {
         }
 
         post.setCurrentQuantity(post.getCurrentQuantity() - buyer.getQuantity());
+        // post.setCurrentPaidQuantity(post.getCurrentPaidQuantity() - buyer.getQuantity());
 
         buyerRepository.save(buyer);
         postRepository.save(post);
@@ -234,7 +243,7 @@ public class BuyerService {
 
         Post post = optionalP.get();
 
-        Optional<Buyer> optionalB = buyerRepository.findByUserAndPost(member.getUser(), post);
+        Optional<Buyer> optionalB = buyerRepository.findByUserAndPostAndIsCanceled(member.getUser(), post, false);
 
         if (optionalB.isEmpty()) {
             throw new BadRequestException("구매 정보를 찾을 수 없습니다.", null);
@@ -254,7 +263,8 @@ public class BuyerService {
         }
 
         // 마감 이후 수량 변경 불가
-        if (post.getStatus().equals(3)) {
+//        if (post.getStatus().equals(3)) {
+        if (post.getStatus().equals(3) && post.getCurrentPaidQuantity().equals(post.getQuantity())) {
             throw new BadRequestException("수량을 변경할 수 있는 기간이 아닙니다.", null);
         }
 
@@ -354,7 +364,7 @@ public class BuyerService {
 
         User user = optionalU.get();
 
-        Optional<Buyer> optionalB = buyerRepository.findByUserAndPost(user, post);
+        Optional<Buyer> optionalB = buyerRepository.findByUserAndPostAndIsCanceled(user, post, false);
 
         if (optionalB.isEmpty()) {
             throw new BadRequestException("해당 사용자의 구매 정보가 없습니다.", null);
@@ -374,7 +384,8 @@ public class BuyerService {
         }
 
         // 마감 이후부터만 등록 가능
-        if (!post.getStatus().equals(3)) {
+//        if (!post.getStatus().equals(3)) {
+        if (!(post.getStatus().equals(3) && post.getCurrentPaidQuantity().equals(post.getQuantity()))) {
             throw new BadRequestException("배송정보를 등록할 수 있는 기간이 아닙니다.", null);
         }
 
@@ -425,7 +436,7 @@ public class BuyerService {
 
         User user = optionalU.get();
 
-        Optional<Buyer> optionalB = buyerRepository.findByUserAndPost(user, post);
+        Optional<Buyer> optionalB = buyerRepository.findByUserAndPostAndIsCanceled(user, post, false);
 
         if (optionalB.isEmpty()) {
             throw new BadRequestException("해당 사용자의 구매 정보가 없습니다.", null);
@@ -440,7 +451,8 @@ public class BuyerService {
         }
 
         // 마감 이후부터만 등록 가능
-        if (!post.getStatus().equals(3)) {
+//        if (!post.getStatus().equals(3)) {
+        if (!(post.getStatus().equals(3) && post.getCurrentPaidQuantity().equals(post.getQuantity()))) {
             throw new BadRequestException("수령일자를 등록할 수 있는 기간이 아닙니다.", null);
         }
 

@@ -1,6 +1,7 @@
 package com.example.saja_saja.dto.post;
 
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,6 +13,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BuyerApplyRequestDto {
+
+    @NotBlank(message = "입금자명을 입력해주세요.")
+    private String payerName;
+
+    @Builder.Default
+    private String payerEmail = "-";
 
     @NotNull(message = "배송 여부를 입력해주세요.")
     private Boolean isDelivery;
