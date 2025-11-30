@@ -2,6 +2,7 @@ package com.example.saja_saja.service;
 
 import com.example.saja_saja.dto.buyer.BuyerListResponseDto;
 import com.example.saja_saja.dto.post.BuyerApplyRequestDto;
+import com.example.saja_saja.dto.post.ReceivedAtRequestDto;
 import com.example.saja_saja.dto.post.TrackingNumberRequestDto;
 import com.example.saja_saja.entity.member.Member;
 import com.example.saja_saja.entity.post.Buyer;
@@ -111,6 +112,7 @@ public class BuyerService {
         Buyer buyer = Buyer.builder()
                 .user(member.getUser())
                 .post(post)
+                .price(post.getPrice()*requestQuantity)
                 .isDelivery(isDelivery)
                 .quantity(requestQuantity)
                 .createdAt(LocalDateTime.now())
@@ -261,7 +263,6 @@ public class BuyerService {
             throw new BadRequestException("반려된 공동구매 게시글입니다.", null);
         }
 
-        // 서비스 레벨에서도 한 번 방어
         if (requestQuantity <= 0) {
             throw new BadRequestException("수량은 1개 이상이어야 합니다.", body);
         }
@@ -275,6 +276,7 @@ public class BuyerService {
         }
 
         buyer.setQuantity(requestQuantity);
+        buyer.setPrice(post.getPrice()*requestQuantity);
         post.setCurrentQuantity(newTotal);
 
         buyerRepository.save(buyer);
@@ -316,13 +318,12 @@ public class BuyerService {
         List<BuyerListResponseDto> buyers = post.getBuyers()
                 .stream()
                 .filter(buyer -> !buyer.getUser().equals(post.getHost())) // 주최자는 제외
-                .map(buyer -> BuyerListResponseDto.of(buyer, post.getPrice()))
+                .map(buyer -> BuyerListResponseDto.of(buyer))
                 .toList();
 
         return new ResponseEntity(buyers, HttpStatus.OK);
     }
 
-    // 배송정보 업데이트 (주최자)
     @Transactional
     public ResponseEntity trackingNumberUpdate(Member member, long postId, TrackingNumberRequestDto trackingNumberRequestDto) {
         Optional<Post> optionalP = postRepository.findById(postId);
@@ -394,5 +395,68 @@ public class BuyerService {
         return new ResponseEntity(buyer, HttpStatus.OK);
     }
 
-    // TODO: 주최자가 수령일자 update
+    @Transactional
+    public ResponseEntity receivedAtUpdate(Member member, long postId, ReceivedAtRequestDto receivedAtRequestDto) {
+        Optional<Post> optionalP = postRepository.findById(postId);
+
+        if (optionalP.isEmpty()) {
+            throw new BadRequestException("공동구매 게시글을 찾을 수 없습니다.", null);
+        }
+
+        if (member.getUser().getIsBanned().equals(Boolean.TRUE)) {
+            throw new BadRequestException("이용이 정지된 사용자입니다.", null);
+        }
+
+        Post post = optionalP.get();
+
+        if (!member.getUser().equals(post.getHost())) {
+            throw new BadRequestException("수령일자를 등록할 수 있는 권한이 없습니다.", null);
+        }
+
+        if (Boolean.TRUE.equals(post.getIsCanceled())) {
+            throw new BadRequestException("취소된 공동구매 게시글입니다.", null);
+        }
+
+        Optional<User> optionalU = userRepository.findByNickname(receivedAtRequestDto.getUserNickname());
+
+        if (optionalU.isEmpty()) {
+            throw new BadRequestException("등록되어 있지 않은 사용자입니다.", null);
+        }
+
+        User user = optionalU.get();
+
+        Optional<Buyer> optionalB = buyerRepository.findByUserAndPost(user, post);
+
+        if (optionalB.isEmpty()) {
+            throw new BadRequestException("해당 사용자의 구매 정보가 없습니다.", null);
+        }
+
+        if (post.getStatus().equals(0)) {
+            throw new BadRequestException("대기중인 공동구매 게시글입니다.", null);
+        }
+
+        if (post.getStatus().equals(4)) {
+            throw new BadRequestException("반려된 공동구매 게시글입니다.", null);
+        }
+
+        // 마감 이후부터만 등록 가능
+        if (!post.getStatus().equals(3)) {
+            throw new BadRequestException("수령일자를 등록할 수 있는 기간이 아닙니다.", null);
+        }
+
+        Buyer buyer = optionalB.get();
+
+        // 주최자, 취소된 구매자, 배송 신청한 구매자는 등록 불가
+        if (user.equals(post.getHost())
+                || Boolean.TRUE.equals(buyer.getIsCanceled())
+                || Boolean.TRUE.equals(buyer.getIsDelivery())) {
+            throw new BadRequestException("수령일자를 등록할 수 있는 사용자가 아닙니다.", null);
+        }
+
+        buyer.setReceivedAt(receivedAtRequestDto.getReceivedAt());
+
+        buyerRepository.save(buyer);
+
+        return new ResponseEntity(buyer, HttpStatus.OK);
+    }
 }
