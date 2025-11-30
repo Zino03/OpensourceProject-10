@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 // 카드 스타일
 const CardWrapper = styled.div`
   background-color: #fff;
-  border-radius: 6px;
+  border-radius: 5px;
   overflow: hidden;
   cursor: pointer;
   border: 1px solid #eee;
@@ -27,14 +27,14 @@ const ImageContainer = styled.div`
 // '마감임박' 태그 (이미지 위에 표시)
 const StatusTag = styled.div`
   position: absolute;
-  top: 12px;
-  right: 12px;
+  top: 8px;
+  right: 8px;
   padding: 5px 10px;
-  background-color: #FF3B30;
+  background-color: #D32F2F;
   color: white;
   font-size: 10px;
   font-weight: 500;
-  border-radius: 10px;
+  border-radius: 5px;
 `;
 
 const InfoContainer = styled.div`
