@@ -1,5 +1,6 @@
 package com.example.saja_saja.entity.post;
 
+import com.example.saja_saja.entity.user.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -39,12 +40,14 @@ public interface PostRepository extends JpaRepository<Post, Long>, JpaSpecificat
     );
     Optional<Post> findById(Long id);
 
+    Page<Post> findByHost(User user, Pageable pageable);
+
     @Query("SELECT p FROM Post p JOIN FETCH p.host WHERE p.status = :status")
     Page<Post> findAllByStatus(@Param("status") Integer status, Pageable pageable);
 
     @Query("SELECT p FROM Post p JOIN FETCH p.host WHERE p.status IN :statuses")
     Page<Post> findAllByStatusIn(
-            @Param("statuses") List<Integer> statuses, // 💡 List 타입으로 변경
+            @Param("statuses") List<Integer> statuses,
             Pageable pageable
     );
 }

@@ -3,10 +3,12 @@ package com.example.saja_saja.service;
 import com.example.saja_saja.dto.post.PostListResponseDto;
 import com.example.saja_saja.dto.post.PostRequestDto;
 import com.example.saja_saja.dto.post.PostResponseDto;
+import com.example.saja_saja.dto.post.UserPostListResponseDto;
 import com.example.saja_saja.entity.member.Member;
 import com.example.saja_saja.entity.member.Role;
 import com.example.saja_saja.entity.post.*;
 import com.example.saja_saja.entity.user.User;
+import com.example.saja_saja.entity.user.UserRepository;
 import com.example.saja_saja.exception.BadRequestException;
 import com.example.saja_saja.exception.ResourceNotFoundException;
 import jakarta.transaction.Transactional;
@@ -31,6 +33,7 @@ public class PostService {
     private final BuyerService buyerService;
     private final AddressRepository addressRepository;
     private final ImageService imageService;
+    private final UserRepository userRepository;
 
     // 공구 생성 + host 본인 buyer 생성
     @Transactional
@@ -132,6 +135,35 @@ public class PostService {
         return new ResponseEntity(data, HttpStatus.OK);
     }
 
+    // user post list
+    public ResponseEntity userPostList(Pageable pageable, Member member, String nickname) {
+        Optional<User> optionalU  = userRepository.findByNickname(nickname);
+
+        if(optionalU.isEmpty()) {
+            throw new BadRequestException("사용자 정보가 없습니다.", null);
+        }
+
+        User user = optionalU.get();
+
+        Page<Post> page = postRepository.findByHost(user, pageable);
+
+        List<UserPostListResponseDto> list = page
+                .stream()
+                .map(UserPostListResponseDto::of)
+                .toList();
+
+        // 본인의 주최공구를 조회하는 것이 아니라면
+        // 진행중, 마감임박, 마감 게시글만 표시하고
+        // 정산금액을 0으로 표시
+        if(!member.getUser().getNickname().equals(nickname)) {
+            list = list.stream()
+                    .filter(d -> d.getStatus()>=1&&d.getStatus()<=4)
+                    .peek(d -> {d.setReceivedPrice(0);}).toList();
+        }
+
+        return new ResponseEntity(list, HttpStatus.OK);
+    }
+
     // post map list
     public ResponseEntity postListForMap(Pageable pageable, double lat, double lon) {
 
@@ -145,7 +177,7 @@ public class PostService {
         return new ResponseEntity(postList, HttpStatus.OK);
     }
 
-    public ResponseEntity postList(Pageable pageable, Integer type, Category category) {
+    public ResponseEntity postList(Pageable pageable, Integer type, String searchQuery, Category category) {
         Specification<Post> spec = (root, query, cb) -> null;
 
         if (type == 0) {
@@ -165,6 +197,14 @@ public class PostService {
         spec = spec.and((root, query, cb) ->
                 cb.equal(root.get("isCanceled"), false)
         );
+
+        // 제목 포함 검색
+        if (searchQuery != null && !searchQuery.isBlank()) {
+            String keyword = "%" + searchQuery + "%";
+            spec = spec.and((root, query, cb) ->
+                    cb.like(root.get("title"), keyword)
+            );
+        }
 
         // 카테고리 필터 (null일 때는 전체)
         if (category != null) {
@@ -203,11 +243,20 @@ public class PostService {
 
         // 참여자 전부에 대해 buyer 취소 처리
         for (Buyer buyer : post.getBuyers()) {
-            buyerService.cancel(buyer.getUser(), postId, 1);
+            if (Boolean.FALSE.equals(buyer.getIsCanceled())) {
+                buyer.setIsCanceled(true);
+                buyer.setCanceledAt(LocalDateTime.now());
+                buyer.setCanceledReason(1);
+                buyer.setIsPaid(3);
+            }
         }
 
         postRepository.save(post);
-        return new ResponseEntity("공구 취소가 완료되었습니다.", HttpStatus.OK);
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("message", "공구 취소가 완료되었습니다.");
+
+        return new ResponseEntity(data, HttpStatus.OK);
     }
 
     @Transactional
