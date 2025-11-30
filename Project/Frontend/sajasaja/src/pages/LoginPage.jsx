@@ -130,10 +130,8 @@ const LoginPage = () => {
         password: password
       });
 
-      console.log('로그인 성공:', response.data);
-
-      // 4. 토큰 저장 로직 (백엔드 응답 구조에 따라 수정 필요)
-      // 보통 response.data.accessToken 또는 response.headers['authorization'] 등에 담겨옵니다.
+      //  토큰 저장 로직
+      // response.data.accessToken
       const token = response.data.accessToken || response.data.token; 
 
       if (token) {
@@ -141,10 +139,10 @@ const LoginPage = () => {
         localStorage.setItem('accessToken', token);
         
         // 로그인 성공 시 메인 페이지로 이동
-        navigate('/'); 
+        window.location.href = '/'; 
       } else {
-        // 토큰이 없더라도 성공 처리하는 경우 (구조에 따라 다름)
-        navigate('/');
+        // 토큰이 없는 경우에도 이동이 필요하다면
+        window.location.href = '/';
       }
 
     } catch (error) {
