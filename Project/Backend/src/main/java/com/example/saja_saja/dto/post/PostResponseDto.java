@@ -50,8 +50,6 @@ public class PostResponseDto {
 
     private Category category;
 
-    private List<Buyer> buyers = new ArrayList<>();
-
     private List<Notice> notices = new ArrayList<>();
 
     private List<Review> reviews = new ArrayList<>();
@@ -75,7 +73,6 @@ public class PostResponseDto {
                 .endAt(post.getEndAt())
                 .status(post.getStatus())
                 .category(post.getCategory())
-                .buyers(post.getBuyers())
                 .notices(post.getNotices())
                 .reviews(new ArrayList<>())
                 .build();

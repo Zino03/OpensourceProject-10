@@ -30,6 +30,8 @@ public class BuyerListResponseDto {
     // 0: 대기, 1: 지불
     private Integer isPaid;
 
+    private Boolean isDelivery;
+
     private String courier;
 
     private String trackingNumber;
@@ -38,12 +40,13 @@ public class BuyerListResponseDto {
 
     private LocalDateTime receivedAt;
 
-    public static BuyerListResponseDto of(Buyer buyer, int price) {
+    public static BuyerListResponseDto of(Buyer buyer) {
         return builder()
                 .userName(buyer.getUser().getName())
                 .userNickname(buyer.getUser().getNickname())
-                .price(buyer.getQuantity()*price)
+                .price(buyer.getPrice())
                 .isPaid(buyer.getIsPaid())
+                .isDelivery(buyer.getIsDelivery())
                 .courier(buyer.getCourier())
                 .trackingNumber(buyer.getTrackingNumber())
                 .userAddress(buyer.getUserAddress())

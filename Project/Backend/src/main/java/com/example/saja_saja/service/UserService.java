@@ -1,9 +1,6 @@
 package com.example.saja_saja.service;
 
-import com.example.saja_saja.dto.user.ProfileResponseDto;
-import com.example.saja_saja.dto.user.UserAddressDto;
-import com.example.saja_saja.dto.user.UserRequestDto;
-import com.example.saja_saja.dto.user.UserResponseDto;
+import com.example.saja_saja.dto.user.*;
 import com.example.saja_saja.entity.member.Member;
 import com.example.saja_saja.entity.member.MemberRepository;
 import com.example.saja_saja.entity.user.User;
@@ -40,11 +37,11 @@ public class UserService {
         }
     }
 
-    public ResponseEntity getAddress(Long userId) {
+    public ResponseEntity getAddressList(Long userId) {
         try {
             List<UserAddress> addresses = userAddressRepository.findByUserId(userId);
-            List<UserAddressDto> addressDto = addresses.stream()
-                    .map(UserAddressDto::new)
+            List<UserAddressResponseDto> addressDto = addresses.stream()
+                    .map(UserAddressResponseDto::new)
                     .collect(Collectors.toList());
 
             HashMap<String, Object> data = new HashMap<>();
@@ -56,7 +53,7 @@ public class UserService {
         }
     }
 
-    public ResponseEntity addAddress(Long userId, UserAddressDto userAddressDto) {
+    public ResponseEntity addAddress(Long userId, UserAddressRequestDto req) {
         final Integer MAX_ADDRESS_COUNT = 5;
 
         try {
@@ -72,7 +69,7 @@ public class UserService {
                 return new ResponseEntity<>(errorData, HttpStatus.BAD_REQUEST);
             }
 
-            UserAddress newAddress = userAddressDto.toUserAddress(user);
+            UserAddress newAddress = req.toUserAddress(user);
 
             if (newAddress.getIsDefault()) {
                 Optional<UserAddress> currentDefault = userAddressRepository.findByUserAndIsDefaultTrue(user);
@@ -89,7 +86,7 @@ public class UserService {
 
             UserAddress savedAddress = userAddressRepository.save(newAddress);
 
-            UserAddressDto savedAddressDto = new UserAddressDto(savedAddress);
+            UserAddressResponseDto savedAddressDto = new UserAddressResponseDto(savedAddress);
 
             HashMap<String, Object> data = new HashMap<>();
             data.put("address", savedAddressDto);
@@ -100,17 +97,18 @@ public class UserService {
         }
     }
 
-    public ResponseEntity updateUserAddress(Long userId, Long addressId, UserAddressDto addressDto) {
+    public ResponseEntity updateUserAddress(Long userId, Long addressId, UserAddressRequestDto addressDto) {
         try {
             User user = userRepository.findById(userId).get();
             Long currentAddressCount = userAddressRepository.countByUser(user);
 
             UserAddress userAddress = userAddressRepository.findById(addressId)
-                    .orElseThrow(() -> new RuntimeException("배송지를 찾을 수 없습니다"));
+                    .orElseThrow(() -> new ResourceNotFoundException("배송지를 찾을 수 없습니다"));
 
             if (addressDto.getName() != null) userAddress.setName(addressDto.getName());
             if (addressDto.getRecipient() != null) userAddress.setRecipient(addressDto.getRecipient());
             if (addressDto.getPhone() != null) userAddress.setPhone(addressDto.getPhone());
+            if (addressDto.getZipCode() != null) userAddress.setZipCode(addressDto.getZipCode());
             if (addressDto.getStreet() != null) userAddress.setStreet(addressDto.getStreet());
             if (addressDto.getDetail() != null) userAddress.setDetail(addressDto.getDetail());
             if (addressDto.getEntranceAccess() != null) userAddress.setEntranceAccess(addressDto.getEntranceAccess());
@@ -133,11 +131,11 @@ public class UserService {
             }
 
             HashMap<String, Object> data = new HashMap<>();
-            data.put("address", UserAddressDto.of(userAddress));
+            data.put("address", UserAddressResponseDto.of(userAddress));
             return new ResponseEntity(data, HttpStatus.OK);
-        } catch (NoSuchElementException e) {
+        } catch (ResourceNotFoundException e) {
             e.printStackTrace();
-            throw new RuntimeException(e.getMessage());
+            throw e;
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("변경에 실패하였습니다.");
@@ -147,7 +145,7 @@ public class UserService {
     public ResponseEntity deleteUserAddress(Long userId, Long addressId) {
         try {
             UserAddress address = userAddressRepository.findById(addressId)
-                    .orElseThrow(() -> new NoSuchElementException("배송지 정보를 찾을 수 없습니다."));
+                    .orElseThrow(() -> new ResourceNotFoundException("배송지 정보를 찾을 수 없습니다."));
 
             if (!address.getUser().getId().equals(userId)) {
                 throw new SecurityException("다른 사용자의 배송지 정보는 삭제할 수 없습니다.");
@@ -166,12 +164,11 @@ public class UserService {
             Map<String, Object> message = new HashMap<>();
             message.put("message", "배송지가 삭제되었습니다.");
             return new ResponseEntity(message, HttpStatus.OK);
-        } catch (NoSuchElementException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e.getMessage());
+        } catch (ResourceNotFoundException e) {
+            throw e;
         } catch (SecurityException e) {
             e.printStackTrace();
-            throw new RuntimeException(e.getMessage());
+            throw e;
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("배송지 삭제에 실패하였습니다.");
@@ -185,7 +182,7 @@ public class UserService {
             Long userId = member.getUser().getId();
 
             User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new NoSuchElementException("사용자 정보를 찾을 수 없습니다."));
+                    .orElseThrow(() -> new ResourceNotFoundException("사용자 정보를 찾을 수 없습니다."));
 
             if (req.getPassword() != null && !req.getPassword().isEmpty()) {
                 String hashedPassword = passwordEncoder.encode(req.getPassword());
@@ -203,9 +200,9 @@ public class UserService {
             HashMap<String, Object> data = new HashMap<>();
             data.put("user", UserResponseDto.of(user));
             return new ResponseEntity(data, HttpStatus.OK);
-        } catch (NoSuchElementException e) {
+        } catch (ResourceNotFoundException e) {
             e.printStackTrace();
-            throw new RuntimeException(e.getMessage());
+            throw e;
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("변경에 실패하였습니다.");
@@ -214,23 +211,18 @@ public class UserService {
 
     public ResponseEntity getProfile(String nickname) {
         try {
-            Optional<User> optional = userRepository.findByNickname(nickname);
+            User user = userRepository.findByNickname(nickname)
+                    .orElseThrow(() -> new ResourceNotFoundException("해당 사용자를 찾을 수 없습니다."));
 
-            if (optional.isPresent()) {
-                ProfileResponseDto profile = ProfileResponseDto.of(userRepository.findByNickname(nickname).get());
-
-                HashMap<String, Object> data = new HashMap<>();
-                data.put("profile", profile);
-                return new ResponseEntity(data, HttpStatus.OK);
-            } else {
-                throw new NoSuchElementException("해당 사용자를 찾을 수 없습니다");
-            }
-        } catch (NoSuchElementException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e.getMessage());
+            ProfileResponseDto profile = ProfileResponseDto.of(user);
+            HashMap<String, Object> data = new HashMap<>();
+            data.put("profile", profile);
+            return new ResponseEntity(data, HttpStatus.OK);
+        } catch (ResourceNotFoundException e) {
+            throw e;
         } catch (Exception e) {
             e.printStackTrace();
-            throw new RuntimeException("프로필을 불러올 수 없습니다.", e);
+            throw new RuntimeException("프로필을 불러올 수 없습니다.");
         }
     }
 }

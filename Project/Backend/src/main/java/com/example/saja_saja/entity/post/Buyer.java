@@ -33,6 +33,8 @@ public class Buyer {
     @JsonIgnore
     private Post post;
 
+    private Integer price;
+
     private Integer quantity;
 
     private Boolean isDelivery;

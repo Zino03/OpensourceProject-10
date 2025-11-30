@@ -4,17 +4,25 @@ import com.example.saja_saja.config.SecurityUtil;
 import com.example.saja_saja.dto.report.ReportProcessRequestDto;
 import com.example.saja_saja.dto.report.ReportType;
 import com.example.saja_saja.entity.member.Member;
+import com.example.saja_saja.entity.member.Role;
 import com.example.saja_saja.service.ReportService;
 import com.example.saja_saja.service.UserService;
 import com.example.saja_saja.service.admin.AdminBuyerService;
 import com.example.saja_saja.service.admin.AdminPostService;
 import com.example.saja_saja.service.admin.AdminReportService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -39,14 +47,27 @@ public class AdminController {
     @GetMapping("/report/{type}/{reportId}")
     public ResponseEntity getReport(@PathVariable ReportType type, @PathVariable Long reportId) {
         Member member = userService.getMember(SecurityUtil.getCurrentUserId());
-        return reportService.getReport(member, type, reportId);
+        if (member.getRole() != Role.ADMIN) {
+            throw new AccessDeniedException("관리자 권한이 없습니다.");
+        }
+        return adminReportService.getReport(member, type, reportId);
     }
 
     @PostMapping("/report/{type}/{reportId}")
     public ResponseEntity processReport(
             @PathVariable ReportType type, @PathVariable Long reportId,
-            @RequestBody ReportProcessRequestDto req
+            @Valid @RequestBody ReportProcessRequestDto req,
+            BindingResult errors
     ) {
+        Map<String, String> validatorResult = new HashMap<>();
+
+        if (errors.hasErrors()) {
+            for (FieldError error : errors.getFieldErrors()) {
+                String validKeyName = String.format("valid_%s", error.getField());
+                validatorResult.put(validKeyName, error.getDefaultMessage());
+            }
+        }
+
         Member member = userService.getMember(SecurityUtil.getCurrentUserId());
         return adminReportService.processReport(member, type, reportId, req);
     }
@@ -73,7 +94,6 @@ public class AdminController {
     @GetMapping("/buyers")
     public ResponseEntity getBuyerList(@RequestParam(required = false, defaultValue = "-1") Integer process) {
         Member member = userService.getMember(SecurityUtil.getCurrentUserId());
-//        return adminBuyerService.getBuyerList(member, process);
-        return null;
+        return adminBuyerService.getBuyerList(member, process);
     }
 }

@@ -6,6 +6,7 @@ import com.example.saja_saja.entity.member.Role;
 import com.example.saja_saja.entity.post.Post;
 import com.example.saja_saja.entity.post.PostRepository;
 import com.example.saja_saja.exception.BadRequestException;
+import com.example.saja_saja.exception.ResourceNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,7 +19,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -28,7 +28,7 @@ public class AdminPostService {
     public ResponseEntity getAdminPostList(Member member, Integer process, Pageable pageable) {
         try {
             if (member.getRole() != Role.ADMIN) {
-                throw new AccessDeniedException("게시글 관리 권한이 없습니다.");
+                throw new AccessDeniedException("관리자 권한이 없습니다.");
             }
 
             Page<Post> postPage;
@@ -66,14 +66,12 @@ public class AdminPostService {
             data.put("hasMore", hasMore);
             return new ResponseEntity(data, HttpStatus.OK);
         } catch (AccessDeniedException e) {
-            e.printStackTrace();
             throw e;
         } catch (BadRequestException e) {
-            e.printStackTrace();
             throw e;
         } catch (Exception e) {
             e.printStackTrace();
-            throw new RuntimeException("공동 구매 게시글을 불러올 수 없습니다.", e);
+            throw new RuntimeException("공동 구매 게시글을 불러올 수 없습니다.");
         }
     }
 
@@ -81,11 +79,11 @@ public class AdminPostService {
     public ResponseEntity processPost(Member member, Long postId, Integer process) {
         try {
             if (member.getRole() != Role.ADMIN) {
-                throw new AccessDeniedException("게시글 관리 권한이 없습니다.");
+                throw new AccessDeniedException("관리자 권한이 없습니다.");
             }
 
             Post post = postRepository.findById(postId)
-                    .orElseThrow(() -> new NoSuchElementException("공동 구매 게시글을 찾을 수 없습니다."));
+                    .orElseThrow(() -> new ResourceNotFoundException("공동 구매 게시글을 찾을 수 없습니다."));
 
             if (post.getStatus() != 0) {
                 throw new BadRequestException("대기 중인 공동 구매 게시글만 처리 가능합니다.", null);
@@ -105,16 +103,14 @@ public class AdminPostService {
             data.put("postStatus", post.getStatus());
             return new ResponseEntity(data, HttpStatus.OK);
         } catch (AccessDeniedException e) {
-            e.printStackTrace();
             throw e;
-        } catch (NoSuchElementException e) {
-            throw new BadRequestException(e.getMessage(), e);
+        } catch (ResourceNotFoundException e) {
+            throw e;
         } catch (BadRequestException e) {
-            e.printStackTrace();
             throw e;
         } catch (Exception e) {
             e.printStackTrace();
-            throw new RuntimeException("게시글 처리에 실패하였습니다.", e);
+            throw new RuntimeException("게시글 처리에 실패하였습니다.");
         }
     }
 }

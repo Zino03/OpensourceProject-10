@@ -26,6 +26,8 @@ public class UserAddress {
 
     private String phone;
 
+    private Integer zipCode;
+
     private String street;
 
     private String detail;
