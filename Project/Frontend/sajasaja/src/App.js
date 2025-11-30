@@ -14,6 +14,8 @@ import LoginPage from './pages/LoginPage';
 import FindPassword from './pages/FindPassword';
 import JoinPage from './pages/JoinPage';
 import VerificationPage from './pages/VerificationPage';
+import TermsOfUsePage from './pages/TermsOfUsePage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 
 import OrderPage from './pages/OrderPage';
 import PaymentPage from './pages/PaymentPage';
