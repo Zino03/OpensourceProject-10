@@ -15,5 +15,5 @@ public enum Category {
     HOBBY, // 문구/취미
     SPORTS, // 스포츠
     KIDS, // 유아/아동
-    EDUCATION; // 교육
+    ETC; // 기타
 }

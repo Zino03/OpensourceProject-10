@@ -43,7 +43,7 @@ public class Buyer {
 
     private Boolean isDelivery;
 
-    // 0: 입금대기, 1: 입금완료, 2: 재입금대기, 3: 주문취소
+    // 0: 결제대기, 1: 결제완료, 2: 재결제대기, 3: 주문취소
     private Integer isPaid;
 
     @OneToOne

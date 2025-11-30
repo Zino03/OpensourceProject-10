@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,10 +33,14 @@ public class PostController {
     private final BuyerService buyerService;
     private final PostRepository postRepository;
 
-    @PostMapping("/posts")
+    @PostMapping(
+            value = "/posts",
+            consumes = { "multipart/form-data" }
+    )
     public ResponseEntity<?> save(
-            @Valid @RequestBody PostWithQuantityRequestDto req,
-            BindingResult errors
+            @RequestPart("post") @Valid PostWithQuantityRequestDto req,
+            BindingResult errors,
+            @RequestPart(value = "image") MultipartFile image
     ) {
         Map<String, Object> validatorResult = new HashMap<>();
 
@@ -57,14 +62,19 @@ public class PostController {
             validatorResult.put("valid_post", "게시글 정보가 없습니다.");
         }
 
+        if (image == null || image.isEmpty()) {
+            validatorResult.put("valid_image", "이미지가 첨부되지 않았습니다.");
+        }
+
         if (!validatorResult.isEmpty()) {
             validatorResult.put("data", req);
             return new ResponseEntity<>(validatorResult, HttpStatus.OK);
         }
 
         Member member = userService.getMember(SecurityUtil.getCurrentUserId());
-        return postService.save(member, req.getPost(), req.getQuantity());
+        return postService.save(member, req.getPost(), image, req.getQuantity());
     }
+
 
     @GetMapping("/posts/{id}")
     public ResponseEntity<?> post(@PathVariable long id) {
@@ -76,7 +86,7 @@ public class PostController {
     public ResponseEntity<?> posts(@RequestParam(defaultValue = "0") int page,
                                    @RequestParam(defaultValue = "0") int type,
                                    @RequestParam(required = false) Category category) {
-        Pageable pageable = PageRequest.of(page, 10, Sort.by(Sort.Direction.DESC, "id"));
+        Pageable pageable = PageRequest.of(page, 50, Sort.by(Sort.Direction.DESC, "id"));
         return postService.postList(pageable, type, category);
     }
 

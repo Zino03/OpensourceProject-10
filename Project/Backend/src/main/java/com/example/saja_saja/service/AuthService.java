@@ -13,7 +13,6 @@ import com.example.saja_saja.exception.UnauthorizedException;
 import com.example.saja_saja.jwt.TokenProvider;
 import com.example.saja_saja.entity.token.RefreshTokenRepository;
 import com.example.saja_saja.entity.member.MemberRepository;
-import com.example.saja_saja.response.DefaultRes;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -84,11 +83,10 @@ public class AuthService {
         try {
             authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
         } catch (InternalAuthenticationServiceException e) {
-            // 안쪽에 우리가 던진 BadRequestException이 있으면 다시 던져주기
             if (e.getCause() instanceof BadRequestException bre) {
                 throw bre;
             }
-            throw e; // 나머지는 그대로
+            throw e;
         }
 
         TokenDto tokenDto = tokenProvider.generateTokenDto(authentication);

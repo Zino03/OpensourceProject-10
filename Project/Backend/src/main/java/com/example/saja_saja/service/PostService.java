@@ -18,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -29,16 +30,24 @@ public class PostService {
     private final PostRepository postRepository;
     private final BuyerService buyerService;
     private final AddressRepository addressRepository;
+    private final ImageService imageService;
 
     // 공구 생성 + host 본인 buyer 생성
     @Transactional
-    public ResponseEntity save(Member member, PostRequestDto postRequestDto, int quantity) {
+    public ResponseEntity save(Member member, PostRequestDto postRequestDto, MultipartFile image, int quantity) {
         try {
             if (member.getUser().getIsBanned().equals(Boolean.TRUE)) {
                 throw new BadRequestException("이용이 정지된 사용자입니다.", null);
             }
 
+            // 정산받을 계좌가 등록되지 않았다면 게시글 등록이 불가능
+            if(member.getUser().getAccount() == null || member.getUser().getAccountBank() == null) {
+                throw new BadRequestException("계좌를 등록한 후 공동구매 게시글을 생성할 수 있습니다.", null);
+            }
+
             Post post = postRequestDto.toPost();
+
+            post.setImage(imageService.uploadPostImage(image));
 
             // 배송 불가면 배달비 0원
             if (Boolean.FALSE.equals(postRequestDto.getIsDeliveryAvailable())) {
@@ -61,9 +70,10 @@ public class PostService {
             if (e.getCause() instanceof BadRequestException bre) {
                 throw bre;
             }
-            throw e; // 나머지는 그대로
+            throw e;
         }
     }
+
 
     //TODO: post/{id} 대기, 반려, 취소 등 admin 조회가능
     public ResponseEntity post(Member member, long id) {
@@ -111,7 +121,7 @@ public class PostService {
 
         List<Review> reviews = postEntity.getBuyers().stream()
                 .map(Buyer::getReview)
-                .filter(r -> r.getIsBanned().equals(Boolean.FALSE))
+                .filter(r -> r!=null&&r.getIsBanned().equals(Boolean.FALSE))
                 .toList();
 
         if (!reviews.isEmpty()) {

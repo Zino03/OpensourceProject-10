@@ -68,28 +68,12 @@ public class BuyerService {
             throw new BadRequestException("이미 참여한 공동구매입니다.", null);
         }
 
-        if(member.getUser().getAccount().isEmpty() || member.getUser().getAccountBank().isEmpty()) {
+        if(member.getUser().getAccount() == null || member.getUser().getAccountBank() == null) {
             throw new BadRequestException("계좌를 등록한 후 주문해주세요.", null);
         }
 
-        if(member.getUser().getAddresses().isEmpty()) {
-            throw new BadRequestException("배송지를 등록한 후 주문해주세요.", null);
-        }
-
-        int currentQuantity = post.getCurrentQuantity();
-        int requestQuantity = req.getRequestQuantity();
-        int targetQuantity = post.getQuantity();
-
         Map<String, Object> body = new HashMap<>();
         body.put("body", req);
-
-        // 수량 초과 체크
-        if (currentQuantity + requestQuantity > targetQuantity) {
-            throw new BadRequestException(
-                    "신청 수량이 초과되었습니다. (현재 " + currentQuantity + " / 신청 " + requestQuantity + " / 목표 " + targetQuantity + ")",
-                    body
-            );
-        }
 
         // 게시글 상태 체크
         LocalDateTime now = LocalDateTime.now();
@@ -111,11 +95,27 @@ public class BuyerService {
             }
         }
 
+        int currentQuantity = post.getCurrentQuantity();
+        int requestQuantity = req.getRequestQuantity();
+        int targetQuantity = post.getQuantity();
+
+        // 수량 초과 체크
+        if (currentQuantity + requestQuantity > targetQuantity) {
+            throw new BadRequestException(
+                    "신청 수량이 초과되었습니다. (현재 " + currentQuantity + " / 신청 " + requestQuantity + " / 목표 " + targetQuantity + ")",
+                    body
+            );
+        }
+
         boolean isDelivery = Boolean.TRUE.equals(req.getIsDelivery());
 
         // 배송 불가 공구인데 배송 신청한 경우
         if (Boolean.FALSE.equals(post.getIsDeliveryAvailable()) && isDelivery) {
             throw new BadRequestException("배송신청이 불가능한 게시글입니다.", body);
+        }
+
+        if(!member.getUser().equals(post.getHost()) && req.getIsDelivery().equals(Boolean.TRUE) && member.getUser().getAddresses() == null) {
+            throw new BadRequestException("배송지를 등록한 후 주문해주세요.", null);
         }
 
         Buyer buyer = Buyer.builder()

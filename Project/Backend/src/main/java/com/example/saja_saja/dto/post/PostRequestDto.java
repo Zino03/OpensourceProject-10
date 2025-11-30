@@ -3,11 +3,14 @@ package com.example.saja_saja.dto.post;
 import com.example.saja_saja.entity.post.Address;
 import com.example.saja_saja.entity.post.Category;
 import com.example.saja_saja.entity.post.Post;
+import com.example.saja_saja.service.ImageService;
+import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -17,8 +20,6 @@ import java.util.ArrayList;
 public class PostRequestDto {
     @NotBlank(message = "제목을 입력해주세요.")
     private String title;
-    @NotBlank(message = "이미지를 등록해주세요.")
-    private String image;
     @NotNull(message = "가격을 입력해주세요.")
     @Min(value = 1, message = "가격은 1원 이상이어야 합니다.")
     private Integer price;
@@ -32,6 +33,7 @@ public class PostRequestDto {
     @NotNull(message = "주소를 입력해주세요.")
     private Address pickupAddress;
     @NotNull(message = "마감기한을 입력해주세요.")
+    @Future(message = "마감일은 현재 시각 이후로 설정해야 합니다.")
     private LocalDateTime endAt;
     @NotNull(message = "카테고리를 선택해주세요.")
     private Category category;
@@ -42,7 +44,7 @@ public class PostRequestDto {
         return Post.builder()
                 .isCanceled(false)
                 .title(title)
-                .image(image)
+                .image(null)
                 .price(price)
                 .content(content)
                 .quantity(quantity)
