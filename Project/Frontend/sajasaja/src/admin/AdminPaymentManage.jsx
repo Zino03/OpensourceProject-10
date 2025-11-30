@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import styled from 'styled-components';
-import { useNavigate } from 'react-router-dom';
+import PaymentProcessModal  from './modal/PaymentProcessModal';
+import CustomSelect from '../components/CustomSelect';
 
 const SearchBar = styled.div`
   display: flex;
@@ -61,6 +62,10 @@ const StatusButton = styled.button`
     background-color: #fff;
     color: #555;
   }
+  &.rewaiting {
+    background-color: #fff;
+    color: #555;
+  }
   &.rejected {
     background-color: #fff;
     color: #FF5A5A;
@@ -99,14 +104,37 @@ const mockPayments = [
   { id: 1, title: '닭가슴살 공구', depositor: '변진호', buyer: '김서연', amount: '20000', deadline: '2025.12.20', paymentDeadline: '2025.11.10', status: 'waiting' },
   { id: 2, title: '딸기 공구', depositor: '변진호', buyer: '김서연', amount: '400000', deadline: '2025.12.10', paymentDeadline: '2025.11.13', status: 'rejected' },
   { id: 3, title: '피자 공구', depositor: '변진호', buyer: '김서연', amount: '28900', deadline: '2025.01.20', paymentDeadline: '2025.11.13', status: 'completed' },
+  { id: 4, title: '커피 공구', depositor: '변진호', buyer: '김서연', amount: '28900', deadline: '2025.01.20', paymentDeadline: '2025.11.13', status: 'rewaiting' },
 ];
 
+const statusOptions = [
+    { value: 'all', label: '전체' },
+    { value: 'waiting,rewaiting', label: '대기' },
+    { value: 'completed', label: '완료' },
+    { value: 'rejected', label: '취소' },
+  ];
 
 const AdminPaymentManage = () => {
-  const navigate = useNavigate();
+  const [payments, setPayments] = useState(mockPayments);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState(null); 
 
-  const handleDetailClick = (id) => {
-     navigate(`/admin/payment/${id}`);
+  const handleOpenModal = (payment) => {
+    setSelectedPayment(payment);
+    setIsModalOpen(true);  
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedPayment(null);
+  };
+
+  const handleSavePayment = (id, updatedData) => {
+    setPayments(prevPayment => 
+      prevPayment.map(payment => 
+        payment.id === id ? { ...payment, ...updatedData } : payment
+      )
+    );
   };
 
   const [searchInputValue, setSearchInputValue] = useState('');
@@ -123,7 +151,7 @@ const AdminPaymentManage = () => {
   const filteredPayments = useMemo(() => {
     return mockPayments.filter((payment) => {
       // 상태 필터링
-      const statusMatch = filterStatus === 'all' || payment.status === filterStatus;
+      const statusMatch = filterStatus === 'all' || filterStatus.split(',').includes(payment.status);
 
       // 검색어 필터링 (모든 필드 검사)
       // 데이터 객체의 값들(Values)만 뽑아서 배열로 만든 뒤, 하나라도 검색어를 포함하는지 확인
@@ -143,14 +171,12 @@ const AdminPaymentManage = () => {
           value={searchInputValue}
           onChange={(e) => setSearchInputValue(e.target.value)}
           onKeyDown={handleKeyDown}/>
-        <select
+        <CustomSelect
           value={filterStatus} 
-          onChange={(e) => setFilterStatus(e.target.value)}>
-          <option value="all">전체</option>
-          <option value="waiting">대기</option>
-          <option value="rejected">취소</option>
-          <option value="completed">완료</option>
-        </select>
+          onChange={(val) => setFilterStatus(val)} 
+          options={statusOptions}
+          style={{width: "80px"}}>
+        </CustomSelect>
       </SearchBar>
 
       <Table>
@@ -180,11 +206,12 @@ const AdminPaymentManage = () => {
                 <td>
                   <StatusButton 
                     className={payment.status} 
-                    onClick={() => handleDetailClick(payment.id)}
+                    onClick={() => handleOpenModal(payment)}
                   >
-                    {payment.status === 'waiting' ? '대기' 
-                      : payment.status === 'rejected' ? '취소' 
-                      : '완료'}
+                    {payment.status === 'completed' ? '결제 완료' 
+                      : payment.status === 'rejected' ? '주문 취소' 
+                      : payment.status === 'waiting' ? '입금 대기'
+                      : '재입금 대기'}
                   </StatusButton>
                 </td>
               </tr>
@@ -210,6 +237,16 @@ const AdminPaymentManage = () => {
         <span>&gt;</span>
         <span>&gt;&gt;</span>
       </Pagination>
+
+      {isModalOpen && selectedPayment && (
+        <PaymentProcessModal 
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          type="payment"
+          data={selectedPayment} 
+          onSave={handleSavePayment}
+        />
+      )}
     </>
   );
 };

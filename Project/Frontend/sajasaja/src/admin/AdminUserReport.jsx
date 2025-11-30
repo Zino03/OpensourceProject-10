@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import styled from 'styled-components';
 import ReportProcessModal from './modal/ReportProcessModal';
+import CustomSelect from '../components/CustomSelect';
 
 const SearchBar = styled.div`
   display: flex;
@@ -98,11 +99,18 @@ const NoResult = styled.div`
 const mockReports = [
   { id: 1, reporter: '김서연', target: '변진호', content: '변진호 유저님을 신고합니다.', date: '2025.11.10', status: 'waiting' },
   { id: 2, reporter: '최지우', target: '변진호', content: '변진호 유저님을 신고합니다.', date: '2025.11.13', status: 'rejected' },
-  { id: 2, reporter: '최지우', target: '변진호', content: '변진호 유저님을 신고합니다.', date: '2025.11.13', status: 'completed' },
+  { id: 3, reporter: '최지우', target: '변진호', content: '변진호 유저님을 신고합니다.', date: '2025.11.13', status: 'completed' },
 ];
 
+const statusOptions = [
+    { value: 'all', label: '전체' },
+    { value: 'waiting', label: '대기' },
+    { value: 'completed', label: '제재' },
+    { value: 'rejected', label: '반려' },
+  ];
 
 const AdminUserPage = () => {
+  const [reports, setReports] = useState(mockReports);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
   
@@ -116,6 +124,13 @@ const AdminUserPage = () => {
     setSelectedReport(null);
   };
 
+  const handleSaveReport = (id, updatedData) => {
+    setReports(prevReports => 
+      prevReports.map(report => 
+        report.id === id ? { ...report, ...updatedData } : report
+      )
+    );
+  };
   
   const [searchInputValue, setSearchInputValue] = useState('');
   const [confirmedSearchTerm, setConfirmedSearchTerm] = useState(''); 
@@ -129,7 +144,7 @@ const AdminUserPage = () => {
   };
 
   const filteredUser = useMemo(() => {
-    return mockReports.filter((user) => {
+    return reports.filter((user) => {
       // 상태 필터링
       const statusMatch = filterStatus === 'all' || user.status === filterStatus;
 
@@ -151,14 +166,12 @@ const AdminUserPage = () => {
           value={searchInputValue}
           onChange={(e) => setSearchInputValue(e.target.value)}
           onKeyDown={handleKeyDown}/>
-        <select
+        <CustomSelect
           value={filterStatus} 
-          onChange={(e) => setFilterStatus(e.target.value)}>
-          <option value="all">전체</option>
-          <option value="waiting">대기</option>
-          <option value="rejected">반려</option>
-          <option value="completed">제재</option>
-        </select>
+          onChange={(val) => setFilterStatus(val)} 
+          options={statusOptions}
+          style={{width: "80px"}}>
+        </CustomSelect>
       </SearchBar>
 
       <Table>
@@ -216,6 +229,7 @@ const AdminUserPage = () => {
           onClose={handleCloseModal}
           type="user"
           data={selectedReport} 
+          onSave={handleSaveReport}
         />
       )}
     </>

@@ -1,6 +1,7 @@
-// 파일명: OrderDetail_PaymentCompleted.jsx
-import React from "react";
+// 파일명: OrderDetail_Shipping.jsx
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import ShippingInfoModal from "./modal/ShippingInfoModal.jsx"; // ✅ 경로 확인!
 
 /* ============================================
     🔥 SVG 화살표 아이콘 (색 변경 가능)
@@ -30,7 +31,6 @@ const styles = {
     color: "#222",
   },
 
-  //숫자랑 화살표 사이 갭
   orderSteps: {
     display: "flex",
     alignItems: "flex-start",
@@ -44,7 +44,6 @@ const styles = {
     cursor: "pointer",
   },
 
-  /* 비활성 숫자 */
   stepNumber: {
     fontSize: "60px",
     fontWeight: 401,
@@ -53,7 +52,6 @@ const styles = {
     fontFamily: "Pretendard",
   },
 
-  /* 활성 숫자 */
   stepNumberActive: {
     fontSize: "60px",
     fontWeight: 401,
@@ -68,7 +66,6 @@ const styles = {
     color: "#555",
   },
 
-  /* 표, 뒤 코드는 동일 */
   orderListWrapper: {
     marginTop: "20px",
   },
@@ -88,11 +85,6 @@ const styles = {
     fontWeight: 900,
   },
 
-  orderListNotice: {
-    fontSize: "12px",
-    color: "#D32F2F",
-  },
-
   orderTable: {
     width: "77%",
     margin: "0 auto",
@@ -104,7 +96,7 @@ const styles = {
     borderBottom: "1px solid #000",
   },
 
-  th: { //표 헤더 내용 스타일 수정
+  th: {
     padding: "20px 8px",
     textAlign: "center",
     fontWeight: 500,
@@ -112,7 +104,7 @@ const styles = {
     fontSize: "13.5px",
   },
 
-  td: { //표 바디 내용 스타일 수정
+  td: {
     padding: "10px 8px",
     textAlign: "center",
     fontSize: "11.5px",
@@ -134,12 +126,7 @@ const styles = {
     textOverflow: "ellipsis",
   },
 
-  orderActions: {
-    display: "flex",
-    gap: "8px",
-  },
-
-  btnOutline: { //버튼 스타일 수정
+  btnOutline: {
     minWidth: "90px",
     padding: "4px 14px",
     fontSize: "11px",
@@ -151,7 +138,7 @@ const styles = {
     margin: "0 -8px 0 -4px",
   },
 
-  btnFilled: { //버튼 스타일 수정
+  btnFilled: {
     minWidth: "90px",
     padding: "4px 14px",
     fontSize: "11px",
@@ -166,12 +153,9 @@ const styles = {
 
 /* ============================================
     🔥 화살표 색상 배열
-    index 순서대로: 
-    1→2, 2→3, 3→4, 4→5, 5→6
 =============================================== */
-const arrowColors = ["#828282", "#828282", "#828282", "#000000ff", "#ffffffff"]; // 화살표 색상 변경
+const arrowColors = ["#828282", "#828282", "#828282", "#000000ff", "#ffffffff"];
 
-/* 단계별 주문 개수 */
 const orderCounts = {
   received: 4,
   payment: 4,
@@ -181,7 +165,6 @@ const orderCounts = {
   cancelled: 4,
 };
 
-/* 현재 활성 단계 = 결제 완료 */
 const steps = [
   { id: 1, label: "주문 접수", value: orderCounts.received, path: "/order-detail" },
   { id: 2, label: "결제 완료", value: orderCounts.payment, path: "/received" },
@@ -191,23 +174,54 @@ const steps = [
   { id: 6, label: "주문 취소", value: orderCounts.cancelled, path: "/cancelled" },
 ];
 
-/* 주문 리스트 */
 const orders = [
-  { id: 1, name: "애니 피오르크 미니 프레첼 스낵 150g", host: "사자사자", quantity: 1, date: "2025-11-12", total: "7,000 원" },
-  { id: 2, name: "비로드슴 실온 닭가슴살 7종 10팩 골라담기", host: "빈지노", quantity: 2, date: "2025-05-20", total: "12,400 원" },
-  { id: 3, name: "연평도 자연 간장게장 100% 알베기 암꽃게 ...", host: "간장게장맛있어요요요", quantity: 2, date: "2025-01-13", total: "23,600 원" },
+  {
+    id: 1,
+    name: "애니 피오르크 미니 프레첼 스낵 150g",
+    host: "사자사자",
+    quantity: 1,
+    date: "2025-11-12",
+    total: "7,000 원",
+    carrierName: "대한통운",
+    trackingNumber: "1234567890123",
+  },
+  {
+    id: 2,
+    name: "비로드슴 실온 닭가슴살 7종 10팩 골라담기",
+    host: "빈지노",
+    quantity: 2,
+    date: "2025-05-20",
+    total: "12,400 원",
+    carrierName: "한진택배",
+    trackingNumber: "5556667778889",
+  },
+  {
+    id: 3,
+    name: "연평도 자연 간장게장 100% 알베기 암꽃게 ...",
+    host: "간장게장맛있어요요요",
+    quantity: 2,
+    date: "2025-01-13",
+    total: "23,600 원",
+    carrierName: "롯데택배",
+    trackingNumber: "9990001112223",
+  },
 ];
 
-/* ============================================
-    🔥 메인 컴포넌트
-=============================================== */
-function OrderDetail_PaymentCompleted() {
+function OrderDetail_Shipping() {
   const navigate = useNavigate();
+  const [selectedOrder, setSelectedOrder] = useState(null);
+
+  const handleOpenShippingModal = (order) => {
+    setSelectedOrder(order);
+  };
+
+  const handleCloseShippingModal = () => {
+    setSelectedOrder(null);
+  };
 
   return (
     <div style={styles.orderPage}>
-      
-      {/* 🔥 상단 주문 단계 + SVG 화살표 */}
+      {/* 상단 단계 표시 */}
       <div style={styles.orderSteps}>
         {steps.map((step, index) => (
           <React.Fragment key={step.id}>
@@ -215,13 +229,14 @@ function OrderDetail_PaymentCompleted() {
               style={styles.orderStep}
               onClick={() => step.path && navigate(step.path)}
             >
-              <div style={step.active ? styles.stepNumberActive : styles.stepNumber}>
+              <div
+                style={step.active ? styles.stepNumberActive : styles.stepNumber}
+              >
                 {step.value}
               </div>
               <div style={styles.stepLabel}>{step.label}</div>
             </div>
 
-            {/* 마지막 단계 전까지 화살표 출력 */}
             {index < steps.length - 1 && (
               <ArrowIcon color={arrowColors[index]} />
             )}
@@ -229,13 +244,10 @@ function OrderDetail_PaymentCompleted() {
         ))}
       </div>
 
-      {/* ============================
-          주문 내역 테이블
-      ============================ */}
+      {/* 주문 내역 테이블 */}
       <div style={styles.orderListWrapper}>
         <div style={styles.orderListHeader}>
           <h2 style={styles.orderListTitle}>주문 내역</h2>
-
         </div>
 
         <table style={styles.orderTable}>
@@ -255,38 +267,61 @@ function OrderDetail_PaymentCompleted() {
             {orders.map((order, idx) => (
               <tr
                 key={order.id}
-                style={idx === orders.length - 1 ? styles.lastBodyRow : styles.bodyRow}
+                style={
+                  idx === orders.length - 1
+                    ? styles.lastBodyRow
+                    : styles.bodyRow
+                }
               >
                 <td
-                  style={{ ...styles.td, ...styles.productName, cursor: "pointer" }}
+                  style={{
+                    ...styles.td,
+                    ...styles.productName,
+                    cursor: "pointer",
+                  }}
                   onClick={() => navigate(`/products/${order.id}`)}
                 >
                   {order.name}
                 </td>
 
-                <td style={{...styles.td, minWidth: "100px"}}>{order.host}</td>
+                <td style={{ ...styles.td, minWidth: "100px" }}>
+                  {order.host}
+                </td>
                 <td style={styles.td}>{order.quantity}</td>
                 <td style={styles.td}>{order.date}</td>
                 <td style={styles.td}>{order.total}</td>
 
                 <td style={styles.td}>
-                    <button type="button" style={styles.btnOutline}>
-                      배송 정보
-                    </button>
+                  <button
+                    type="button"
+                    style={styles.btnOutline}
+                    onClick={() => handleOpenShippingModal(order)}
+                  >
+                    배송 정보
+                  </button>
                 </td>
                 <td style={styles.td}>
-                    <button type="button" style={styles.btnFilled}>
-                      문의하기
-                    </button>
-                  </td>
+                  <button type="button" style={styles.btnFilled}>
+                    문의하기
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
-
         </table>
       </div>
+
+      {/* 배송정보 모달 */}
+      {selectedOrder && (
+        <ShippingInfoModal
+          carrierName={selectedOrder.carrierName}
+          trackingNumber={selectedOrder.trackingNumber}
+          productName={selectedOrder.name}
+          onClose={handleCloseShippingModal}
+        />
+      )}
     </div>
   );
 }
 
-export default OrderDetail_PaymentCompleted;
+export default OrderDetail_Shipping;

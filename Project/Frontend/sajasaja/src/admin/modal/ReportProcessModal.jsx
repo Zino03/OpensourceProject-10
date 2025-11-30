@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import CustomSelect from '../../components/CustomSelect';
 
 const Overlay = styled.div`
   position: fixed;
@@ -79,20 +80,6 @@ const ControlColumn = styled.div`
   gap: 20px;
 `;
 
-const StyledSelect = styled.select`
-  padding: 10px;
-  font-size: 11px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-right: 20px;
-  
-  &:focus {
-    outline: none;
-    border-color: #FF7E00;
-  }
-`;
-
 // 사유 입력
 const InputColumn = styled.div`
   flex: 2;
@@ -150,24 +137,37 @@ const ActionButton = styled.button`
 const STATUS_OPTIONS = {
   user: [
     { value: 'waiting', label: '처리 대기' },
-    { value: 'dismiss', label: '조치 없음(신고 기각)' },
-    { value: 'sanction', label: '사용자 제재' },
+    { value: 'rejected', label: '조치 없음 (신고 기각)' },
+    { value: 'completed', label: '사용자 제재 (영구 정지)' },
   ],
   review: [ // 후기, 공지 공통
     { value: 'waiting', label: '처리 대기' },
-    { value: 'keep', label: '유지' },
-    { value: 'hide', label: '숨김' },
-    { value: 'delete', label: '삭제' },
+    { value: 'rejected', label: '조치 없음 (신고 기각)' },
+    { value: 'completed', label: '숨김' },
   ]
 };
 
 // props: isOpen(모달상태), onClose(닫기함수), type('user' | 'review' | 'notice'), data(신고정보)
-const ReportProcessModal = ({ isOpen, onClose, type = 'user', data }) => {
+const ReportProcessModal = ({ isOpen, onClose, type = 'user', data, onSave }) => {
   // 상태 관리
   const [processStatus, setProcessStatus] = useState('waiting'); // 처리 상태
-  const [reason, setReason] = useState('');                      // 제재 사유
+  const [reason, setReason] = useState('');  // 제재 사유
+
+  useEffect(() => {
+    if (isOpen && data) {
+      setProcessStatus(data.status || 'waiting');
+    }
+  }, [isOpen, data]);
 
   if (!isOpen) return null;
+
+  const handleSave = () => {
+    onSave(data.id, {
+        status: processStatus,
+    });
+    alert('처리가 완료되었습니다.');
+    onClose();
+  };
 
   // type에 따라 보여줄 드롭다운 옵션 결정
   const currentStatusOptions = (type === 'user') ? STATUS_OPTIONS.user : STATUS_OPTIONS.review;
@@ -203,14 +203,12 @@ const ReportProcessModal = ({ isOpen, onClose, type = 'user', data }) => {
 
         <ProcessArea>
           <ControlColumn>
-              <StyledSelect 
+              <CustomSelect
                 value={processStatus} 
-                onChange={(e) => setProcessStatus(e.target.value)}
+                onChange={(val) => setProcessStatus(val)}
+                options={currentStatusOptions}
               >
-                {currentStatusOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </StyledSelect>
+              </CustomSelect>
           </ControlColumn>
 
           <InputColumn>
@@ -218,8 +216,6 @@ const ReportProcessModal = ({ isOpen, onClose, type = 'user', data }) => {
               <InputLabel style={{ width: '100px', paddingTop: '5px' }}>제재 사유 :</InputLabel>
               <StyledTextArea 
                 placeholder="내용을 입력해주세요." 
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
               />
             </div>
           </InputColumn>
@@ -227,7 +223,7 @@ const ReportProcessModal = ({ isOpen, onClose, type = 'user', data }) => {
         </ProcessArea>
         <ButtonGroup>
           <ActionButton onClick={onClose}>닫기</ActionButton>
-          <ActionButton primary onClick={() => {alert('처리되었습니다.'); onClose();}} >처리하기</ActionButton>
+          <ActionButton primary onClick={handleSave} >처리하기</ActionButton>
         </ButtonGroup>
 
       </ModalContainer>

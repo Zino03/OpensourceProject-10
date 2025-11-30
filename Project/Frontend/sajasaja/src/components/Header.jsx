@@ -14,7 +14,7 @@ const HeaderContent = styled.div`
   align-items: center;
   max-width: 1280px;
   margin: 0 auto;
-  padding: 0 32px; 
+  padding: 0 32px;
 `;
 
 const LogoSection = styled.a`

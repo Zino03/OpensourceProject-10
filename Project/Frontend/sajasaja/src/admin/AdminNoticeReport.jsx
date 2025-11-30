@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import styled from 'styled-components';
 import ReportProcessModal from './modal/ReportProcessModal';
+import CustomSelect from '../components/CustomSelect';
 
 const SearchBar = styled.div`
   display: flex;
@@ -108,6 +109,13 @@ const mockReports = [
   { id: 10, reporter: '최지우', target: '변진호', content: '내일 볼까요 말까요', date: '2025.11.13', status: 'completed' },
 ];
 
+const statusOptions = [
+    { value: 'all', label: '전체' },
+    { value: 'waiting', label: '대기' },
+    { value: 'completed', label: '제재' },
+    { value: 'rejected', label: '반려' },
+  ];
+
 
 const AdminNoticePage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -157,14 +165,12 @@ const AdminNoticePage = () => {
           value={searchInputValue}
           onChange={(e) => setSearchInputValue(e.target.value)}
           onKeyDown={handleKeyDown}/>
-        <select
+        <CustomSelect
           value={filterStatus} 
-          onChange={(e) => setFilterStatus(e.target.value)}>
-          <option value="all">전체</option>
-          <option value="waiting">대기</option>
-          <option value="rejected">반려</option>
-          <option value="completed">제재</option>
-        </select>
+          onChange={(val) => setFilterStatus(val)} 
+          options={statusOptions}
+          style={{width: "80px"}}>
+        </CustomSelect>
       </SearchBar>
 
       <Table>

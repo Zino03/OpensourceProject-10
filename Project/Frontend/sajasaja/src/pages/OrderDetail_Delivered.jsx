@@ -1,6 +1,8 @@
-// 파일명: OrderDetail_PaymentCompleted.jsx
-import React from "react";
+// 파일명: OrderDetail_Delivered.jsx
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import ConfirmationPurchase from "./modal/ConfirmationPurchase";
+
 
 /* ============================================
     🔥 SVG 화살표 아이콘 (색 변경 가능)
@@ -30,7 +32,7 @@ const styles = {
     color: "#222",
   },
 
-  //숫자랑 화살표 사이 갭
+  // 숫자랑 화살표 사이 갭
   orderSteps: {
     display: "flex",
     alignItems: "flex-start",
@@ -193,24 +195,79 @@ const steps = [
   { id: 6, label: "주문 취소", value: orderCounts.cancelled, path: "/cancelled" },
 ];
 
-
-/* 주문 리스트 + 구매확정 여부 */
-const orders = [
-  { id: 1, name: "애니 피오르크 미니 프레첼 스낵 150g", host: "사자사자", quantity: 1, date: "2025-11-12", total: "7,000 원", confirmed: false },
-  { id: 2, name: "비로드슴 실온 닭가슴살 7종 10팩 골라담기", host: "빈지노", quantity: 2, date: "2025-05-20", total: "12,400 원", confirmed: true },
-  { id: 3, name: "연평도 자연 간장게장 100% 알베기 암꽃게 ...", host: "간장게장맛있어요요요", quantity: 2, date: "2025-01-13", total: "23,600 원", confirmed: false },
-  { id: 4, name: "[아이앤비] 섬유유연제 건조기", host: "김우민호", quantity: 1, date: "2025-01-07", total: "5,200 원", confirmed: true },
+/* 초기 주문 리스트 + 구매확정 여부 */
+const initialOrders = [
+  {
+    id: 1,
+    name: "애니 피오르크 미니 프레첼 스낵 150g",
+    host: "사자사자",
+    quantity: 1,
+    date: "2025-11-12",
+    total: "7,000 원",
+    confirmed: false,
+  },
+  {
+    id: 2,
+    name: "비로드슴 실온 닭가슴살 7종 10팩 골라담기",
+    host: "빈지노",
+    quantity: 2,
+    date: "2025-05-20",
+    total: "12,400 원",
+    confirmed: true,
+  },
+  {
+    id: 3,
+    name: "연평도 자연 간장게장 100% 알베기 암꽃게 ...",
+    host: "간장게장맛있어요요요",
+    quantity: 2,
+    date: "2025-01-13",
+    total: "23,600 원",
+    confirmed: false,
+  },
+  {
+    id: 4,
+    name: "[아이앤비] 섬유유연제 건조기",
+    host: "김우민호",
+    quantity: 1,
+    date: "2025-01-07",
+    total: "5,200 원",
+    confirmed: true,
+  },
 ];
 
 /* ============================================
     🔥 메인 컴포넌트
 =============================================== */
-function OrderDetail_PaymentCompleted() {
+function OrderDetail_Delivered() {
   const navigate = useNavigate();
+
+  // 주문 리스트 상태
+  const [orders, setOrders] = useState(initialOrders);
+
+  // 모달 on/off
+  const [showModal, setShowModal] = useState(false);
+  // 어느 주문을 구매확정하려는지
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
+
+  // 모달에서 "구매 확정" 눌렀을 때
+  const handleConfirmPurchase = () => {
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.id === selectedOrderId ? { ...o, confirmed: true } : o
+      )
+    );
+    setShowModal(false);
+    setSelectedOrderId(null);
+  };
+
+  // 모달 닫기
+  const handleCancelModal = () => {
+    setShowModal(false);
+    setSelectedOrderId(null);
+  };
 
   return (
     <div style={styles.orderPage}>
-      
       {/* 🔥 상단 주문 단계 */}
       <div style={styles.orderSteps}>
         {steps.map((step, index) => (
@@ -219,13 +276,17 @@ function OrderDetail_PaymentCompleted() {
               style={styles.orderStep}
               onClick={() => step.path && navigate(step.path)}
             >
-              <div style={step.active ? styles.stepNumberActive : styles.stepNumber}>
+              <div
+                style={step.active ? styles.stepNumberActive : styles.stepNumber}
+              >
                 {step.value}
               </div>
               <div style={styles.stepLabel}>{step.label}</div>
             </div>
 
-            {index < steps.length - 1 && <ArrowIcon color={arrowColors[index]} />}
+            {index < steps.length - 1 && (
+              <ArrowIcon color={arrowColors[index]} />
+            )}
           </React.Fragment>
         ))}
       </div>
@@ -255,16 +316,26 @@ function OrderDetail_PaymentCompleted() {
             {orders.map((order, idx) => (
               <tr
                 key={order.id}
-                style={idx === orders.length - 1 ? styles.lastBodyRow : styles.bodyRow}
+                style={
+                  idx === orders.length - 1
+                    ? styles.lastBodyRow
+                    : styles.bodyRow
+                }
               >
                 <td
-                  style={{ ...styles.td, ...styles.productName, cursor: "pointer" }}
+                  style={{
+                    ...styles.td,
+                    ...styles.productName,
+                    cursor: "pointer",
+                  }}
                   onClick={() => navigate(`/products/${order.id}`)}
                 >
                   {order.name}
                 </td>
 
-                <td style={{ ...styles.td, minWidth: "100px" }}>{order.host}</td>
+                <td style={{ ...styles.td, minWidth: "100px" }}>
+                  {order.host}
+                </td>
                 <td style={styles.td}>{order.quantity}</td>
                 <td style={styles.td}>{order.date}</td>
                 <td style={styles.td}>{order.total}</td>
@@ -278,6 +349,12 @@ function OrderDetail_PaymentCompleted() {
                         ? styles.btnConfirmDone
                         : styles.btnConfirmDefault
                     }
+                    onClick={() => {
+                      // 이미 확정된 주문은 클릭해도 아무 동작 X
+                      if (order.confirmed) return;
+                      setSelectedOrderId(order.id);
+                      setShowModal(true);
+                    }}
                   >
                     구매확정
                   </button>
@@ -291,11 +368,18 @@ function OrderDetail_PaymentCompleted() {
               </tr>
             ))}
           </tbody>
-
         </table>
       </div>
+
+      {/* 🔥 구매확정 모달 */}
+      {showModal && (
+        <ConfirmationPurchase
+          onCancel={handleCancelModal}
+          onConfirm={handleConfirmPurchase}
+        />
+      )}
     </div>
   );
 }
 
-export default OrderDetail_PaymentCompleted;
+export default OrderDetail_Delivered;

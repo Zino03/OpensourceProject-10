@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import styled from 'styled-components';
 import PostManageModal from './modal/PostManageModal';
+import CustomSelect from '../components/CustomSelect';
 
 const SearchBar = styled.div`
   display: flex;
@@ -12,7 +13,7 @@ const SearchBar = styled.div`
     width: 80%;
     padding: 10px;
     border: 1px solid #ddd;
-    border-radius: 8px;
+    border-radius: 5px;
     font-size: 11px;
     &:focus { outline: none; }
   }
@@ -102,6 +103,12 @@ const mockPosts = [
   { id: 4, title: '노트북 공구', writer: '변진호', deadline: '2025.11.20', date: '2025.11.13', status: 'companion' },
 ];
 
+const statusOptions = [
+    { value: 'all', label: '전체' },
+    { value: 'waiting', label: '대기' },
+    { value: 'approve', label: '승인' },
+    { value: 'companion', label: '반려' },
+  ];
 
 const AdminPaymentManage = () => {
   const [posts, setPosts] = useState(mockPosts); 
@@ -171,14 +178,12 @@ const AdminPaymentManage = () => {
           value={searchInputValue}
           onChange={(e) => setSearchInputValue(e.target.value)}
           onKeyDown={handleKeyDown}/>
-        <select
+        <CustomSelect
           value={filterStatus} 
-          onChange={(e) => setFilterStatus(e.target.value)}>
-          <option value="all">전체</option>
-          <option value="approve">승인</option>
-          <option value="companion">반려</option>
-          <option value="waiting">대기</option>
-        </select>
+          onChange={(val) => setFilterStatus(val)} 
+          options={statusOptions}
+          style={{width: "80px"}}>
+        </CustomSelect>
       </SearchBar>
 
       <Table>
@@ -234,6 +239,7 @@ const AdminPaymentManage = () => {
           post={selectedPost}
           onClose={handleCloseModal}
           onAction={handleModalAction}
+          style={{transition: "all 1s"}}
         />
       )}
     </>
