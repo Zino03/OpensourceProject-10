@@ -14,6 +14,8 @@ import LoginPage from './pages/LoginPage';
 import FindPassword from './pages/FindPassword';
 import JoinPage from './pages/JoinPage';
 import VerificationPage from './pages/VerificationPage';
+import TermsOfUsePage from './pages/TermsOfUsePage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 
 import OrderPage from './pages/OrderPage';
 import PaymentPage from './pages/PaymentPage';
@@ -35,6 +37,7 @@ import OrderDetail_Delivered from './pages/OrderDetail_Delivered';
 import OrderDetail_Cancelled from './pages/OrderDetail_Cancelled';
 
 import Mypage from './pages/Mypage';
+import MyProfile from './pages/MyProfile.jsx';
 
 
 function App() {
@@ -58,7 +61,9 @@ function App() {
           <Route path="/cancelled" element={<OrderDetail_Cancelled />} />
 
           <Route path="/mypage" element={<Mypage />} />
-
+          <Route path="/myprofile" element={<MyProfile />} />
+          <Route path="/terms" element={<TermsOfUsePage/>} />
+          <Route path="/privacy" element={<PrivacyPolicyPage/>} />
 
           <Route path="/write" element={<GroupPurchaseRegister/>} />
           <Route path="/nearby" element={<NearbyGroupPurchase/>} />

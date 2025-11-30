@@ -81,6 +81,7 @@ const ButtonWrapper = styled.div`
   
   button {
     background-color: #FF7E00; 
+    border: 1px solid #FF7E00;
     flex: 1; 
     padding: 8px 0;
     font-size: 12px;
@@ -92,6 +93,7 @@ const ButtonWrapper = styled.div`
 
 const LoginSignupButton = styled.button`
   background-color: #FF7E00; 
+  border: 1px solid #FF7E00;
   color: #fff;
 `;
 

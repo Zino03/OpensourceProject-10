@@ -40,6 +40,7 @@ const InputWithButton = styled.div`
   display: flex;
   gap: 12px;
   align-items: center;
+  position: relative;
 `;
 
 const Input = styled.input`
@@ -65,7 +66,10 @@ const Input = styled.input`
 `;
 
 const CheckButton = styled.button`
-  padding: 8px 16px;
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  right: 5px;
   background-color: #CFCFCF;
   color: white;
   border: none;

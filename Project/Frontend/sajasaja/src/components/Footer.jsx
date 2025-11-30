@@ -13,7 +13,7 @@ const ContentWrapper = styled.div`
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 10px;
 `;
 
 // 로고 영역
@@ -21,7 +21,6 @@ const LogoArea = styled.div`
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 10px;
 `;
 
 // 링크 메뉴 (이용약관 | 개인정보처리방침)
@@ -62,9 +61,9 @@ const Footer = () => {
         </LogoArea>
 
         <LinkMenu>
-          <a href="#">이용약관</a>
+          <a href="/terms">이용약관</a>
           <span>|</span>
-          <a href="#" style={{fontWeight: 'bold'}}>개인정보처리방침</a>
+          <a href="/privacy">개인정보처리방침</a>
         </LinkMenu>
 
         <Description>

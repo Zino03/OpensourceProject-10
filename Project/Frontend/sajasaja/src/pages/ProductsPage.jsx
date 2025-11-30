@@ -11,7 +11,8 @@ const mockData = [ // 임시 데이터
     totalCount: 100,
     currentCount: 9,
     deadline: "2025-11-30",
-    currentStatus: "진행중"
+    currentStatus: "마감",
+    category: "식품"
   },
 
   {
@@ -22,17 +23,19 @@ const mockData = [ // 임시 데이터
     totalCount: 10,
     currentCount: 3,
     deadline: "2025-11-30",
-    currentStatus: "마감임박"
+    currentStatus: "마감 임박",
+    category: "식품"
   },
   {
     id: 3,
-    title: "애니 피욘크 미니 프레첼 스낵 150g",
-    price: 7000,
+    title: "짱 멋진 가방",
+    price: 237000,
     imageUrl: "",
     totalCount: 100,
     currentCount: 9,
     deadline: "2025-11-30",
-    currentStatus: "진행중"
+    currentStatus: "모집 중",
+    category: "생활용품"
   },
 
   {
@@ -43,7 +46,8 @@ const mockData = [ // 임시 데이터
     totalCount: 10,
     currentCount: 3,
     deadline: "2025-11-30",
-    currentStatus: "마감임박"
+    currentStatus: "마감 임박",
+    category: "반려동물"
   },
   {
     id: 5,
@@ -53,7 +57,9 @@ const mockData = [ // 임시 데이터
     totalCount: 100,
     currentCount: 9,
     deadline: "2025-11-30",
-    currentStatus: "진행중"
+    currentStatus: "모집 중",
+    category: "스포츠"
+    
   },
 
   {
@@ -64,7 +70,8 @@ const mockData = [ // 임시 데이터
     totalCount: 10,
     currentCount: 3,
     deadline: "2025-11-30",
-    currentStatus: "마감임박"
+    currentStatus: "마감 임박",
+    category: "교육"
   }
 ];
 
@@ -142,6 +149,9 @@ const ProductsPage = () => {
         <SearchBar>
           <select>
             <option>전체</option>
+            <option>모집 중</option>
+            <option>마감</option>
+            <option>마감 임박</option>
           </select>
           <input type="text" placeholder="공동 구매 게시물 검색" />
           <img src="/images/search.png" alt="search" /> 
