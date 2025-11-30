@@ -14,7 +14,5 @@ public class UserRequestDto {
 
     private String nickname;
 
-    private String profileImg;
-
     private String account;
 }

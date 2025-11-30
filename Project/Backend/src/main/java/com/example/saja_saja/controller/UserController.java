@@ -1,12 +1,14 @@
 package com.example.saja_saja.controller;
 
 import com.example.saja_saja.config.SecurityUtil;
+import com.example.saja_saja.dto.post.PostWithQuantityRequestDto;
 import com.example.saja_saja.dto.post.ReviewRequestDto;
 import com.example.saja_saja.dto.user.UserAddressRequestDto;
 import com.example.saja_saja.dto.user.UserRequestDto;
 import com.example.saja_saja.entity.member.Member;
 import com.example.saja_saja.entity.post.BuyerRepository;
 import com.example.saja_saja.entity.user.User;
+import com.example.saja_saja.exception.BadRequestException;
 import com.example.saja_saja.service.BuyerService;
 import com.example.saja_saja.service.ReviewService;
 import com.example.saja_saja.service.UserService;
@@ -20,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,10 +42,14 @@ public class UserController {
         return userService.getProfile(nickname);
     }
 
-    @PutMapping("/mypage/user")
-    public ResponseEntity updateUserInfo(@RequestBody UserRequestDto req) {
+    @PutMapping(
+            value = "/mypage/user",
+            consumes = { "multipart/form-data" }
+    )
+    public ResponseEntity updateUserInfo(@RequestPart(value = "user", required = false) UserRequestDto req,
+                                         @RequestPart(value = "image", required = false) MultipartFile image) {
         Member member = userService.getMember(SecurityUtil.getCurrentUserId());
-        return userService.updateUserInfo(member, req);
+        return userService.updateUserInfo(member, req, image);
     }
 
     @GetMapping("/mypage/addresses")

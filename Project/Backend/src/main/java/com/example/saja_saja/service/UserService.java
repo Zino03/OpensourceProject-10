@@ -7,6 +7,7 @@ import com.example.saja_saja.entity.user.User;
 import com.example.saja_saja.entity.user.UserAddress;
 import com.example.saja_saja.entity.user.UserAddressRepository;
 import com.example.saja_saja.entity.user.UserRepository;
+import com.example.saja_saja.exception.BadRequestException;
 import com.example.saja_saja.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -14,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -26,6 +28,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserAddressRepository userAddressRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ImageService imageService;
 
     public Member getMember(Long userId) {
         try {
@@ -177,7 +180,7 @@ public class UserService {
 
 
     @Transactional
-    public ResponseEntity updateUserInfo(Member member, UserRequestDto req) {
+    public ResponseEntity updateUserInfo(Member member, UserRequestDto req, MultipartFile image) {
         try {
             Long userId = member.getUser().getId();
 
@@ -194,7 +197,9 @@ public class UserService {
             }
 
             if (req.getNickname() != null) user.setNickname(req.getNickname());
-            if (req.getProfileImg() != null) user.setProfileImg(req.getProfileImg());
+            if (image != null && !image.isEmpty()) {
+                user.setProfileImg(imageService.uploadProfileImage(image));
+            }
             if (req.getAccount() != null) user.setAccount(req.getAccount());
 
             HashMap<String, Object> data = new HashMap<>();
