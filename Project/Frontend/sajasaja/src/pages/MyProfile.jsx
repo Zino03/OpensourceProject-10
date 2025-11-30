@@ -67,15 +67,15 @@ const styles = {
     objectFit: "cover",
   },
   profileEditButton: {
-  marginLeft: "-30px",   // 원 오른쪽으로 이동
-  marginBottom: "-110px",  // 밑으로 살짝 내리기 (조절 가능)
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  border: "none",
-  background: "transparent",
-  cursor: "pointer",
-},
+    marginLeft: "-30px", // 원 오른쪽으로 이동
+    marginBottom: "-110px", // 밑으로 살짝 내리기 (조절 가능)
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    border: "none",
+    background: "transparent",
+    cursor: "pointer",
+  },
 
   form: {
     display: "flex",
@@ -214,6 +214,7 @@ const styles = {
 };
 
 function MyProfile() {
+  // 🔹 기본 폼 값
   const [form, setForm] = useState({
     name: "최지우",
     nickname: "간장게장",
@@ -225,6 +226,10 @@ function MyProfile() {
     accountNumber: "110-123-123456",
   });
 
+  // 🔹 최초에 가지고 있던 닉네임 (내 정보 수정 페이지 들어왔을 때 닉네임)
+  //    - 실제 서비스에서는 API로 받아온 user.nickname을 여기에 넣어주면 됨
+  const [originalNickname] = useState("간장게장");
+
   const [profileImage, setProfileImage] = useState(null);
 
   const [emailError, setEmailError] = useState("");
@@ -233,7 +238,8 @@ function MyProfile() {
   const [bankOpen, setBankOpen] = useState(false);
 
   const [nicknameMessage, setNicknameMessage] = useState("");
-  const [isNicknameValid, setIsNicknameValid] = useState(null); // true / false / null
+  // ✅ 초기값을 true로 : "처음 들어왔을 때 원래 닉네임은 이미 사용 가능하다고 간주"
+  const [isNicknameValid, setIsNicknameValid] = useState(true); // true / false / null
 
   const selectedBank =
     bankOptions.find((b) => b.id === form.bank) || bankOptions[0];
@@ -242,9 +248,19 @@ function MyProfile() {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
 
+    // 🔥 닉네임 입력이 바뀔 때의 처리
     if (name === "nickname") {
-      setNicknameMessage("");
-      setIsNicknameValid(null);
+      const trimmed = value.trim();
+
+      // 1) 원래 닉네임 그대로면 → 이미 검증된 것으로 취급
+      if (trimmed === originalNickname) {
+        setIsNicknameValid(true);
+        setNicknameMessage(""); // 굳이 메시지 안 띄워도 됨
+      } else {
+        // 2) 새 닉네임이면 → 다시 중복확인 받아야 하므로 상태 초기화
+        setIsNicknameValid(null);
+        setNicknameMessage(""); // "닉네임 중복확인을 해주세요."는 제출 시에만 띄움
+      }
     }
   };
 
@@ -270,8 +286,19 @@ function MyProfile() {
       return;
     }
 
+    // 🔥 현재 닉네임이 "원래 내 닉네임"인 경우
+    // → 굳이 서버에 물어볼 필요 없이 그냥 사용 가능 처리
+    if (nickname === originalNickname) {
+      setNicknameMessage("현재 사용 중인 닉네임입니다.");
+      setIsNicknameValid(true);
+      return;
+    }
+
+    // 실제로는 서버에서 체크하지만, 여기서는 하드코딩 예시
     const usedNicknames = ["간장게장", "사자사자"];
 
+    // 🔥 위에서 originalNickname인 경우는 이미 return 했으니,
+    //    여기서는 "내가 아닌 다른 사람"의 닉네임이라고 가정
     if (usedNicknames.includes(nickname)) {
       setNicknameMessage("이미 사용중인 닉네임입니다.");
       setIsNicknameValid(false);
@@ -286,7 +313,9 @@ function MyProfile() {
 
     let hasError = false;
 
-    // 닉네임 중복확인 안했거나 사용 불가
+    // 🔥 닉네임 중복확인 관련 검증
+    // - isNicknameValid === true 인 경우만 통과
+    // - (원래 닉네임이면 isNicknameValid가 true로 유지되기 때문에 막히지 않음)
     if (isNicknameValid !== true) {
       if (!nicknameMessage) {
         setNicknameMessage("닉네임 중복확인을 해주세요.");
@@ -343,21 +372,25 @@ function MyProfile() {
       <div style={styles.card}>
         {/* 프로필 */}
         <div style={styles.profileRow}>
-  <div style={styles.profileImgWrapper}>
-    <img src={profileImage || defaultProfile} style={styles.profileImg} />
-  </div>
+          <div style={styles.profileImgWrapper}>
+            <img src={profileImage || defaultProfile} style={styles.profileImg} />
+          </div>
 
-          {/* 👍 반드시 profileRow 내부에 둬야 함 */}
+          {/* 프로필 수정 버튼 */}
           <label style={styles.profileEditButton}>
             <img
               src="/images/profileedit.svg"
               alt="edit"
               style={{ width: "21px", height: "21px" }}
             />
-            <input type="file" accept="image/*" onChange={handleImageChange} style={{ display: "none" }} />
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              style={{ display: "none" }}
+            />
           </label>
         </div>
-
 
         {/* 폼 */}
         <form style={styles.form} onSubmit={handleSubmit}>
@@ -432,7 +465,7 @@ function MyProfile() {
               placeholder="ID@example.com"
             />
 
-            {emailError && (
+          {emailError && (
               <span style={{ fontSize: "12px", color: "#D32F2F" }}>
                 {emailError}
               </span>
