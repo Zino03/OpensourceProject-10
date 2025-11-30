@@ -3,6 +3,7 @@ import { Routes, Route, BrowserRouter as Router} from 'react-router-dom';
 
 import GlobalStyle from './styles/GlobalStyle';
 import Header from './components/Header';
+import Footer from './components/Footer';
 
 import ProductsPage from './pages/ProductsPage';
 import GroupPurchaseDetail from './pages/GroupPurchaseDetail';
@@ -33,6 +34,9 @@ import OrderDetail_Shipping from './pages/OrderDetail_Shipping.jsx';
 import OrderDetail_Delivered from './pages/OrderDetail_Delivered';
 import OrderDetail_Cancelled from './pages/OrderDetail_Cancelled';
 
+import Mypage from './pages/Mypage';
+
+
 function App() {
   return (
     <Router>
@@ -52,6 +56,8 @@ function App() {
           <Route path="/shipping" element={<OrderDetail_Shipping />} />
           <Route path="/delivered" element={<OrderDetail_Delivered />} />
           <Route path="/cancelled" element={<OrderDetail_Cancelled />} />
+
+          <Route path="/mypage" element={<Mypage />} />
 
 
           <Route path="/write" element={<GroupPurchaseRegister/>} />
@@ -73,6 +79,7 @@ function App() {
             <Route path="payment/:id" element={<AdminSettlement />} />
           </Route>
         </Routes>
+        <Footer/>
       </div>
     </Router>
   );

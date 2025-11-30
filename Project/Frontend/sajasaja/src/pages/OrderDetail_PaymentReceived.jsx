@@ -104,7 +104,7 @@ const styles = {
     borderBottom: "1px solid #000",
   },
 
-  th: { //표 헤더 내용 스타일 수정
+  th: {
     padding: "20px 8px",
     textAlign: "center",
     fontWeight: 500,
@@ -112,7 +112,7 @@ const styles = {
     fontSize: "13.5px",
   },
 
-  td: { //표 바디 내용 스타일 수정
+  td: {
     padding: "10px 8px",
     textAlign: "center",
     fontSize: "11.5px",
@@ -139,7 +139,7 @@ const styles = {
     gap: "8px",
   },
 
-  btnOutline: { //버튼 스타일 수정
+  btnOutline: {
     minWidth: "90px",
     padding: "4px 14px",
     fontSize: "11px",
@@ -151,7 +151,7 @@ const styles = {
     margin: "0 -8px 0 -4px",
   },
 
-  btnFilled: { //버튼 스타일 수정
+  btnFilled: {
     minWidth: "90px",
     padding: "4px 14px",
     fontSize: "11px",
@@ -169,7 +169,7 @@ const styles = {
     index 순서대로: 
     1→2, 2→3, 3→4, 4→5, 5→6
 =============================================== */
-const arrowColors = ["#828282", "#000000ff", "#828282", "#828282", "#ffffffff"]; // 화살표 색상 변경
+const arrowColors = ["#828282", "#000000ff", "#828282", "#828282", "#ffffffff"];
 
 /* 단계별 주문 개수 */
 const orderCounts = {
@@ -183,12 +183,12 @@ const orderCounts = {
 
 /* 현재 활성 단계 = 결제 완료 */
 const steps = [
-  { id: 1, label: "주문 접수", value: orderCounts.received },
-  { id: 2, label: "결제 완료", value: orderCounts.payment, active: true },
-  { id: 3, label: "상품 준비 중", value: orderCounts.preparing },
-  { id: 4, label: "배송 중", value: orderCounts.shipping },
-  { id: 5, label: "배송완료", value: orderCounts.delivered },
-  { id: 6, label: "주문 취소", value: orderCounts.cancelled },
+  { id: 1, label: "주문 접수", value: orderCounts.received, path: "/order-detail" },
+  { id: 2, label: "결제 완료", value: orderCounts.payment, active: true, path: "/received" },
+  { id: 3, label: "상품 준비 중", value: orderCounts.preparing, path: "/preparing" },
+  { id: 4, label: "배송 중", value: orderCounts.shipping, path: "/shipping" },
+  { id: 5, label: "배송완료", value: orderCounts.delivered, path: "/delivered" },
+  { id: 6, label: "주문 취소", value: orderCounts.cancelled, path: "/cancelled" },
 ];
 
 /* 주문 리스트 */
@@ -207,12 +207,15 @@ function OrderDetail_PaymentCompleted() {
 
   return (
     <div style={styles.orderPage}>
-      
       {/* 🔥 상단 주문 단계 + SVG 화살표 */}
       <div style={styles.orderSteps}>
         {steps.map((step, index) => (
           <React.Fragment key={step.id}>
-            <div style={styles.orderStep}>
+            {/* ✅ 여기 onClick 추가됨 */}
+            <div
+              style={styles.orderStep}
+              onClick={() => step.path && navigate(step.path)}
+            >
               <div style={step.active ? styles.stepNumberActive : styles.stepNumber}>
                 {step.value}
               </div>
@@ -245,7 +248,7 @@ function OrderDetail_PaymentCompleted() {
               <th style={styles.th}>주최자정보</th>
               <th style={styles.th}>수량</th>
               <th style={styles.th}>주문일</th>
-              <th style={styles.th}>주문금액</th>
+              <th style={styles.th}>결제금액</th>
               <th style={styles.th}>주문취소</th>
               <th style={styles.th}>문의하기</th>
             </tr>
@@ -264,21 +267,21 @@ function OrderDetail_PaymentCompleted() {
                   {order.name}
                 </td>
 
-                <td style={{...styles.td, minWidth: "100px"}}>{order.host}</td>
+                <td style={{ ...styles.td, minWidth: "100px" }}>{order.host}</td>
                 <td style={styles.td}>{order.quantity}</td>
                 <td style={styles.td}>{order.date}</td>
                 <td style={styles.td}>{order.total}</td>
 
                 <td style={styles.td}>
-                    <button type="button" style={styles.btnOutline}>
-                      주문 취소
-                    </button>
+                  <button type="button" style={styles.btnOutline}>
+                    주문 취소
+                  </button>
                 </td>
                 <td style={styles.td}>
-                    <button type="button" style={styles.btnFilled}>
-                      문의하기
-                    </button>
-                  </td>
+                  <button type="button" style={styles.btnFilled}>
+                    문의하기
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>

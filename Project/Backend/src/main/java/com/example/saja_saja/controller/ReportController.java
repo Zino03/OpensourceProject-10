@@ -6,12 +6,16 @@ import com.example.saja_saja.dto.report.ReportType;
 import com.example.saja_saja.entity.member.Member;
 import com.example.saja_saja.service.ReportService;
 import com.example.saja_saja.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -20,23 +24,26 @@ public class ReportController {
     private final UserService userService;
     private final ReportService reportService;
 
-    @GetMapping("/reports/{type}")
-    public ResponseEntity getReviewReportList(
-            @PathVariable ReportType type,
-            @PageableDefault(size = 15, sort = "reportedAt", direction = Sort.Direction.DESC) Pageable pageable
-    ) {
-        Member member = userService.getMember(SecurityUtil.getCurrentUserId());
-        return reportService.getReportList(member, type, pageable);
-    }
-
-    @GetMapping("/report/{type}/{reportId}")
-    public ResponseEntity getReport(@PathVariable ReportType type, @PathVariable Long reportId) {
-        Member member = userService.getMember(SecurityUtil.getCurrentUserId());
-        return reportService.getReport(member, type, reportId);
-    }
-
     @PostMapping("/report/{type}")
-    public ResponseEntity createReport(@PathVariable ReportType type, @RequestBody ReportRequestDto req) {
+    public ResponseEntity createReport(
+            @PathVariable ReportType type,
+            @Valid @RequestBody ReportRequestDto req,
+            BindingResult errors
+    ) {
+        Map<String, Object> validatorResult = new HashMap<>();
+
+        if (errors.hasErrors()) {
+            for (FieldError error : errors.getFieldErrors()) {
+                String validKeyName = String.format("valid_%s", error.getField());
+                validatorResult.put(validKeyName, error.getDefaultMessage());
+            }
+        }
+
+        if (!validatorResult.isEmpty()) {
+            validatorResult.put("data", req);
+            return new ResponseEntity<>(validatorResult, HttpStatus.OK);
+        }
+
         Member member = userService.getMember(SecurityUtil.getCurrentUserId());
         return reportService.createReport(member, type, req);
     }

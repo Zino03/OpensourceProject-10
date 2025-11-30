@@ -23,14 +23,6 @@ const LogoSection = styled.a`
   gap: 12px;
   text-decoration: none;
   margin-left: 125px;
-
-  img { height: 30px; }
-  h2 { 
-    font-size: 20px;
-    font-weight: 800;
-    color: #2C3E50;
-    margin: 0;
-  }
 `;
 
 const RightSection = styled.div`
@@ -68,8 +60,8 @@ const Header = () => {
     <HeaderWrapper>
       <HeaderContent>
         <LogoSection href="/">
-          <img src="/images/sajasaja.png" alt="SajaSaja Logo" /> 
-          <h2>SajaSaja</h2>
+          <img src="/images/sajasaja.png" alt="SajaSaja Logo" style={{height: 30}}/> 
+          <img src="/images/LogoText.png" alt="SajaSaja LogoText" style={{height: 20}} /> 
         </LogoSection>
 
         <RightSection>

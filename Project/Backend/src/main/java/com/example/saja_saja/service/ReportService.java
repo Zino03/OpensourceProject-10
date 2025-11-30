@@ -11,6 +11,7 @@ import com.example.saja_saja.entity.report.*;
 import com.example.saja_saja.entity.user.User;
 import com.example.saja_saja.entity.user.UserRepository;
 import com.example.saja_saja.exception.BadRequestException;
+import com.example.saja_saja.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -42,92 +43,6 @@ public class ReportService {
     //  제재된 사용자 본인의 경우 본인 프로필에서 공구 조회 X, 주문내역 확인 O, 정보 수정 O, 배송지 관리 O,
     //  post 공구 등록, 구매, 후기 모든 서비스 불가능
 
-    public ResponseEntity getReportList(Member member, ReportType reportType, Pageable pageable) {
-        try {
-            Long userId = member.getUser().getId();
-            Page<?> reportPage;
-
-            switch (reportType) {
-                case USER:
-                    reportPage = userReportRepository.findAllByReporterId(userId, pageable);
-                    break;
-                case REVIEW:
-                    reportPage = reviewReportRepository.findAllByReporterId(userId, pageable);
-                    break;
-                case NOTICE:
-                    reportPage = noticeReportRepository.findAllByReporterId(userId, pageable);
-                    break;
-                default:
-                    throw new IllegalArgumentException("유효하지 않은 신고 타입입니다.");
-            }
-
-            Page<ReportListResponseDto> reportDtoPage = reportPage.map(
-                    reportEntity -> ReportListResponseDto.of(reportEntity)
-            );
-
-            List<ReportListResponseDto> reports = reportDtoPage.getContent();
-            boolean hasMore = reportDtoPage.hasNext();
-
-            HashMap<String, Object> data = new HashMap<>();
-            data.put("reports", reports);
-            data.put("hasMore", hasMore);
-            return new ResponseEntity<>(data, HttpStatus.OK);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("신고 내역을 불러올 수 없습니다.");
-        }
-    }
-
-    public ResponseEntity getReport(Member member, ReportType type, Long reportId) {
-        try {
-            Object reportEntity = null;
-            switch (type) {
-                case REVIEW:
-                    reportEntity = reviewReportRepository.findById(reportId)
-                            .orElseThrow(() -> new NoSuchElementException("신고 내역을 찾을 수 없습니다."));
-                    break;
-                case USER:
-                    reportEntity = userReportRepository.findById(reportId)
-                            .orElseThrow(() -> new NoSuchElementException("신고 내역을 찾을 수 없습니다."));
-                    break;
-                case NOTICE:
-                    reportEntity = noticeReportRepository.findById(reportId)
-                            .orElseThrow(() -> new NoSuchElementException("신고 내역을 찾을 수 없습니다."));
-                    break;
-                default:
-                    throw new IllegalArgumentException("유효하지 않은 신고 타입입니다.");
-            }
-
-            Long reporterId = null;
-            if (reportEntity instanceof ReviewReport reviewReport) {
-                reporterId = reviewReport.getReporter().getId();
-            } else if (reportEntity instanceof UserReport userReport) {
-                reporterId = userReport.getReporter().getId();
-            } else if (reportEntity instanceof NoticeReport noticeReport) {
-                reporterId = noticeReport.getReporter().getId();
-            }
-
-            if (member.getRole() == Role.USER && !member.getUser().getId().equals(reporterId)) {
-                throw new AccessDeniedException("본인이 신고한 내역만 조회할 수 있습니다.");
-            }
-
-            ReportResponseDto reportDto = ReportResponseDto.of(reportEntity);
-
-            HashMap<String, Object> data = new HashMap<>();
-            data.put("report", reportDto);
-            return new ResponseEntity<>(data, HttpStatus.OK);
-        } catch (NoSuchElementException e) {
-            throw new BadRequestException(e.getMessage(), null);
-        } catch (IllegalArgumentException e) {
-            throw new BadRequestException(e.getMessage(), null);
-        } catch (AccessDeniedException e) {
-            throw new AccessDeniedException(e.getMessage(), null);
-        } catch (Exception e){
-            e.printStackTrace();
-            throw new RuntimeException("신고 내역을 불러올 수 없습니다.");
-        }
-    }
-
     @Transactional
     public ResponseEntity createReport(Member member, ReportType type, ReportRequestDto req) {
         try {
@@ -141,14 +56,6 @@ public class ReportService {
             String title = req.getTitle();
             String content = req.getContent();
 
-            if (title == null || title.trim().isEmpty()) {
-                throw new IllegalArgumentException("신고 제목을 입력해주세요.");
-            }
-
-            if (content == null || content.trim().isEmpty()) {
-                throw new IllegalArgumentException("신고 내용을 입력해주세요.");
-            }
-
             Object reportEntity = null;
 
             switch (type) {
@@ -158,7 +65,7 @@ public class ReportService {
                     }
 
                     User reportedUser = userRepository.findByNickname(reportedNickname)
-                            .orElseThrow(() -> new NoSuchElementException("신고 대상 사용자를 찾을 수 없습니다."));
+                            .orElseThrow(() -> new ResourceNotFoundException("신고 대상 사용자를 찾을 수 없습니다."));
 
                     if (reportedUser.getIsBanned()) {
                         throw new IllegalArgumentException("이미 이용이 정지된 사용자입니다.");
@@ -180,7 +87,7 @@ public class ReportService {
                     }
 
                     Review reportedReview = reviewRepository.findById(reportedId)
-                            .orElseThrow(() -> new NoSuchElementException("신고 대상 리뷰를 찾을 수 없습니다."));
+                            .orElseThrow(() -> new ResourceNotFoundException("신고 대상 리뷰를 찾을 수 없습니다."));
 
                     if (reportedReview.getIsBanned()) {
                         throw new IllegalArgumentException("이미 이용이 정지된 사용자입니다.");
@@ -202,7 +109,7 @@ public class ReportService {
                     }
 
                     Notice reportedNotice = noticeRepository.findById(reportedId)
-                            .orElseThrow(() -> new NoSuchElementException("신고 대상 공지사항을 찾을 수 없습니다."));
+                            .orElseThrow(() -> new ResourceNotFoundException("신고 대상 공지사항을 찾을 수 없습니다."));
 
                     if (reportedNotice.getIsBanned()) {
                         throw new IllegalArgumentException("이미 이용이 정지된 사용자입니다.");
@@ -227,10 +134,10 @@ public class ReportService {
             HashMap<String, Object> data = new HashMap<>();
             data.put("report", reportDto);
             return new ResponseEntity<>(data, HttpStatus.OK);
-        } catch (NoSuchElementException e) {
-            throw new BadRequestException(e.getMessage(), null);
+        } catch (ResourceNotFoundException e) {
+            throw new ResourceNotFoundException(e.getMessage());
         } catch (IllegalArgumentException e) {
-            throw new BadRequestException(e.getMessage(), null);
+            throw new BadRequestException(e.getMessage(), req);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("신고를 실패하였습니다..");
