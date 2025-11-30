@@ -27,46 +27,58 @@ public class AdminPostService {
     private final PostRepository postRepository;
     private final BuyerService buyerService;
 
-    public ResponseEntity getAdminPostList(Member member, Integer process, Pageable pageable) {
+    public ResponseEntity getAdminPostList(Member member, Integer process, String title, Pageable pageable) {
         if (member.getRole() != Role.ADMIN) {
             throw new AccessDeniedException("관리자 권한이 없습니다.");
         }
 
         try {
             Page<Post> postPage;
+            boolean hasTitle = (title != null && !title.isBlank());
 
             switch (process) {
-                case -1:
-                    postPage = postRepository.findAll(pageable);
+                case -1:  // 전체
+                    if (hasTitle)
+                        postPage = postRepository.findAllByTitleContaining(title, pageable);
+                    else
+                        postPage = postRepository.findAll(pageable);
                     break;
-                case 0:
-                    postPage = postRepository.findAllByStatus(process, pageable);
+
+                case 0:   // 접수완료
+                    if (hasTitle)
+                        postPage = postRepository.findAllByStatusAndTitleContaining(0, title, pageable);
+                    else
+                        postPage = postRepository.findAllByStatus(0, pageable);
                     break;
-                case 1:
-                    List<Integer> statuses = new ArrayList<>();
-                    statuses.add(1);
-                    statuses.add(2);
-                    statuses.add(3);
-                    postPage = postRepository.findAllByStatusIn(statuses, pageable);
+
+                case 1:   // 진행중, 마감임박, 마감
+                    List<Integer> statuses = List.of(1, 2, 3);
+                    if (hasTitle)
+                        postPage = postRepository.findAllByStatusInAndTitleContaining(statuses, title, pageable);
+                    else
+                        postPage = postRepository.findAllByStatusIn(statuses, pageable);
                     break;
-                case 4:
-                    postPage = postRepository.findAllByStatus(4, pageable);
+
+                case 4:   // 승인반려
+                    if (hasTitle)
+                        postPage = postRepository.findAllByStatusAndTitleContaining(4, title, pageable);
+                    else
+                        postPage = postRepository.findAllByStatus(4, pageable);
                     break;
+
                 default:
                     throw new BadRequestException("조회 불가능한 process값입니다.", null);
             }
 
-            Page<AdminPostListResponseDto> dtoPage = postPage.map(
-                    post -> AdminPostListResponseDto.of(post)
-            );
-
-            List<AdminPostListResponseDto> postList = dtoPage.getContent();
-            boolean hasMore = dtoPage.hasNext();
+            Page<AdminPostListResponseDto> dtoPage =
+                    postPage.map(AdminPostListResponseDto::of);
 
             HashMap<String, Object> data = new HashMap<>();
-            data.put("posts", postList);
-            data.put("hasMore", hasMore);
+            data.put("posts", dtoPage.getContent());
+            data.put("hasMore", dtoPage.hasNext());
+
             return new ResponseEntity(data, HttpStatus.OK);
+
         } catch (BadRequestException e) {
             throw e;
         } catch (Exception e) {

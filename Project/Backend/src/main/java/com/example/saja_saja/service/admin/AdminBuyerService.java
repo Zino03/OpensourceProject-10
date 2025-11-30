@@ -25,7 +25,7 @@ import java.util.List;
 public class AdminBuyerService {
     private final BuyerRepository buyerRepository;
 
-    public ResponseEntity getBuyerList(Member member, Integer process, Pageable pageable) {
+    public ResponseEntity getBuyerList(Member member, Integer process, String name, Pageable pageable) {
         if (member.getRole() != Role.ADMIN) {
             throw new AccessDeniedException("관리자 권한이 없습니다.");
         }
@@ -33,41 +33,52 @@ public class AdminBuyerService {
         try {
             Page<Buyer> buyerPage;
 
+            boolean hasName = (name != null && !name.isBlank());
+
             switch (process) {
-                case -1:    // 전체 리스트
-                    buyerPage = buyerRepository.findAll(pageable);
+                case -1: // 전체
+                    if (hasName)
+                        buyerPage = buyerRepository.findAllByPayerNameContaining(name, pageable);
+                    else
+                        buyerPage = buyerRepository.findAll(pageable);
                     break;
-                case 0:     // 대기 (입금대기, 재입금대기)
-                    List<Integer> isPaids = new ArrayList<>();
-                    isPaids.add(0);
-                    isPaids.add(2);
-                    buyerPage = buyerRepository.findAllByIsPaidIn(isPaids, pageable);
+
+                case 0: // 대기 (0, 2)
+                    List<Integer> isPaids = List.of(0, 2);
+                    if (hasName)
+                        buyerPage = buyerRepository.findAllByIsPaidInAndPayerNameContaining(isPaids, name, pageable);
+                    else
+                        buyerPage = buyerRepository.findAllByIsPaidIn(isPaids, pageable);
                     break;
-                // 1: 완료, 3: (주문)취소
-                case 1: case 3:
-                    buyerPage = buyerRepository.findAllByIsPaid(process, pageable);
+
+                case 1: // 완료
+                case 3: // 주문취소
+                    if (hasName)
+                        buyerPage = buyerRepository.findAllByIsPaidAndPayerNameContaining(process, name, pageable);
+                    else
+                        buyerPage = buyerRepository.findAllByIsPaid(process, pageable);
                     break;
+
                 default:
                     throw new BadRequestException("조회 불가한 process 값입니다.", null);
             }
 
-            Page<AdminBuyerResponseDto> buyerDtoPage = buyerPage.map(
-                    buyerEntity -> AdminBuyerResponseDto.of(buyerEntity)
-            );
-
-            List<AdminBuyerResponseDto> buyers = buyerDtoPage.getContent();
-            boolean hasMore = buyerDtoPage.hasNext();
+            Page<AdminBuyerResponseDto> buyerDtoPage =
+                    buyerPage.map(AdminBuyerResponseDto::of);
 
             HashMap<String, Object> data = new HashMap<>();
-            data.put("buyers", buyers);
-            data.put("hasMore", hasMore);
+            data.put("buyers", buyerDtoPage.getContent());
+            data.put("hasMore", buyerDtoPage.hasNext());
+
             return new ResponseEntity<>(data, HttpStatus.OK);
+
         } catch (BadRequestException e) {
             throw e;
         } catch (Exception e) {
             throw new RuntimeException("구매자 정보를 불러올 수 없습니다.");
         }
     }
+
 
     // TODO: 결제 정산 update
     @Transactional

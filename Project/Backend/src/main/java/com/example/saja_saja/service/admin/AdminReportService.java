@@ -37,43 +37,110 @@ public class AdminReportService {
     private final PostService postService;
 
 
-    public ResponseEntity getReportList(Member member, ReportType reportType, Integer status, Pageable pageable) {
+    public ResponseEntity getReportList(Member member,
+                                        ReportType reportType,
+                                        Integer status,
+                                        Integer searchType,
+                                        String searchQuery,
+                                        Pageable pageable) {
         if (member.getRole() != Role.ADMIN) {
             throw new AccessDeniedException("관리자 권한이 없습니다.");
         }
 
         try {
             Page<?> reportPage;
+            boolean hasSearch = (searchQuery != null && !searchQuery.isBlank());
 
             switch (reportType) {
-                case USER:
-                    if (status == -1) {
-                        reportPage = userReportRepository.findAll(pageable);
+                case USER: {
+                    if (!hasSearch) {
+                        // 🔹 검색어 없음 → 기존 로직 그대로
+                        if (status == -1) {
+                            reportPage = userReportRepository.findAll(pageable);
+                        } else {
+                            reportPage = userReportRepository.findAllByStatus(status, pageable);
+                        }
                     } else {
-                        reportPage = userReportRepository.findAllByStatus(status, pageable);
+                        // 🔹 검색어 있음
+                        if (searchType == 0) { // reporter.name
+                            if (status == -1) {
+                                reportPage = userReportRepository.findAllByReporter_NameContaining(searchQuery, pageable);
+                            } else {
+                                reportPage = userReportRepository.findAllByStatusAndReporter_NameContaining(status, searchQuery, pageable);
+                            }
+                        } else if (searchType == 1) { // reportedUser.name
+                            if (status == -1) {
+                                reportPage = userReportRepository.findAllByReportedUser_NameContaining(searchQuery, pageable);
+                            } else {
+                                reportPage = userReportRepository.findAllByStatusAndReportedUser_NameContaining(status, searchQuery, pageable);
+                            }
+                        } else {
+                            throw new BadRequestException("유효하지 않은 searchType입니다.", null);
+                        }
                     }
                     break;
-                case REVIEW:
-                    if (status == -1) {
-                        reportPage = reviewReportRepository.findAll(pageable);
+                }
+
+                case REVIEW: {
+                    if (!hasSearch) {
+                        if (status == -1) {
+                            reportPage = reviewReportRepository.findAll(pageable);
+                        } else {
+                            reportPage = reviewReportRepository.findAllByStatus(status, pageable);
+                        }
                     } else {
-                        reportPage = reviewReportRepository.findAllByStatus(status, pageable);
+                        if (searchType == 0) { // reporter.name
+                            if (status == -1) {
+                                reportPage = reviewReportRepository.findAllByReporter_NameContaining(searchQuery, pageable);
+                            } else {
+                                reportPage = reviewReportRepository.findAllByStatusAndReporter_NameContaining(status, searchQuery, pageable);
+                            }
+                        } else if (searchType == 1) { // reportedReview.buyer.user.name
+                            if (status == -1) {
+                                reportPage = reviewReportRepository.findAllByReportedReview_Buyer_User_NameContaining(searchQuery, pageable);
+                            } else {
+                                reportPage = reviewReportRepository.findAllByStatusAndReportedReview_Buyer_User_NameContaining(status, searchQuery, pageable);
+                            }
+                        } else {
+                            throw new BadRequestException("유효하지 않은 searchType입니다.", null);
+                        }
                     }
                     break;
-                case NOTICE:
-                    if (status == -1) {
-                        reportPage = noticeReportRepository.findAll(pageable);
+                }
+
+                case NOTICE: {
+                    if (!hasSearch) {
+                        if (status == -1) {
+                            reportPage = noticeReportRepository.findAll(pageable);
+                        } else {
+                            reportPage = noticeReportRepository.findAllByStatus(status, pageable);
+                        }
                     } else {
-                        reportPage = noticeReportRepository.findAllByStatus(status, pageable);
+                        if (searchType == 0) { // reporter.name
+                            if (status == -1) {
+                                reportPage = noticeReportRepository.findAllByReporter_NameContaining(searchQuery, pageable);
+                            } else {
+                                reportPage = noticeReportRepository.findAllByStatusAndReporter_NameContaining(status, searchQuery, pageable);
+                            }
+                        } else if (searchType == 1) { // notice.post.host.name
+                            if (status == -1) {
+                                reportPage = noticeReportRepository.findAllByReportedNotice_Post_Host_NameContaining(searchQuery, pageable);
+                            } else {
+                                reportPage = noticeReportRepository.findAllByStatusAndReportedNotice_Post_Host_NameContaining(status, searchQuery, pageable);
+                            }
+                        } else {
+                            throw new BadRequestException("유효하지 않은 searchType입니다.", null);
+                        }
                     }
                     break;
+                }
+
                 default:
                     throw new BadRequestException("유효하지 않은 신고 타입입니다.", null);
             }
 
-            Page<ReportListResponseDto> reportDtoPage = reportPage.map(
-                    reportEntity -> ReportListResponseDto.of(reportEntity)
-            );
+            Page<ReportListResponseDto> reportDtoPage =
+                    reportPage.map(ReportListResponseDto::of);
 
             List<ReportListResponseDto> reports = reportDtoPage.getContent();
             boolean hasMore = reportDtoPage.hasNext();
@@ -81,7 +148,9 @@ public class AdminReportService {
             HashMap<String, Object> data = new HashMap<>();
             data.put("reports", reports);
             data.put("hasMore", hasMore);
+
             return new ResponseEntity<>(data, HttpStatus.OK);
+
         } catch (BadRequestException e) {
             throw new BadRequestException(e.getMessage(), null);
         } catch (Exception e) {
@@ -89,6 +158,7 @@ public class AdminReportService {
             throw new RuntimeException("신고 내역을 불러올 수 없습니다.", e);
         }
     }
+
 
     @Transactional
     public ResponseEntity processReport(Member member, ReportType type, Long reportId, ReportProcessRequestDto req) {
