@@ -1,12 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import styled from 'styled-components';
-import { FaPlus, FaMinus, FaSyncAlt, FaCrosshairs, FaList } from "react-icons/fa";
+import { FaPlus, FaMinus, FaSyncAlt } from "react-icons/fa";
 
 const Container = styled.div`
   display: flex;
   width: 100%;
-  height: calc(100vh - 60px);
   overflow: hidden;
+  height: calc(100vh - 55px);
 `;
 
 // 사이드바 
@@ -16,7 +16,6 @@ const Sidebar = styled.div`
   border-right: 1px solid #ddd;
   display: flex;
   flex-direction: column;
-  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
 `;
 
 const SidebarHeader = styled.div`
@@ -38,9 +37,8 @@ const ResetButton = styled.button`
   background: none;
   border: none;
   font-size: 12px;
-  color: #FF7E00;
   cursor: pointer;
-  font-weight: 600;
+  font-weight: 500;
   &:hover { text-decoration: underline; }
 `;
 
@@ -55,12 +53,7 @@ const ItemCard = styled.div`
   padding: 16px;
   border-bottom: 1px solid #eee;
   cursor: pointer;
-  background-color: ${props => props.$active ? '#FFF5E0' : '#fff'};
-  border-left: ${props => props.$active ? '4px solid #FF7E00' : '4px solid transparent'};
-
-  &:hover {
-    background-color: ${props => props.$active ? '#FFF5E0' : '#fafafa'};
-  }
+  background-color: #fff;
 `;
 
 const Thumbnail = styled.div`
@@ -90,8 +83,7 @@ const ItemTitle = styled.h3`
   font-size: 14px;
   font-weight: 500;
   margin: 0 0 4px 0;
-  line-height: 1.3;
-  
+
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -99,7 +91,9 @@ const ItemTitle = styled.h3`
 `;
 
 const ItemCount = styled.span`
-  
+  font-size: 12px;
+  color: #888;
+  margin-left: 8px
 `
 
 const PriceRow = styled.div`
@@ -141,6 +135,7 @@ const MarkerContainer = styled.div`
   top: ${props => props.top};
   left: ${props => props.left};
   transform: translate(-50%, -100%);
+  transition: transform 0.2s;
   cursor: pointer;
   z-index: ${props => props.$isActive ? 100 : 1};
 
@@ -161,8 +156,9 @@ const MarkerPin = styled.div`
 // 지도 컨트롤 컨테이너 (우측 상단)
 const MapControls = styled.div`
   position: absolute;
-  top: 20px;
+  top: 50%;
   right: 20px;
+  transform: translateY(-50%);
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -171,8 +167,6 @@ const MapControls = styled.div`
 const ControlGroup = styled.div`
   background-color: #fff;
   border-radius: 8px;
-  overflow: hidden;
-
   display: flex;
   flex-direction: column;
 `;
@@ -182,20 +176,55 @@ const ControlBtn = styled.button`
   height: 40px;
   background-color: #fff;
   border: none;
+  border-radius: 50px;
   display: flex;
   justify-content: center;
   align-items: center;
   color: #555;
   cursor: pointer;
   border-bottom: 1px solid #eee;
+  position: relative;
 
   &:last-child { border-bottom: none; }
   &:hover { background-color: #f5f5f5; color: #333; }
   &:active { background-color: #e0e0e0; }
+
+  &::after {
+    content: attr(data-label);
+
+    position: absolute;
+    top: 50%;
+    right: 120%; 
+    transform: translateY(-50%);
+    
+    background-color: rgba(60, 60, 60, 0.5); 
+    color: #fff;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 6px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+    pointer-events: none;
+    
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+  }
+
+  &:hover::after {
+    opacity: 1;
+    visibility: visible;
+  }
 `;
 
+const NoResult = styled.div`
+  padding: 20px;
+  text-align: center;
+  color:'#999;
+`
+
 const NearbyGroupPurchase = () => {
-  const [selectedLocationKey, setSelectedLocationKey] = useState(null); // 선택된 '위치' 키
+  const [selectedLocationKey, setSelectedLocationKey] = useState(null); // 선택된 위치' 키
   
   // 더미 데이터 (위치 정보 pos가 같은 아이템을 일부러 포함)
   const mockItems = [
@@ -208,7 +237,7 @@ const NearbyGroupPurchase = () => {
     { id: 7, title: '짱 멋진 가방', price: 50000, current: 1, total: 1, image: '', pos: { top: '55%', left: '60%' } },
   ];
 
-  // 1. 데이터를 위치 기준으로 그룹화 (Memoization)
+  // 데이터를 위치 기준으로 그룹화
   const groupedItems = useMemo(() => {
     const groups = {};
     mockItems.forEach(item => {
@@ -274,7 +303,7 @@ const NearbyGroupPurchase = () => {
               </ItemCard>
             ))
           ) : (
-            <div style={{padding: '20px', textAlign: 'center', color: '#999'}}>상품이 없습니다.</div>
+            <NoResult>상품이 없습니다.</NoResult>
           )}
         </ListContainer>
       </Sidebar>
@@ -284,14 +313,10 @@ const NearbyGroupPurchase = () => {
 
         <MapControls>
           <ControlGroup>
-            <ControlBtn onClick={() => console.log("확대")}><FaPlus /></ControlBtn>
-            <ControlBtn onClick={() => console.log("축소")}><FaMinus /></ControlBtn>
+            <ControlBtn data-label="확대"><FaPlus /></ControlBtn>
+            <ControlBtn data-label="축소"><FaMinus /></ControlBtn>
           </ControlGroup>
-          <ControlGroup>
-            <ControlBtn onClick={handleReset} title="전체보기"><FaList /></ControlBtn>
-            <ControlBtn onClick={() => console.log("새로고침")}><FaSyncAlt /></ControlBtn>
-            <ControlBtn onClick={() => console.log("현위치")}><FaCrosshairs /></ControlBtn>
-          </ControlGroup>
+            <ControlBtn data-label="새로고침"><FaSyncAlt /></ControlBtn>
         </MapControls>
 
         {Object.entries(groupedItems).map(([key, group]) => {
