@@ -1,6 +1,8 @@
 package com.example.saja_saja.service;
 
 import com.example.saja_saja.dto.buyer.BuyerListResponseDto;
+import com.example.saja_saja.dto.buyer.CanceledOrderListResponseDto;
+import com.example.saja_saja.dto.buyer.OrderListResponseDto;
 import com.example.saja_saja.dto.post.BuyerApplyRequestDto;
 import com.example.saja_saja.dto.post.BuyerApplyResponseDto;
 import com.example.saja_saja.dto.post.ReceivedAtRequestDto;
@@ -18,6 +20,8 @@ import com.example.saja_saja.exception.BadRequestException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -114,7 +118,7 @@ public class BuyerService {
             throw new BadRequestException("배송신청이 불가능한 게시글입니다.", body);
         }
 
-        if(!member.getUser().equals(post.getHost()) && req.getIsDelivery().equals(Boolean.TRUE) && member.getUser().getAddresses() == null) {
+        if(!member.getUser().equals(post.getHost()) && req.getIsDelivery().equals(Boolean.TRUE) && member.getUser().getAddresses().isEmpty()) {
             throw new BadRequestException("배송지를 등록한 후 주문해주세요.", null);
         }
 
@@ -470,5 +474,55 @@ public class BuyerService {
         buyerRepository.save(buyer);
 
         return new ResponseEntity(buyer, HttpStatus.OK);
+    }
+
+    // 0: 주문 접수, 1: 결제완료, 2: 상품 준비중, 3: 배송완료, 4: 구매확정 5: 주문 취소
+    public ResponseEntity orderList(Member member, Integer status, Pageable pageable) {
+        if (status < 0 || status > 5) {
+            throw new BadRequestException("조회 불가한 status입니다.", null);
+        }
+
+        try {
+            User user = member.getUser();
+            Page<Buyer> buyerPage = buyerRepository.findAllByUserAndStatus(user, status, pageable);
+
+            List<?> orders = null;
+            Boolean hasMore = null;
+            Page<?> orderListDto = null;
+
+            if (status == 5) {
+                orderListDto = buyerPage.map(
+                        buyerEntity -> CanceledOrderListResponseDto.of(buyerEntity)
+                );
+            } else {
+                orderListDto = buyerPage.map(
+                        buyerEntity -> OrderListResponseDto.of(buyerEntity)
+                );
+            }
+
+            List<Object[]> rawCounts = buyerRepository.countOrderStatusByUser(user);
+
+            Map<Integer, Long> statusCounts = new HashMap<>();
+            for (int i = 0; i <= 5; i++) {
+                statusCounts.put(i, 0L);
+            }
+
+            for (Object[] row : rawCounts) {
+                Integer dbStatus = (Integer) row[0];
+                Long count = (Long) row[1];
+                statusCounts.put(dbStatus, count);
+            }
+
+            orders = orderListDto.getContent();
+            hasMore = orderListDto.hasNext();
+
+            HashMap<String, Object> data = new HashMap<>();
+            data.put("statusCounts", statusCounts);
+            data.put("orders", orders);
+            data.put("hasMore", hasMore);
+            return new ResponseEntity(data, HttpStatus.OK);
+        } catch (Exception e) {
+            throw new RuntimeException("주문내역을 불러올 수 없습니다.");
+        }
     }
 }
