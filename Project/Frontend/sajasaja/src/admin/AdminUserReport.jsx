@@ -99,7 +99,7 @@ const NoResult = styled.div`
 const mockReports = [
   { id: 1, reporter: '김서연', target: '변진호', content: '변진호 유저님을 신고합니다.', date: '2025.11.10', status: 'waiting' },
   { id: 2, reporter: '최지우', target: '변진호', content: '변진호 유저님을 신고합니다.', date: '2025.11.13', status: 'rejected' },
-  { id: 2, reporter: '최지우', target: '변진호', content: '변진호 유저님을 신고합니다.', date: '2025.11.13', status: 'completed' },
+  { id: 3, reporter: '최지우', target: '변진호', content: '변진호 유저님을 신고합니다.', date: '2025.11.13', status: 'completed' },
 ];
 
 const statusOptions = [
@@ -110,6 +110,7 @@ const statusOptions = [
   ];
 
 const AdminUserPage = () => {
+  const [reports, setReports] = useState(mockReports);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
   
@@ -121,6 +122,14 @@ const AdminUserPage = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedReport(null);
+  };
+
+  const handleSaveReport = (id, updatedData) => {
+    setReports(prevReports => 
+      prevReports.map(report => 
+        report.id === id ? { ...report, ...updatedData } : report
+      )
+    );
   };
   
   const [searchInputValue, setSearchInputValue] = useState('');
@@ -135,7 +144,7 @@ const AdminUserPage = () => {
   };
 
   const filteredUser = useMemo(() => {
-    return mockReports.filter((user) => {
+    return reports.filter((user) => {
       // 상태 필터링
       const statusMatch = filterStatus === 'all' || user.status === filterStatus;
 
@@ -220,6 +229,7 @@ const AdminUserPage = () => {
           onClose={handleCloseModal}
           type="user"
           data={selectedReport} 
+          onSave={handleSaveReport}
         />
       )}
     </>
