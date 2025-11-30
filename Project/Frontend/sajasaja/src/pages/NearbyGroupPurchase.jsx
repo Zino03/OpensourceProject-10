@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import styled from 'styled-components';
 import { FaPlus, FaMinus, FaSyncAlt } from "react-icons/fa";
+import { Map,  CustomOverlayMap, useKakaoLoader } from "react-kakao-maps-sdk";
 
 const Container = styled.div`
   display: flex;
@@ -11,7 +12,7 @@ const Container = styled.div`
 
 // 사이드바 
 const Sidebar = styled.div`
-  width: 350px;
+  width: 400px;
   background-color: #fff;
   border-right: 1px solid #ddd;
   display: flex;
@@ -33,14 +34,11 @@ const Title = styled.h2`
   color: #333;
 `;
 
-const ResetButton = styled.button`
-  background: none;
-  border: none;
+const ItemCount = styled.span`
   font-size: 12px;
-  cursor: pointer;
-  font-weight: 500;
-  &:hover { text-decoration: underline; }
-`;
+  color: #888;
+  margin-left: 8px
+`
 
 const ListContainer = styled.div`
   flex: 1;
@@ -48,22 +46,33 @@ const ListContainer = styled.div`
   background-color: #f9f9f9;
 `;
 
-const ItemCard = styled.div`
-  display: flex;
-  padding: 16px;
-  border-bottom: 1px solid #eee;
-  cursor: pointer;
+const CardWrapper = styled.div`
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;  
+  padding: 20px;
+  margin: 4px;
   background-color: #fff;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  }
 `;
 
-const Thumbnail = styled.div`
-  width: 70px;
-  height: 70px;
-  border-radius: 6px;
-  margin-right: 14px;
+const CardTop = styled.div`
+  display: flex;
+  gap: 16px;
+`;
+
+const CardImage = styled.div`
+  width: 90px;
+  height: 90px;
   flex-shrink: 0;
+  background-color: #f5f5f5;
+  border-radius: 8px;
   overflow: hidden;
-  background-color: #eee;
+  border: 1px solid #eee;
 
   img {
     width: 100%;
@@ -72,47 +81,77 @@ const Thumbnail = styled.div`
   }
 `;
 
-const InfoArea = styled.div`
+const CardInfo = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 `;
 
-const ItemTitle = styled.h3`
-  font-size: 14px;
-  font-weight: 500;
-  margin: 0 0 4px 0;
+const InfoHeader = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+`;
 
+const CardTitle = styled.h3`
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0;  
+  
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 `;
 
-const ItemCount = styled.span`
+const CardWriter = styled.span`
   font-size: 12px;
-  color: #888;
-  margin-left: 8px
-`
+  color: #666;
+`;
 
-const PriceRow = styled.div`
+const InfoBottom = styled.div`
   display: flex;
   justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 10px;
+`;
+
+const MetaTable = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+`;
+
+const MetaRow = styled.div`
+  display: flex;
   align-items: center;
+  justify-content: space-between;
 `;
 
-const Price = styled.span`
-  font-size: 14px;
-  font-weight: 700;
+const MetaLabel = styled.span`
+  font-weight: 600;
+  width: 36px;
 `;
 
-const CountInfo = styled.span`
-  font-size: 11px;
-  color: #888;
-  background-color: #f0f0f0;
-  padding: 2px 6px;
-  border-radius: 4px;
+const CardPrice = styled.div`
+  font-size: 16px;
+  font-weight: 600;
+`;
+
+// 구분선
+const Divider = styled.div`
+  height: 1px;
+  background-color: #eee;
+  margin: 16px 0;
+`;
+
+// 하단 주소 영역
+const CardAddress = styled.div`
+  font-size: 13px;
+  font-weight: 500;
+  word-break: keep-all; 
 `;
 
 // 지도 영역
@@ -123,34 +162,13 @@ const MapArea = styled.div`
   background-color: #e8e8e8;
 `;
 
-const MapBackground = styled.img`
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-`;
-
-// 마커 컨테이너
-const MarkerContainer = styled.div`
-  position: absolute;
-  top: ${props => props.top};
-  left: ${props => props.left};
-  transform: translate(-50%, -100%);
-  transition: transform 0.2s;
-  cursor: pointer;
-  z-index: ${props => props.$isActive ? 100 : 1};
-
-  &:hover {
-    transform: translate(-50%, -110%) scale(1.1);
-    z-index: 200;
-  }
-`;
-
 // 실제 마커 이미지/아이콘
 const MarkerPin = styled.div`
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
+  .img { height: 30px }
 `;
 
 // 지도 컨트롤 컨테이너 (우측 상단)
@@ -162,6 +180,7 @@ const MapControls = styled.div`
   display: flex;
   flex-direction: column;
   gap: 10px;
+  z-index: 10;
 `;
 
 const ControlGroup = styled.div`
@@ -224,49 +243,85 @@ const NoResult = styled.div`
 `
 
 const NearbyGroupPurchase = () => {
-  const [selectedLocationKey, setSelectedLocationKey] = useState(null); // 선택된 위치' 키
-  
-  // 더미 데이터 (위치 정보 pos가 같은 아이템을 일부러 포함)
+  // 지도
+  const [loading, error] = useKakaoLoader({
+    appkey: '1182ee2a992f45fb1db2238604970e19',
+    libraries: ["clusterer", "drawing", "services"],
+  });
+
+  const [selectedLocationKey, setSelectedLocationKey] = useState(null);
+  const [map, setMap] = useState(null);
+
+  // 더미 데이터
   const mockItems = [
-    { id: 1, title: '애니 피욘크 미니 프레첼 150g', price: 890, current: 87, total: 100, image: '', pos: { top: '40%', left: '45%' } },
-    { id: 2, title: '제주 감귤 10kg 공구', price: 12900, current: 3, total: 10, image: '', pos: { top: '40%', left: '45%' } }, // id:1과 같은 위치
-    { id: 3, title: '코스트코 베이글 1+1', price: 6500, current: 5, total: 8, image: '', pos: { top: '30%', left: '70%' } },
-    { id: 4, title: '대파 한 단 나눔 공구', price: 1500, current: 2, total: 5, image: '', pos: { top: '70%', left: '30%' } },
-    { id: 5, title: '생수 2L 6개입', price: 3000, current: 5, total: 10, image: '', pos: { top: '70%', left: '30%' } }, // id:4와 같은 위치
-    { id: 6, title: '고구마 5kg', price: 15000, current: 1, total: 2, image: '', pos: { top: '70%', left: '30%' } }, // id:4와 같은 위치 (3개 중첩)
-    { id: 7, title: '짱 멋진 가방', price: 50000, current: 1, total: 1, image: '', pos: { top: '55%', left: '60%' } },
-  ];
+    { id: 1, title: '애니 피욘크 미니 프레첼 150g', writer: '사자사자', price: 890, current: 87, total: 100, date: '2025-11-11', address: '충북 청주시 서원구 충대로 1 충북대학교 전자정보대학3관\n양성재 1층', lat: 36.628583, lng: 127.457583 },
+    { id: 2, title: '제주 감귤 10kg 공구', writer: '사자사자', price: 890, current: 87, total: 100, date: '2025-11-11', address: '충북 청주시 서원구 충대로 1 충북대학교 전자정보대학3관\n양성재 1층', lat: 36.628583, lng: 127.457583 }, // 같은 위치
+    { id: 3, title: '코스트코 베이글 1+1', writer: '사자사자', price: 890, current: 87, total: 100, date: '2025-11-11', address: '충북대 중문', lat: 36.629583, lng: 127.459583 },
+    { id: 4, title: '대파 한 단 나눔 공구', writer: '사자사자', price: 890, current: 87, total: 100, date: '2025-11-11', address: '충북대 정문', lat: 36.632583, lng: 127.460583 },
+    { id: 5, title: '생수 2L 6개입', writer: '사자사자', price: 890, current: 87, total: 100, date: '2025-11-11', address: '사창동 주민센터', lat: 36.634583, lng: 127.458583 },
+    { id: 6, title: '고구마 5kg', writer: '사자사자', price: 890, current: 87, total: 100, date: '2025-11-11', address: '청주체육관', lat: 36.638583, lng: 127.475583 },
+    { id: 7, title: '짱 멋진 가방', writer: '사자사자', price: 890, current: 87, total: 100, date: '2025-11-11', address: '충북대 후문', lat: 36.625583, lng: 127.455583 },
+];
+
+  // 현재 지도에 보이는 핀들
+  const [visibleItems, setVisibleItems] = useState(mockItems);
 
   // 데이터를 위치 기준으로 그룹화
   const groupedItems = useMemo(() => {
     const groups = {};
-    mockItems.forEach(item => {
-      // 위치를 고유 키로 생성 (예: "40%-45%")
-      const locationKey = `${item.pos.top}-${item.pos.left}`;
+    visibleItems.forEach(item => {
+      // 위치를 고유 키로 생성
+      const locationKey = `${item.lat}-${item.lng}`;
       if (!groups[locationKey]) {
         groups[locationKey] = {
-          pos: item.pos,
+          lat: item.lat,
+          lng: item.lng,
           items: []
         };
       }
       groups[locationKey].items.push(item);
     });
     return groups;
-  }, [mockItems]);
+  }, [visibleItems]);
 
   // 사이드바에 표시할 아이템 필터링
   // 위치가 선택되어 있다면 그 위치 아이템만, 아니면 전체 표시
   const displayItems = selectedLocationKey 
-    ? groupedItems[selectedLocationKey].items 
-    : mockItems;
+    ? groupedItems[selectedLocationKey].items || []
+    : visibleItems;
 
   const handleMarkerClick = (key) => {
     setSelectedLocationKey(key);
   };
 
-  const handleReset = () => {
-    setSelectedLocationKey(null);
+  useEffect(() => {
+    if (map) handleRefresh();
+  }, [map]);
+
+  const handleZoomIn = () => map && map.setLevel(map.getLevel() - 1);
+  const handleZoomOut = () => map && map.setLevel(map.getLevel() + 1);
+  const handleRefresh = () => {
+    if (!map) return;
+
+    // 현재 지도의 영역(Bounds) 가져오기
+    const bounds = map.getBounds();
+    const sw = bounds.getSouthWest(); // 남서쪽 좌표
+    const ne = bounds.getNorthEast(); // 북동쪽 좌표
+
+    // 영역 내에 있는 데이터만 필터링
+    const newVisibleItems = mockItems.filter(item => {
+      return (
+        item.lat >= sw.getLat() && item.lat <= ne.getLat() &&
+        item.lng >= sw.getLng() && item.lng <= ne.getLng()
+      );
+    });
+
+    setVisibleItems(newVisibleItems);
+    setSelectedLocationKey(null); // 필터링 후 선택 초기화
   };
+
+  if (loading) return <div style={{width: "100%", height: "100vh", display:"flex", justifyContent:"center", alignItems:"center"}}>지도 로딩 중...</div>;
+  if (error) return <div>지도를 불러오는데 실패했습니다.</div>;
 
   return (
     <Container>
@@ -278,29 +333,48 @@ const NearbyGroupPurchase = () => {
               ({displayItems.length}건)
             </ItemCount>
           </Title>
-          {selectedLocationKey && (
-            <ResetButton onClick={handleReset}>전체 보기</ResetButton>
-          )}
         </SidebarHeader>
 
         <ListContainer>
           {displayItems.length > 0 ? (
             displayItems.map((item) => (
-              <ItemCard 
-                key={item.id} 
-                $active={false}
-              >
-                <Thumbnail>
-                  <img src={item.image || "https://via.placeholder.com/70"} alt="thumb" />
-                </Thumbnail>
-                <InfoArea>
-                  <ItemTitle>{item.title}</ItemTitle>
-                  <PriceRow>
-                    <Price>{item.price.toLocaleString()}원</Price>
-                    <CountInfo>{item.current}/{item.total}</CountInfo>
-                  </PriceRow>
-                </InfoArea>
-              </ItemCard>
+              <CardWrapper key={item.id} onClick={() => console.log('카드 클릭', item.id)}>
+                <CardTop>
+                  <CardImage>
+                    <img src={item.image || "https://via.placeholder.com/90"} alt="상품" />
+                  </CardImage>
+                  
+                  <CardInfo>
+                    <InfoHeader>
+                      <CardTitle>{item.title}</CardTitle>
+                      <CardWriter>{item.writer}</CardWriter>
+                    </InfoHeader>
+                    
+                    <InfoBottom>
+                      <MetaTable>
+                        <MetaRow>
+                          <MetaLabel>수량</MetaLabel>
+                          <span>{item.current}/{item.total}</span>
+                        </MetaRow>
+                        <MetaRow>
+                          <MetaLabel>기간</MetaLabel>
+                          <span>{item.date}</span>
+                        </MetaRow>
+                      </MetaTable>
+                      <CardPrice>{item.price.toLocaleString()} 원</CardPrice>
+                    </InfoBottom>
+                  </CardInfo>
+                </CardTop>
+
+                <Divider />
+
+                <CardAddress>
+                  {item.address.split('\n').map((line, idx) => (
+                    <div key={idx}>{line}</div>
+                  ))}
+                </CardAddress>
+
+              </CardWrapper>
             ))
           ) : (
             <NoResult>상품이 없습니다.</NoResult>
@@ -309,34 +383,42 @@ const NearbyGroupPurchase = () => {
       </Sidebar>
 
       <MapArea>
-        <MapBackground src="/images/map.png" alt="map"/>
+        <Map
+          center={{ lat: 36.628583, lng: 127.457583 }} // 초기 중심 좌표
+          style={{ width: "100%", height: "100%" }}
+          level={3} // 확대 레벨
+          onCreate={setMap} // 지도 객체 저장 
+        >
+          {Object.entries(groupedItems).map(([key, group]) => {
+            const isGroup = group.items.length > 1; 
+            const isActive = selectedLocationKey === key; 
+
+            return (
+              <CustomOverlayMap
+                key={key}
+                position={{ lat: group.lat, lng: group.lng }}
+                yAnchor={1} // 마커의 아래쪽 끝이 좌표에 오도록 설정
+              >
+                <MarkerPin 
+                  $isActive={isActive}
+                  onClick={() => handleMarkerClick(key)}
+                >
+                  <img src="/images/marker.png" alt="marker" style={{height: "30px"}} />
+                </MarkerPin>
+              </CustomOverlayMap>
+            );
+          })}
+        </Map>
 
         <MapControls>
           <ControlGroup>
-            <ControlBtn data-label="확대"><FaPlus /></ControlBtn>
-            <ControlBtn data-label="축소"><FaMinus /></ControlBtn>
+            <ControlBtn data-label="확대" onClick={handleZoomIn}><FaPlus /></ControlBtn>
+            <ControlBtn data-label="축소" onClick={handleZoomOut}><FaMinus /></ControlBtn>
           </ControlGroup>
-            <ControlBtn data-label="새로고침"><FaSyncAlt /></ControlBtn>
+          <ControlGroup>
+            <ControlBtn data-label="새로고침" onClick={handleRefresh}><FaSyncAlt /></ControlBtn>
+          </ControlGroup>
         </MapControls>
-
-        {Object.entries(groupedItems).map(([key, group]) => {
-          const isGroup = group.items.length > 1; // 2개 이상이면 그룹
-          const isActive = selectedLocationKey === key; // 현재 선택된 핀
-
-          return (
-            <MarkerContainer 
-              key={key} 
-              top={group.pos.top} 
-              left={group.pos.left}
-              $isActive={isActive}
-              onClick={() => handleMarkerClick(key)}
-            >
-              <MarkerPin $isGroup={isGroup}>
-                <img src="/images/marker.png" alt="marker" style={{height: "30px"}}/>
-              </MarkerPin>
-            </MarkerContainer>
-          );
-        })}
       </MapArea>
     </Container>
   );

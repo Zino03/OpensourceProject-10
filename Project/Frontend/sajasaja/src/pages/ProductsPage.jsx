@@ -1,6 +1,7 @@
 import React, {useState, useEffect} from "react";
 import styled from 'styled-components';
 import ProductCard from '../components/ProductCard';
+import CustomSelectProduct from '../components/CustomSelectProduct';
 
 const mockData = [ // 임시 데이터
   {
@@ -12,7 +13,8 @@ const mockData = [ // 임시 데이터
     currentCount: 9,
     deadline: "2025-11-30",
     currentStatus: "마감",
-    category: "식품"
+    category: "식품",
+    status: "dead",
   },
 
   {
@@ -24,7 +26,8 @@ const mockData = [ // 임시 데이터
     currentCount: 3,
     deadline: "2025-11-30",
     currentStatus: "마감 임박",
-    category: "식품"
+    category: "식품",
+    status: "dead",
   },
   {
     id: 3,
@@ -35,7 +38,8 @@ const mockData = [ // 임시 데이터
     currentCount: 9,
     deadline: "2025-11-30",
     currentStatus: "모집 중",
-    category: "생활용품"
+    category: "생활용품",
+    status: "deadIm",
   },
 
   {
@@ -47,7 +51,8 @@ const mockData = [ // 임시 데이터
     currentCount: 3,
     deadline: "2025-11-30",
     currentStatus: "마감 임박",
-    category: "반려동물"
+    category: "반려동물",
+    status: "deadIm",
   },
   {
     id: 5,
@@ -58,7 +63,8 @@ const mockData = [ // 임시 데이터
     currentCount: 9,
     deadline: "2025-11-30",
     currentStatus: "모집 중",
-    category: "스포츠"
+    category: "스포츠",
+    status: "prog",
     
   },
 
@@ -71,7 +77,8 @@ const mockData = [ // 임시 데이터
     currentCount: 3,
     deadline: "2025-11-30",
     currentStatus: "마감 임박",
-    category: "교육"
+    category: "기타",
+    status: "prog",
   }
 ];
 
@@ -79,7 +86,7 @@ const mockData = [ // 임시 데이터
 const CATEGORIES = [
   "식품", "생활용품", "가전/전자기기", "뷰티/미용", 
   "패션", "잡화/액세서리", "리빙/인테리어", "반려동물", 
-  "문구/취미", "스포츠", "유아/아동", "교육"
+  "문구/취미", "스포츠", "유아/아동", "기타"
 ];
 
 // 검색 및 필터
@@ -159,6 +166,13 @@ const NoResult = styled.div`
   font-size: 14px;
 `
 
+const statusOptions = [
+    { value: 'all', label: '전체' },
+    { value: 'prog', label: '모집 중' },
+    { value: 'deadIm', label: '마감' },
+    { value: 'dead', label: '마감 임박' },
+  ];
+
 const ProductsPage = () => {
   const [products, setProducts] = useState([]);
   const [searchInputValue, setSearchInputValue] = useState(""); 
@@ -218,15 +232,11 @@ const ProductsPage = () => {
     <>
       <FilterSection>
         <SearchBar>
-          <select 
+          <CustomSelectProduct
             value={selectedStatus} 
-            onChange={(e) => setSelectedStatus(e.target.value)}
-          >
-            <option>전체</option>
-            <option>모집 중</option>
-            <option>마감</option>
-            <option>마감 임박</option>
-          </select>
+            onChange={(val) => setSelectedStatus(val)} 
+            options={statusOptions}>
+          </CustomSelectProduct>
           <input type="text" placeholder="공동 구매 게시물 검색" 
             value={searchInputValue}
             onChange={(e) => setSearchInputValue(e.target.value)}
