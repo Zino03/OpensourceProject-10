@@ -31,7 +31,6 @@ public class PostController {
     private final PostService postService;
     private final UserService userService;
     private final BuyerService buyerService;
-    private final PostRepository postRepository;
 
     @PostMapping(
             value = "/posts",
@@ -85,9 +84,10 @@ public class PostController {
     @GetMapping("/posts")
     public ResponseEntity<?> posts(@RequestParam(defaultValue = "0") int page,
                                    @RequestParam(defaultValue = "0") int type,
+                                   @RequestParam(defaultValue = "") String query,
                                    @RequestParam(required = false) Category category) {
         Pageable pageable = PageRequest.of(page, 50, Sort.by(Sort.Direction.DESC, "id"));
-        return postService.postList(pageable, type, category);
+        return postService.postList(pageable, type, query, category);
     }
 
     @GetMapping("/posts/map")
