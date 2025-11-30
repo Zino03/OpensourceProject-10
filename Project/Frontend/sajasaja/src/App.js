@@ -39,6 +39,7 @@ import Mypage from './pages/Mypage';
 import MyProfile from './pages/MyProfile.jsx';
 import NewDeliveryInfo from './pages/NewDeliveryInfo.jsx';
 import MyDeliveryInfo from './pages/MyDeliveryInfo.jsx';
+import EditMyDelivery from './pages/EditMyDelivery.jsx';
 
 
 function App() {
@@ -74,6 +75,8 @@ function App() {
           <Route path="/myprofile" element={<MyProfile />} />
           <Route path="/newdelivery" element={<NewDeliveryInfo />} />
           <Route path="/mydelivery" element={<MyDeliveryInfo />} />
+          <Route path="/editdelivery" element={<EditMyDelivery/>} />
+
           <Route path="/terms" element={<TermsOfUsePage/>} />
           <Route path="/privacy" element={<PrivacyPolicyPage/>} />
 

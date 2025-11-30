@@ -1,4 +1,4 @@
-// 파일명: MyDeliveryList.jsx
+// 파일명: MyDeliveryInfo.jsx
 
 import React, { useState } from "react";
 import styled from "styled-components";
@@ -89,16 +89,14 @@ const LabelCell = styled(Cell)`
   font-weight: 500;
 `;
 
-/* ===========================
-   주소(중요 수정!)
-=========================== */
+/* 주소 */
 
 const AddressCell = styled.div`
   font-size: 12px;
   line-height: 1.5;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;   /* ← 왼쪽 정렬 */
+  align-items: flex-start;
 `;
 
 const DefaultBadge = styled.span`
@@ -141,7 +139,7 @@ const EntranceInfo = styled.div`
 /* 연락처 */
 
 const PhoneCell = styled(Cell)`
-  justify-content: center;  /* 가운데 */
+  justify-content: center;
   font-size: 13px;
 `;
 
@@ -150,7 +148,7 @@ const PhoneCell = styled(Cell)`
 const ActionsCell = styled.div`
   display: flex;
   flex-direction: column;
-  align-items: center;       /* 가운데 */
+  align-items: center;
   gap: 6px;
 `;
 
@@ -192,6 +190,10 @@ const initialAddresses = [
     entranceDetail: "자유출입가능",
     phoneMasked: "010-*****-5709",
     isDefault: true,
+    // edit 페이지용 예시 필드
+    entranceMethod: "free",
+    detailAddr: "123동 1234호",
+    phone: "010-1234-5709",
   },
   {
     id: 2,
@@ -203,6 +205,9 @@ const initialAddresses = [
     entranceDetail: "자유출입가능",
     phoneMasked: "010-*****-5709",
     isDefault: false,
+    entranceMethod: "free",
+    detailAddr: "A동 101호",
+    phone: "010-9876-1111",
   },
 ];
 
@@ -210,14 +215,19 @@ const initialAddresses = [
    컴포넌트
 =========================== */
 
-const MyDeliveryList = () => {
+const MyDeliveryInfo = () => {
   const navigate = useNavigate();
   const [addresses, setAddresses] = useState(initialAddresses);
 
   const handleNew = () => navigate("/newdelivery");
 
-  const handleEdit = (id) => {
-    console.log("edit", id);
+  // 🔥 수정: addr 전체를 state 로 넘겨서 EditMyDelivery에서 꺼내 쓸 수 있게
+  const handleEdit = (addr) => {
+    navigate("/editdelivery", {
+      state: {
+        address: addr,
+      },
+    });
   };
 
   const handleDelete = (id) => {
@@ -227,22 +237,21 @@ const MyDeliveryList = () => {
   };
 
   const handleSetDefault = (id) => {
-  setAddresses((prev) => {
-    const updated = prev.map((addr) =>
-      addr.id === id
-        ? { ...addr, isDefault: true }
-        : { ...addr, isDefault: false }
-    );
+    setAddresses((prev) => {
+      const updated = prev.map((addr) =>
+        addr.id === id
+          ? { ...addr, isDefault: true }
+          : { ...addr, isDefault: false }
+      );
 
-    // 🔥 기본배송지를 가장 위로 이동시키는 정렬
-    return updated.sort((a, b) => {
-      if (a.isDefault) return -1;
-      if (b.isDefault) return 1;
-      return 0;
+      // 기본배송지를 가장 위로 이동시키는 정렬
+      return updated.sort((a, b) => {
+        if (a.isDefault) return -1;
+        if (b.isDefault) return 1;
+        return 0;
+      });
     });
-  });
-};
-
+  };
 
   return (
     <PageWrapper>
@@ -284,20 +293,22 @@ const MyDeliveryList = () => {
 
             <ActionsCell>
               <ActionTopRow>
-                <SmallButton onClick={() => handleEdit(addr.id)}>수정</SmallButton>
+                <SmallButton onClick={() => handleEdit(addr)}>수정</SmallButton>
 
                 {!addr.isDefault && (
-                  <SmallButton onClick={() => handleDelete(addr.id)}>삭제</SmallButton>
+                  <SmallButton onClick={() => handleDelete(addr.id)}>
+                    삭제
+                  </SmallButton>
                 )}
               </ActionTopRow>
 
               {!addr.isDefault && (
                 <ActionBottomRow>
-                  <SmallButton 
-                  style={{ width: "110px" }}   // ← 원하는 너비로 조절
-                  onClick={() => handleSetDefault(addr.id)}>
+                  <SmallButton
+                    style={{ width: "110px" }}
+                    onClick={() => handleSetDefault(addr.id)}
+                  >
                     기본배송지 설정
-                    
                   </SmallButton>
                 </ActionBottomRow>
               )}
@@ -309,4 +320,4 @@ const MyDeliveryList = () => {
   );
 };
 
-export default MyDeliveryList;
+export default MyDeliveryInfo;
