@@ -309,7 +309,7 @@ const NearbyGroupPurchase = () => {
       </Sidebar>
 
       <MapArea>
-        <MapBackground/>
+        <MapBackground src="/images/map.png" alt="map"/>
 
         <MapControls>
           <ControlGroup>

@@ -44,7 +44,11 @@ function App() {
   const location = useLocation(); // 현재 경로 정보
   // Footer 숨길 페이지들
   const hideFooterPaths = ['/nearby'];
-  const showFooter = !hideFooterPaths.includes(location.pathname);
+  const isFooterHidden = 
+    hideFooterPaths.includes(location.pathname) || location.pathname.startsWith('/admin'); 
+
+  // 반대로 뒤집어서 showFooter 결정
+  const showFooter = !isFooterHidden;
 
   return (
     <>
