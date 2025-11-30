@@ -1,10 +1,7 @@
 package com.example.saja_saja.controller;
 
 import com.example.saja_saja.config.SecurityUtil;
-import com.example.saja_saja.dto.post.BuyerApplyRequestDto;
-import com.example.saja_saja.dto.post.PostRequestDto;
-import com.example.saja_saja.dto.post.PostWithQuantityRequestDto;
-import com.example.saja_saja.dto.post.TrackingNumberRequestDto;
+import com.example.saja_saja.dto.post.*;
 import com.example.saja_saja.entity.member.Member;
 import com.example.saja_saja.entity.post.Category;
 import com.example.saja_saja.entity.post.PostRepository;
@@ -40,7 +37,7 @@ public class PostController {
             @Valid @RequestBody PostWithQuantityRequestDto req,
             BindingResult errors
     ) {
-        Map<String, String> validatorResult = new HashMap<>();
+        Map<String, Object> validatorResult = new HashMap<>();
 
         if (errors.hasErrors()) {
             for (FieldError error : errors.getFieldErrors()) {
@@ -61,6 +58,7 @@ public class PostController {
         }
 
         if (!validatorResult.isEmpty()) {
+            validatorResult.put("data", req);
             return new ResponseEntity<>(validatorResult, HttpStatus.OK);
         }
 
@@ -82,6 +80,16 @@ public class PostController {
         return postService.postList(pageable, type, category);
     }
 
+    @GetMapping("/posts/map")
+    public ResponseEntity<?> postsMap(
+            @RequestParam double lat,      // 현재 위도
+            @RequestParam double lon,      // 현재 경도
+            @RequestParam(defaultValue = "0") int page
+    ) {
+        Pageable pageable = PageRequest.of(page, 10, Sort.by(Sort.Direction.DESC, "id"));
+        return postService.postListForMap(pageable, lat, lon);
+    }
+
     @GetMapping("/posts/{id}/buyers")
     public ResponseEntity<?> buyers(@PathVariable long id) {
         Member member = userService.getMember(SecurityUtil.getCurrentUserId());
@@ -94,7 +102,7 @@ public class PostController {
             @Valid @RequestBody BuyerApplyRequestDto req,
             BindingResult errors
     ) {
-        Map<String, String> validatorResult = new HashMap<>();
+        Map<String, Object> validatorResult = new HashMap<>();
 
         if (errors.hasErrors()) {
             for (FieldError error : errors.getFieldErrors()) {
@@ -109,6 +117,7 @@ public class PostController {
         }
 
         if (!validatorResult.isEmpty()) {
+            validatorResult.put("data", req);
             return new ResponseEntity<>(validatorResult, HttpStatus.OK);
         }
 
@@ -124,7 +133,7 @@ public class PostController {
     }
 
     // 공구 신청 취소(단순 변심)
-    @PostMapping("/posts/{id}/buyers/me")
+    @PostMapping("/posts/{id}/cancel-apply")
     public ResponseEntity<?> cancelBuyer(@PathVariable long id) {
         Member member = userService.getMember(SecurityUtil.getCurrentUserId());
         return buyerService.cancel(member.getUser(), id, 0);
@@ -153,7 +162,7 @@ public class PostController {
             @Valid @RequestBody TrackingNumberRequestDto req,
             BindingResult errors
     ) {
-        Map<String, String> validatorResult = new HashMap<>();
+        Map<String, Object> validatorResult = new HashMap<>();
 
         if (errors.hasErrors()) {
             for (FieldError error : errors.getFieldErrors()) {
@@ -163,11 +172,37 @@ public class PostController {
         }
 
         if (!validatorResult.isEmpty()) {
+            validatorResult.put("data", req);
             return new ResponseEntity<>(validatorResult, HttpStatus.OK);
         }
 
         Member member = userService.getMember(SecurityUtil.getCurrentUserId());
         return buyerService.trackingNumberUpdate(member, id, req);
+    }
+
+    // 수령일자 update
+    @PostMapping("/posts/{id}/received-at")
+    public ResponseEntity<?> receivedAtUpdate(
+            @PathVariable long id,
+            @Valid @RequestBody ReceivedAtRequestDto req,
+            BindingResult errors
+    ) {
+        Map<String, Object> validatorResult = new HashMap<>();
+
+        if (errors.hasErrors()) {
+            for (FieldError error : errors.getFieldErrors()) {
+                String validKeyName = String.format("valid_%s", error.getField());
+                validatorResult.put(validKeyName, error.getDefaultMessage());
+            }
+        }
+
+        if (!validatorResult.isEmpty()) {
+            validatorResult.put("data", req);
+            return new ResponseEntity<>(validatorResult, HttpStatus.OK);
+        }
+
+        Member member = userService.getMember(SecurityUtil.getCurrentUserId());
+        return buyerService.receivedAtUpdate(member, id, req);
     }
 
 

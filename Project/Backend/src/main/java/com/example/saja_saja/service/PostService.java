@@ -10,6 +10,7 @@ import com.example.saja_saja.exception.BadRequestException;
 import com.example.saja_saja.exception.ResourceNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -75,8 +76,6 @@ public class PostService {
             if (post.getStatus().equals(0)||post.getStatus().equals(4)) {
                 throw new BadRequestException("확인할 수 없는 공동구매 게시글입니다.", null);
             }
-            // 로그인 안 했으면 buyers 감추기
-            post.setBuyers(null);
         }
 
         if(member != null && !post.getHost().equals(member.getUser())) {
@@ -84,24 +83,25 @@ public class PostService {
                 throw new BadRequestException("확인할 수 없는 공동구매 게시글입니다.", null);
             }
 
+            List<Notice> notices = post.getNotices().stream()
+                    .map(n -> {
+                        if(n.getIsBanned()) n.setContent(null);
+                        return n;
+                    })
+                    .toList();
+
             // 내가 이 공구에 참여했는지 여부
-            Buyer buyer = post.getBuyers().stream()
+            Buyer buyer = postEntity.getBuyers().stream()
                     .filter(b -> Objects.equals(b.getUser().getId(), member.getUser().getId()))
                     .findFirst()
                     .orElse(null);
 
             data.put("buyer", buyer);
-            // 로그인 안 했으면 buyers 감추기
-            post.setBuyers(null);
         }
 
-        if (post.getIsCanceled().equals(Boolean.TRUE)) {
-            post.setBuyers(null);
-        }
-
-        List<Review> reviews = post.getBuyers().stream()
+        List<Review> reviews = postEntity.getBuyers().stream()
                 .map(Buyer::getReview)
-                .filter(Objects::nonNull)
+                .filter(r -> r.getIsBanned().equals(Boolean.FALSE))
                 .toList();
 
         if (!reviews.isEmpty()) {
@@ -112,7 +112,19 @@ public class PostService {
         return new ResponseEntity(data, HttpStatus.OK);
     }
 
-    //TODO : isCanceled check
+    // post map list
+    public ResponseEntity postListForMap(Pageable pageable, double lat, double lon) {
+
+        Page<Post> page = postRepository.findNearPosts(lat, lon, pageable);
+
+        List<PostListResponseDto> postList = page
+                .stream()
+                .map(PostListResponseDto::of)
+                .toList();
+
+        return new ResponseEntity(postList, HttpStatus.OK);
+    }
+
     public ResponseEntity postList(Pageable pageable, Integer type, Category category) {
         Specification<Post> spec = (root, query, cb) -> null;
 
@@ -149,7 +161,7 @@ public class PostService {
         return new ResponseEntity(postList, HttpStatus.OK);
     }
 
-    //TODO : check - 공구 자체 취소 (주최자만)
+    //공구 자체 취소 (주최자만)
     @Transactional
     public ResponseEntity cancel(User user, long postId) {
         Post post = postRepository.findById(postId)
