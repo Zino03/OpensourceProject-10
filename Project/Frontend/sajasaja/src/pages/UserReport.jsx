@@ -1,6 +1,7 @@
 // 파일명: UserReport.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import ReportComplete from "./modal/ReportComplete"; // ⭐ 모달 import 추가
 
 const styles = {
   page: {
@@ -15,21 +16,20 @@ const styles = {
     maxWidth: "1120px",
     padding: "40px 24px 80px",
     boxSizing: "border-box",
-    margin: "0 auto", 
+    margin: "0 auto",
   },
   title: {
-  fontSize: "20px",
-  fontWeight: 700,
-  marginBottom: "32px",
-  maxWidth: "900px",   // ← 폼의 너비와 동일하게 설정
-  margin: "0 auto 32px auto",  // ← 가운데 배치
-},
-
+    fontSize: "20px",
+    fontWeight: 700,
+    marginBottom: "32px",
+    maxWidth: "900px",
+    margin: "0 auto 32px auto",
+  },
 
   form: {
     width: "100%",
     maxWidth: "900px",
-    margin: "0 auto", 
+    margin: "0 auto",
   },
   formGroup: {
     marginBottom: "20px",
@@ -80,7 +80,7 @@ const styles = {
     height: "44px",
     borderRadius: "4px",
     border: "1px solid #dedede",
-    padding: "0 36px 0 12px", // 오른쪽 여백 확보 (아이콘 자리)
+    padding: "0 36px 0 12px",
     fontSize: "14px",
     boxSizing: "border-box",
     outline: "none",
@@ -138,12 +138,14 @@ const styles = {
 const UserReport = () => {
   const navigate = useNavigate();
 
-  // 실제에선 /userpage에서 navigate 할 때 state나 쿼리로 받아오기
   const reportedUserName = "사자사자";
 
   const [title, setTitle] = useState("");
   const [reason, setReason] = useState("");
   const [detail, setDetail] = useState("");
+
+  // ⭐ 모달 상태 추가
+  const [isCompleteOpen, setIsCompleteOpen] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -161,14 +163,14 @@ const UserReport = () => {
       return;
     }
 
-    // TODO: 신고 API 호출
+    // TODO: 신고 API
     console.log("신고 대상:", reportedUserName);
     console.log("제목:", title);
     console.log("사유:", reason);
     console.log("내용:", detail);
 
-    alert("신고가 접수되었습니다.");
-    navigate(-1);
+    // ⭐ alert 대신 모달 열기
+    setIsCompleteOpen(true);
   };
 
   const handleCancel = () => {
@@ -195,8 +197,7 @@ const UserReport = () => {
           {/* 제목 */}
           <div style={styles.formGroup}>
             <label style={styles.label}>
-              제목
-              <span style={styles.required}>(필수)</span>
+              제목 <span style={styles.required}>(필수)</span>
             </label>
             <div style={styles.inputWrapper}>
               <input
@@ -206,16 +207,13 @@ const UserReport = () => {
                 onChange={(e) => setTitle(e.target.value)}
                 style={styles.inputBase}
               />
-              <div style={styles.rightIcon}>
-              </div>
             </div>
           </div>
 
-          {/* 신고사유 (선택 드롭다운) */}
+          {/* 신고사유 */}
           <div style={styles.formGroup}>
             <label style={styles.label}>
-              신고사유
-              <span style={styles.required}>(필수)</span>
+              신고사유 <span style={styles.required}>(필수)</span>
             </label>
             <div style={styles.inputWrapper}>
               <select
@@ -233,11 +231,10 @@ const UserReport = () => {
                 <option value="other">기타 (직접 작성)</option>
               </select>
 
-              {/* 🔻 거꾸로 세모 아이콘 (undertriangle.svg) */}
               <div style={styles.rightIcon}>
                 <img
                   src="/images/undertriangle.svg"
-                  alt="열기"
+                  alt="open"
                   style={{ width: 10, height: 10 }}
                 />
               </div>
@@ -247,8 +244,7 @@ const UserReport = () => {
           {/* 신고 내용 */}
           <div style={styles.formGroup}>
             <label style={styles.label}>
-              신고 내용 상세 기재
-              <span style={styles.required}>(필수)</span>
+              신고 내용 상세 기재 <span style={styles.required}>(필수)</span>
             </label>
             <div style={{ position: "relative" }}>
               <textarea
@@ -275,11 +271,9 @@ const UserReport = () => {
             </div>
           </div>
 
-          <div style={styles.redNotice}>
-            * 20자 이상 작성하여야 합니다.
-          </div>
+          <div style={styles.redNotice}>* 20자 이상 작성하여야 합니다.</div>
 
-          {/* 버튼 영역 */}
+          {/* 버튼 */}
           <div style={styles.buttonRow}>
             <button
               type="button"
@@ -292,11 +286,17 @@ const UserReport = () => {
               type="submit"
               style={{ ...styles.btnBase, ...styles.btnSubmit }}
             >
-              등록
+              신고하기
             </button>
           </div>
         </form>
       </div>
+
+      {/* ⭐ 신고 완료 모달 */}
+      <ReportComplete
+        isOpen={isCompleteOpen}
+        onClose={() => setIsCompleteOpen(false)}
+      />
     </div>
   );
 };
