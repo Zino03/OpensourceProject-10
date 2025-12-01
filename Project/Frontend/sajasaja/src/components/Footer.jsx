@@ -8,34 +8,42 @@ import styled from 'styled-components';
   - 상하/좌우 여백만 담당하고, 선(border-top)은 여기서 제거!
 */
 const FooterContainer = styled.footer`
-  padding: 20px 150px;   /* 위아래 20px, 좌우 150px 여백 */
+  padding: 20px 200px;   /* 위아래 20px, 좌우 여백 */
   margin-top: auto;      /* flex 레이아웃에서 푸터를 맨 아래로 밀어내는 용도 */
 `;
 
 /*
-  🔹 실제 내용이 들어가는 래퍼
-  - 가운데 정렬 (max-width 1100px + margin: 0 auto)
-  - 여기서부터 선(border-top)을 그려서
-    "콘텐츠 영역까지만 선이 보이게" 설정
+  🔹 선만 담당하는 래퍼
+  - 이 컴포넌트의 width를 조절하면 "선 길이만" 따로 조정 가능
+  - 예) width: 100%;      → 화면 전체 너비만큼 선
+       width: 1200px;     → 가운데 정렬된 1200px짜리 선
 */
-const ContentWrapper = styled.div`
-  max-width: 1100px;     
-  margin: 0 auto;        
-  overflow-x: hidden;
-
-  /* 🔥 선 길이를 이 영역 너비(max 1100px)로 제한 */
-  border-top: 1px solid #eee;
-
-  /* 선과 내용이 딱 붙어 보이지 않도록 위 여백 */
-  padding-top: 20px;
-
-  display: flex;
-  flex-direction: column;
-  gap: 10px;             /* 위아래 요소 간 간격 */
+const LineWrapper = styled.div`
+  width: 1400px;               /* 선 길이 조정하는 곳 (예: 1200px, 900px 등) */
+  margin: 0 auto 10px;       /* 가운데 정렬 + 아래로 10px 간격 */
+  border-top: 1px solid #e0e0e0;
 `;
 
 /*
-  🔹 로고 영역
+  🔹 실제 내용이 들어가는 래퍼
+  - 여기서는 선(border-top)을 제거해서,
+    선 길이와 내용 너비를 서로 독립적으로 조정할 수 있게 함
+*/
+const ContentWrapper = styled.div`
+  max-width: 950px;
+  margin: 0 auto;        
+  overflow-x: hidden;
+
+  /* 🔥 이제 여기에는 border-top 없음! */
+  /* padding-top 도 선 대신 LineWrapper에서 margin-bottom으로 처리 */
+
+  display: flex;
+  flex-direction: column;
+  gap: 8px;             /* 위아래 요소 간 간격 */
+`;
+
+/*
+  로고 영역
   - 로고 이미지 2개(아이콘 + 텍스트)를 좌우로 배치
 */
 const LogoArea = styled.div`
@@ -44,15 +52,12 @@ const LogoArea = styled.div`
   gap: 10px;             /* 로고 이미지들 사이 간격 */
 `;
 
-/*
-  🔹 이용약관 / 개인정보처리방침 링크 영역
-  - 텍스트 링크와 구분용 '|' 를 가로 방향으로 배치
-*/
 const LinkMenu = styled.div`
   display: flex;
-  gap: 20px;
-  font-size: 13px;
+  gap: 15px;
+  font-size: 11px;
   color: #888;
+  font-weight: 500;
 
   /* a 태그 기본 스타일 커스터마이징 */
   a {
@@ -64,11 +69,6 @@ const LinkMenu = styled.div`
       color: #555;          /* hover 시 살짝 더 진한 회색 */
     }
   }
-
-  /* '|' 구분선 색상 살짝 연하게 */
-  span {
-    color: #ddd;
-  }
 `;
 
 /*
@@ -78,7 +78,7 @@ const LinkMenu = styled.div`
   - 긴 문장은 줄바꿈 시 단어 단위로 끊기도록 word-break 설정
 */
 const Description = styled.p`
-  font-size: 12px;
+  font-size: 10.5px;
   color: #aaa;
   line-height: 1.6;
   margin: 0;
@@ -88,37 +88,34 @@ const Description = styled.p`
 /*
   🔹 Footer 컴포넌트 본체
   - 로고 영역
-  - 약관/개인정보 처리방침 링크
+  - 약관 링크
   - 하단 안내 문구
 */
 const Footer = () => {
   return (
     <FooterContainer>
+      {/* ✅ 선만 따로 그리는 영역
+          👉 위에서 설정한 LineWrapper width로 선 길이만 조절할 수 있음 */}
+      <LineWrapper />
+
       <ContentWrapper>
         {/* 로고 영역 */}
         <LogoArea>
-          {/* 
-            /public/images/FLogo.png
-            /public/images/FLogoText.png
-            에 이미지가 있어야 정상적으로 표시됨!
-          */}
           <img
             src="/images/FLogo.png"
             alt="SajaSaja Logo"
-            style={{ height: 30 }}
+            style={{ height: 25 }}
           />
           <img
             src="/images/FLogoText.png"
             alt="SajaSaja LogoText"
-            style={{ height: 20 }}
+            style={{ height: 15 }}
           />
         </LogoArea>
 
-        {/* 이용약관 / 개인정보처리방침 링크 */}
+        {/* 이용약관 링크 */}
         <LinkMenu>
           <a href="/terms">이용약관</a>
-          <span>|</span>
-          <a href="/privacy">개인정보처리방침</a>
         </LinkMenu>
 
         {/* 하단 안내 문구 */}
