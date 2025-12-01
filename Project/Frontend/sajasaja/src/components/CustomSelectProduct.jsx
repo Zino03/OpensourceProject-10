@@ -7,7 +7,7 @@ const Container = styled.div`
   position: relative;
   font-size: 11px;
   user-select: none;
-  width: 70px;
+  width: 80px;
 `;
 
 // 닫혀있을 때 보이는 박스
