@@ -69,15 +69,6 @@ const ReportComplete = ({ isOpen, onClose }) => {
   return (
     <div style={styles.overlay}>
       <div style={styles.modal}>
-        {/* 우측 상단 X 버튼 */}
-        <button
-          type="button"
-          style={styles.closeButton}
-          onClick={handleClose}
-          aria-label="닫기"
-        >
-          x
-        </button>
 
         {/* 메시지 */}
         <div style={styles.messageWrapper}>

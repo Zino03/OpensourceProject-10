@@ -45,6 +45,7 @@ import MyGroupPerchase from './pages/MyGroupPerchase.jsx';
 
 import UserReport from './pages/UserReport.jsx';
 import NotificationReport from './pages/NotificationReport.jsx';
+import ReviewReport from './pages/ReviewReport.jsx';
 
 
 function App() {
@@ -86,6 +87,7 @@ function App() {
 
           <Route path="/userreport" element={<UserReport/>} />
           <Route path="/notificationreport" element={<NotificationReport />} />
+          <Route path="/reviewreport" element={<ReviewReport/>} />
 
           <Route path="/terms" element={<TermsOfUsePage/>} />
           <Route path="/privacy" element={<PrivacyPolicyPage/>} />
