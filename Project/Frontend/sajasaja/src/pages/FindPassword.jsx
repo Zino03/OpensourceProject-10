@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+import { api } from "../assets/setIntercepter";
 
 // 비밀번호 찾기 전체 폼
 const PageWrapper = styled.div`
@@ -108,13 +109,33 @@ const FindPassword = () => {
   // 에러 메시지 표시
   const [showError, setShowError] = useState(false);
 
-  // 성공 여부 로직
-  const handleFind = () => {
+  const handleFind = async () => {
+    // 1. 유효성 검사
     if (!name || !email) {
       setShowError(true);
-    } else {
+      return;
+    }
+
+    try {
+      // 2. 서버 통신 (import한 api 인스턴스 사용)
+      // 경로는 백엔드 설정에 맞춰 수정하세요. 예: /api/member/findPw
+      const response = await api.post("/api/member/findPw", { 
+        name: name, 
+        email: email 
+      });
+
+      console.log("전송 성공:", response.data);
+
+      // 3. 성공 처리
       setShowError(false);
-      alert('입력하신 이메일로 비밀번호 재설정 링크를 보냈습니다.');
+      alert('입력하신 이메일로 비밀번호 재설정 링크(혹은 임시비밀번호)를 보냈습니다.');
+      navigate('/login'); // 로그인 페이지로 이동
+
+    } catch (err) {
+      console.error("전송 실패:", err);
+      // 4. 실패 처리
+      setShowError(true); // 에러 메시지 표시
+      
     }
   };
 
@@ -130,7 +151,10 @@ const FindPassword = () => {
               type="text" 
               placeholder="ex) 홍길동" 
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                setName(e.target.value);
+                if(showError) setShowError(false); // 입력 시 에러 끔
+              }}
             />
           </InputGroup>
 
@@ -142,7 +166,7 @@ const FindPassword = () => {
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value);
-                setShowError(false);
+                if(showError) setShowError(false); // 입력 시 에러 끔
               }}
             />
           </InputGroup>

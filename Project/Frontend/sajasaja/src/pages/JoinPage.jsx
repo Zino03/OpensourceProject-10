@@ -153,11 +153,10 @@ const JoinPage = () => {
     setIsLoading(true);
     try {
       const response = await api.get(`/api/check/phone`, {
-        params: { phone: tel } 
+        params: { value: tel } 
       });
 
-      console.log(response.data);
-      const isDuplicate = response.data;
+      const isDuplicate = response.data; // true: 중복, false: 사용가능
 
       if (isDuplicate) {
         // true: 중복 -> 사용 불가
@@ -192,10 +191,11 @@ const JoinPage = () => {
     
     setIsLoading(true);
     try {
-      // 주석에 적어주신 대로 Path Variable 방식 적용
-      const response = await api.get(`/api/check/nickname/${nickname}`);
-      // 백엔드 리턴값이 true(중복됨) / false(사용가능) 라고 가정
-      const isDuplicate = response.data;
+      const response = await api.get('/api/check/nickname', {
+        params: { value: nickname }
+      });
+
+      const isDuplicate = response.data; // true: 중복, false: 사용가능
 
       if (isDuplicate) {
         setNicknameMessage({ text: "이미 사용 중인 닉네임입니다.", type: "error" });
@@ -231,7 +231,9 @@ const JoinPage = () => {
     setIsLoading(true);
     try {
       // [API] 백엔드 중복 확인 경로 확인 필요
-      const response = await api.post('/api/check/email', { email });
+      const response = await api.get('/api/check/email', {
+        params: { value: email } 
+      });
       const isDuplicate = response.data;
 
        if (isDuplicate) {
@@ -380,7 +382,7 @@ const JoinPage = () => {
               value={nickname} 
               onChange={handleNicknameChange} 
               placeholder="닉네임을 입력하세요"
-              maxLength={11}
+              maxLength={10}
             />
             <CheckButton onClick={checkNickname} disabled={isNicknameVerified}>
               {isNicknameVerified ? "확인완료" : "중복확인"}

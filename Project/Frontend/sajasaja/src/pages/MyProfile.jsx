@@ -303,7 +303,7 @@ function MyProfile() {
 
     if (nickname === originalNickname) {
       setNicknameMessage("현재 사용 중인 닉네임입니다.");
-      setIsNicknameValid(true);
+      setIsNicknameValid(false);
       return;
     }
 
@@ -480,6 +480,7 @@ function MyProfile() {
                 onChange={handleChange}
                 style={styles.input}
                 placeholder="간편하게 작성하세요"
+                maxLength={10}
               />
               <button
                 type="button"

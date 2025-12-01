@@ -109,6 +109,14 @@ const StyledTextArea = styled.textarea`
   }
 `;
 
+// 완료된 상태 텍스트 표시용 (Read-only)
+const ReadOnlyText = styled.div`
+  font-size: 12px;
+  color: #555;
+  padding: 6px 0;
+  white-space: pre-wrap;
+`;
+
 // 하단 버튼 그룹
 const ButtonGroup = styled.div`
   display: flex;
@@ -160,9 +168,13 @@ const ReportProcessModal = ({
   const [processStatus, setProcessStatus] = useState("waiting"); // 처리 상태
   const [reason, setReason] = useState(""); // 제재 사유
 
+  const isProcessed = data?.status && data.status !== "waiting";
+
   useEffect(() => {
     if (isOpen && data) {
       setProcessStatus(data.status || "waiting");
+      // 데이터에 저장된 사유가 있다면 불러옴
+      setReason(data.reason || "");
     }
   }, [isOpen, data]);
 
@@ -171,6 +183,7 @@ const ReportProcessModal = ({
   const handleSave = () => {
     onSave(data.id, {
       status: processStatus,
+      reason: reason, // 사유도 함께 저장
     });
     alert("처리가 완료되었습니다.");
     onClose();
@@ -179,6 +192,11 @@ const ReportProcessModal = ({
   // type에 따라 보여줄 드롭다운 옵션 결정
   const currentStatusOptions =
     type === "user" ? STATUS_OPTIONS.user : STATUS_OPTIONS.review;
+  
+  const getStatusLabel = (val) => {
+    const option = currentStatusOptions.find((opt) => opt.value === val);
+    return option ? option.label : val;
+  };
 
   return (
     <Overlay onClick={onClose}>
@@ -214,11 +232,24 @@ const ReportProcessModal = ({
 
         <ProcessArea>
           <ControlColumn>
-            <CustomSelect
-              value={processStatus}
-              onChange={(val) => setProcessStatus(val)}
-              options={currentStatusOptions}
-            ></CustomSelect>
+            {isProcessed ? (
+              // 이미 처리된 경우: 텍스트로 표시
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                 <InputLabel>처리 결과 :</InputLabel>
+                 <Value style={{ fontSize: "12px", border: "1px solid #ddd", borderRadius: "5px", padding: "10px"}}>{getStatusLabel(processStatus)}</Value>
+              </div>
+            ) : (
+              // 처리 대기인 경우: Select Box 표시
+              <CustomSelect
+                value={processStatus}
+                onChange={(val) => {
+                    setProcessStatus(val);
+                    // 제재가 아닌 것으로 변경 시 사유 초기화 (선택 사항)
+                    if (val !== 'completed') setReason("");
+                }}
+                options={currentStatusOptions}
+              />
+            )}
           </ControlColumn>
 
           <InputColumn>
@@ -226,15 +257,34 @@ const ReportProcessModal = ({
               <InputLabel style={{ width: "100px", paddingTop: "5px" }}>
                 제재 사유 :
               </InputLabel>
-              <StyledTextArea placeholder="내용을 입력해주세요." />
+              {isProcessed ? (
+                <ReadOnlyText>
+                    {reason || "-"}
+                </ReadOnlyText>
+              ) : (
+                 // 처리 대기인 경우: 입력창 표시
+                 <StyledTextArea
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                    // 'completed' 상태일 때만 입력 가능
+                    disabled={processStatus !== 'completed'} 
+                    placeholder={
+                        processStatus === 'completed' 
+                        ? "내용을 입력해주세요." 
+                        : "제재(숨김) 선택 시에만 작성 가능합니다."
+                    }
+                 />
+              )}
             </div>
           </InputColumn>
         </ProcessArea>
         <ButtonGroup>
-          <ActionButton onClick={onClose}>닫기</ActionButton>
-          <ActionButton primary onClick={handleSave}>
-            처리하기
-          </ActionButton>
+          <ActionButton onClick={onClose}>{isProcessed ? "확인" : "닫기"}</ActionButton>
+          {!isProcessed && (
+            <ActionButton primary onClick={handleSave}>
+                처리하기
+            </ActionButton>
+          )}
         </ButtonGroup>
       </ModalContainer>
     </Overlay>
