@@ -40,6 +40,18 @@ public class UserService {
         }
     }
 
+    public Boolean isEmailDuplicated(String email) {
+        return memberRepository.existsByEmail(email);
+    }
+
+    public Boolean isPhoneDuplicated(String phone) {
+        return userRepository.existsByPhone(phone);
+    }
+
+    public Boolean isNicknameDuplicated(String nickname) {
+        return userRepository.existsByNickname(nickname);
+    }
+
     public ResponseEntity getAddressList(Long userId) {
         try {
             List<UserAddress> addresses = userAddressRepository.findByUserId(userId);

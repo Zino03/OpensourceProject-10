@@ -7,11 +7,15 @@ import com.example.saja_saja.dto.user.UserRequestDto;
 import com.example.saja_saja.entity.member.Member;
 import com.example.saja_saja.entity.post.BuyerRepository;
 import com.example.saja_saja.entity.user.User;
+import com.example.saja_saja.exception.BadRequestException;
 import com.example.saja_saja.service.BuyerService;
 import com.example.saja_saja.service.PostService;
 import com.example.saja_saja.service.ReviewService;
 import com.example.saja_saja.service.UserService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -20,6 +24,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -29,6 +34,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
+@Validated
 public class UserController {
     private final UserService userService;
     private final BuyerService buyerService;
@@ -36,6 +42,28 @@ public class UserController {
     private final ReviewService reviewService;
     private final PostService postService;
 
+    @GetMapping("/check/email")
+    public Boolean checkEmail(
+            @NotBlank(message = "이메일은 필수 입력값입니다.")
+            @Email(message = "올바른 이메일 주소를 입력해주세요.")
+            @RequestParam("value") String email) {
+        return userService.isEmailDuplicated(email);
+    }
+
+    @GetMapping("/check/phone")
+    public Boolean checkPhone(
+            @NotBlank(message = "전화번호는 필수 입력값입니다.")
+            @RequestParam("value") String phone) {
+        return userService.isPhoneDuplicated(phone);
+    }
+
+    @GetMapping("/check/nickname")
+    public Boolean checkNickname(
+            @Size(min = 1, max = 10, message = "닉네임은 1자 이상 10자 이하입니다.")
+            @NotBlank(message = "닉네임을 입력해 주세요.")
+            @RequestParam("value") String nickname) {
+        return userService.isNicknameDuplicated(nickname);
+    }
 
     @GetMapping("/user/{nickname}")
     public ResponseEntity getProfile(@PathVariable String nickname) {
