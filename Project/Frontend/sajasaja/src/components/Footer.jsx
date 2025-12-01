@@ -19,7 +19,7 @@ const FooterContainer = styled.footer`
        width: 1200px;     → 가운데 정렬된 1200px짜리 선
 */
 const LineWrapper = styled.div`
-  width: 1400px;               /* 선 길이 조정하는 곳 (예: 1200px, 900px 등) */
+  width: 970px;               /* 선 길이 조정하는 곳 (예: 1200px, 900px 등) */
   margin: 0 auto 10px;       /* 가운데 정렬 + 아래로 10px 간격 */
   border-top: 1px solid #e0e0e0;
 `;
