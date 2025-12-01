@@ -13,6 +13,7 @@ const Overlay = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 9999;
 `;
 
 const ModalContainer = styled.div`
@@ -24,7 +25,6 @@ const ModalContainer = styled.div`
   display: flex;
   flex-direction: column;
 `;
-
 
 const CloseButton = styled.button`
   background: none;
@@ -61,11 +61,8 @@ const AddressFindModal = ({ isOpen, onClose, onComplete }) => {
   return (
     <Overlay onClick={onClose}>
       <ModalContainer onClick={(e) => e.stopPropagation()}>
-          <CloseButton onClick={onClose}><FaTimes /></CloseButton>
-        
-        <DaumPostcode 
-          onComplete={handleComplete}
-        />
+        <CloseButton onClick={onClose}><FaTimes /></CloseButton>
+        <DaumPostcode onComplete={handleComplete} />
       </ModalContainer>
     </Overlay>
   );
