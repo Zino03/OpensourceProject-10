@@ -61,6 +61,10 @@ public class PostController {
             validatorResult.put("valid_post", "게시글 정보가 없습니다.");
         }
 
+        if (req.getQuantity() >= postDto.getQuantity()) {
+            validatorResult.put("valid_quantity", "내 수량은 총 수량보다 작게 입력해 주세요.");
+        }
+
         if (image == null || image.isEmpty()) {
             validatorResult.put("valid_image", "이미지가 첨부되지 않았습니다.");
         }
