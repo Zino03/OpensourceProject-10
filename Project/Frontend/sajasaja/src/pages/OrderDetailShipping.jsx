@@ -279,7 +279,8 @@ function OrderDetail_Shipping() {
                     ...styles.productName,
                     cursor: "pointer",
                   }}
-                  onClick={() => navigate(`/products/${order.id}`)}
+                  onClick={() => navigate(`/orderpage/${order.id}`)}
+
                 >
                   {order.name}
                 </td>

@@ -303,7 +303,8 @@ function OrderDetail_PaymentCompleted() {
                     ...styles.productName,
                     cursor: "pointer",
                   }}
-                  onClick={() => navigate(`/products/${order.id}`)}
+                  onClick={() => navigate(`/orderpage/${order.id}`)}
+
                 >
                   {order.name}
                 </td>

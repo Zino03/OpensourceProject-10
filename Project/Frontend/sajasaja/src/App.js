@@ -28,12 +28,13 @@ import AdminPaymentManage from './admin/AdminPaymentManage';
 import AdminPostManage from './admin/AdminPostManage';
 import OrderCompletePage from './pages/OrderCompletePage';
 
-import OrderDetail_OrderReceived from './pages/OrderDetail_OrderReceived';
-import OrderDetail_PaymentReceived from './pages/OrderDetail_PaymentReceived.jsx';
-import OrderDetail_Preparing from './pages/OrderDetail_Preparing';
-import OrderDetail_Shipping from './pages/OrderDetail_Shipping.jsx';
-import OrderDetail_Delivered from './pages/OrderDetail_Delivered';
-import OrderDetail_Cancelled from './pages/OrderDetail_Cancelled';
+import OrderDetailOrderReceived from './pages/OrderDetailOrderReceived.jsx';
+import OrderDetailPaymentReceived from './pages/OrderDetailPaymentReceived.jsx';
+import OrderDetailPreparing from './pages/OrderDetailPreparing.jsx';
+import OrderDetailShipping from './pages/OrderDetailShipping.jsx';
+import OrderDetailDelivered from './pages/OrderDetailDelivered.jsx';
+import OrderDetailCancelled from './pages/OrderDetailCancelled.jsx';
+import OrderDetailPage from './pages/OrderDetailPage';
 
 import Mypage from './pages/Mypage';
 import MyProfile from './pages/MyProfile.jsx';
@@ -70,12 +71,13 @@ function App() {
           <Route path="/payment" element={<PaymentPage/>} />
           <Route path="/order-complete" element={<OrderCompletePage/>} />
 
-          <Route path="/order-detail" element={<OrderDetail_OrderReceived />} />
-          <Route path="/received" element={<OrderDetail_PaymentReceived />} />
-          <Route path="/preparing" element={<OrderDetail_Preparing />} />
-          <Route path="/shipping" element={<OrderDetail_Shipping />} />
-          <Route path="/delivered" element={<OrderDetail_Delivered />} />
-          <Route path="/cancelled" element={<OrderDetail_Cancelled />} />
+          <Route path="/order-detail" element={<OrderDetailOrderReceived />} />
+          <Route path="/received" element={<OrderDetailPaymentReceived />} />
+          <Route path="/preparing" element={<OrderDetailPreparing />} />
+          <Route path="/shipping" element={<OrderDetailShipping />} />
+          <Route path="/delivered" element={<OrderDetailDelivered />} />
+          <Route path="/cancelled" element={<OrderDetailCancelled />} />
+          <Route path="/orderpage" element={<OrderDetailPage />} />
 
           <Route path="/mypage" element={<Mypage />} />
           <Route path="/myprofile" element={<MyProfile />} />

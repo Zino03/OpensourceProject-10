@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
-import styled from 'styled-components';
+
 import { FaRegBell } from "react-icons/fa";
 import PurchaseModal from './modal/PurchaseModal';
 import InvoiceModal from './modal/InvoiceModal';
 import ReceiveModal from './modal/ReceiveModal';
 import DeliveryInfoModal from './modal/DeliveryInfoModal';
+import React, { useState } from 'react';
+import styled from 'styled-components';
+import { useNavigate } from "react-router-dom";
 
 const Container = styled.div`
   width: 100%;
@@ -467,6 +469,7 @@ const FilterButton = styled.button`
 `;
 
 const GroupPurchaseDetail = () => {
+  const navigate = useNavigate();
   const product = {
     title: '애니 피완크 미니 프레첼 스낵 150g',
     currentCount: 87,
@@ -653,7 +656,7 @@ const GroupPurchaseDetail = () => {
                     <UserIcon src="/images/filledprofile.svg" alt="user" />
                     <UserName>{notice.writer}</UserName>
                   </UserInfo>
-                  <ReportButton>
+                  <ReportButton onClick={() => navigate("/notificationreport")}>
                     <FaRegBell /> 신고
                   </ReportButton>
                 </CommentHeader>
@@ -677,7 +680,7 @@ const GroupPurchaseDetail = () => {
                     <UserName>{review.writer}</UserName>
                     <RatingText>{review.rating}</RatingText>
                   </UserInfo>
-                  <ReportButton>
+                  <ReportButton onClick={() => navigate("/reviewreport")}>
                     <FaRegBell /> 신고
                   </ReportButton>
                 </CommentHeader>

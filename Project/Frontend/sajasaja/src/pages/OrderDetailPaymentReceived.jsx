@@ -241,7 +241,8 @@ function OrderDetail_PaymentReceived() {
               >
                 <td
                   style={{ ...styles.td, ...styles.productName, cursor: "pointer" }}
-                  onClick={() => navigate(`/products/${order.id}`)}
+                  onClick={() => navigate(`/orderpage/${order.id}`)}
+
                 >
                   {order.name}
                 </td>

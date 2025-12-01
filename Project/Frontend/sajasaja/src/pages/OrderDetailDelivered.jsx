@@ -1,7 +1,8 @@
-// 파일명: OrderDetail_PaymentCompleted.jsx
+// 파일명: OrderDetail_Delivered.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import CancelModal from "./modal/CancelModal"; // 🔥 모달 import
+import ConfirmationPurchase from "./modal/ConfirmationPurchase";
+import ReviewModal from "./modal/ReviewModal"; // ✅ 후기 모달
 
 /* ============================================
     🔥 SVG 화살표 아이콘 (색 변경 가능)
@@ -31,7 +32,6 @@ const styles = {
     color: "#222",
   },
 
-  //숫자랑 화살표 사이 갭
   orderSteps: {
     display: "flex",
     alignItems: "flex-start",
@@ -45,7 +45,6 @@ const styles = {
     cursor: "pointer",
   },
 
-  /* 비활성 숫자 */
   stepNumber: {
     fontSize: "60px",
     fontWeight: 401,
@@ -54,7 +53,6 @@ const styles = {
     fontFamily: "Pretendard",
   },
 
-  /* 활성 숫자 */
   stepNumberActive: {
     fontSize: "60px",
     fontWeight: 401,
@@ -69,7 +67,6 @@ const styles = {
     color: "#555",
   },
 
-  /* 표, 뒤 코드는 동일 */
   orderListWrapper: {
     marginTop: "20px",
   },
@@ -89,11 +86,6 @@ const styles = {
     fontWeight: 900,
   },
 
-  orderListNotice: {
-    fontSize: "12px",
-    color: "#D32F2F",
-  },
-
   orderTable: {
     width: "77%",
     margin: "0 auto",
@@ -106,7 +98,6 @@ const styles = {
   },
 
   th: {
-    //표 헤더 내용 스타일 수정
     padding: "20px 8px",
     textAlign: "center",
     fontWeight: 500,
@@ -115,7 +106,6 @@ const styles = {
   },
 
   td: {
-    //표 바디 내용 스타일 수정
     padding: "10px 8px",
     textAlign: "center",
     fontSize: "11.5px",
@@ -142,39 +132,45 @@ const styles = {
     gap: "8px",
   },
 
-  btnOutline: {
-    //버튼 스타일 수정
+  btnConfirmDefault: {
     minWidth: "90px",
     padding: "4px 14px",
     fontSize: "11px",
     borderRadius: "6px",
     cursor: "pointer",
-    border: "1px solid #000",
     backgroundColor: "#fff",
-    color: "#444",
-    margin: "0 -8px 0 -4px",
+    border: "1px solid #000",
+    color: "#000",
+  },
+
+  btnConfirmDone: {
+    minWidth: "90px",
+    padding: "4px 14px",
+    fontSize: "11px",
+    borderRadius: "6px",
+    cursor: "default",
+    backgroundColor: "#e0e0e0",
+    border: "1px solid #e0e0e0",
+    color: "#000",
   },
 
   btnFilled: {
-    //버튼 스타일 수정
     minWidth: "90px",
     padding: "4px 14px",
     fontSize: "11px",
     borderRadius: "6px",
     cursor: "pointer",
-    border: "1px solid #FF7E00",
-    backgroundColor: "#FF7E00",
+    border: "1px solid #000000ff",
+    backgroundColor: "#000000ff",
     color: "#fff",
-    margin: "0 -4px 0 -8px",
   },
 };
 
 /* ============================================
     🔥 화살표 색상 배열
 =============================================== */
-const arrowColors = ["#000000ff", "#828282", "#828282", "#828282", "#ffffffff"];
+const arrowColors = ["#828282", "#828282", "#828282", "#828282", "#ffffffff"];
 
-/* 단계별 주문 개수 */
 const orderCounts = {
   received: 4,
   payment: 4,
@@ -184,25 +180,26 @@ const orderCounts = {
   cancelled: 4,
 };
 
-/* 현재 활성 단계 = 결제 완료 */
 const steps = [
-  { id: 1, label: "주문 접수", value: orderCounts.received, active: true, path: "/order-detail" },
+  { id: 1, label: "주문 접수", value: orderCounts.received, path: "/order-detail" },
   { id: 2, label: "결제 완료", value: orderCounts.payment, path: "/received" },
   { id: 3, label: "상품 준비 중", value: orderCounts.preparing, path: "/preparing" },
   { id: 4, label: "배송 중", value: orderCounts.shipping, path: "/shipping" },
-  { id: 5, label: "배송완료", value: orderCounts.delivered, path: "/delivered" },
+  { id: 5, label: "배송완료", value: orderCounts.delivered, active: true, path: "/delivered" },
   { id: 6, label: "주문 취소", value: orderCounts.cancelled, path: "/cancelled" },
 ];
 
-/* 주문 리스트 */
-const orders = [
+/* 초기 주문 리스트 + 구매확정 여부 */
+const initialOrders = [
   {
     id: 1,
     name: "애니 피오르크 미니 프레첼 스낵 150g",
     host: "사자사자",
     quantity: 1,
     date: "2025-11-12",
-    total: "7,000 원",
+    total: "1,890 원",
+    confirmed: false,
+    imageUrl: "/images/products/pretzel.png", // 없어도 동작, 예시
   },
   {
     id: 2,
@@ -211,6 +208,7 @@ const orders = [
     quantity: 2,
     date: "2025-05-20",
     total: "12,400 원",
+    confirmed: true,
   },
   {
     id: 3,
@@ -219,6 +217,7 @@ const orders = [
     quantity: 2,
     date: "2025-01-13",
     total: "23,600 원",
+    confirmed: false,
   },
   {
     id: 4,
@@ -227,43 +226,62 @@ const orders = [
     quantity: 1,
     date: "2025-01-07",
     total: "5,200 원",
+    confirmed: true,
   },
 ];
 
-/* ============================================
-    🔥 메인 컴포넌트
-=============================================== */
-function OrderDetail_OrderReceived() {
+function OrderDetail_Delivered() {
   const navigate = useNavigate();
 
-  // 🔥 모달 on/off + 어떤 주문을 취소할지
-  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [orders, setOrders] = useState(initialOrders);
 
-  const openCancelModal = (order) => {
-    setSelectedOrder(order);
-    setIsCancelModalOpen(true);
+  // 구매확정 모달
+  const [showModal, setShowModal] = useState(false);
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
+
+  // 후기 모달
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewOrderId, setReviewOrderId] = useState(null);
+
+  const handleConfirmPurchase = () => {
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.id === selectedOrderId ? { ...o, confirmed: true } : o
+      )
+    );
+    setShowModal(false);
+    setSelectedOrderId(null);
   };
 
-  const closeCancelModal = () => {
-    setIsCancelModalOpen(false);
-    setSelectedOrder(null);
+  const handleCancelModal = () => {
+    setShowModal(false);
+    setSelectedOrderId(null);
   };
 
-  const handleConfirmCancel = () => {
-    // TODO: 실제로 주문 상태 변경 / API 호출이 있다면 여기서 처리
-    console.log("취소할 주문:", selectedOrder);
-
-    // 예시로: 주문 취소 페이지로 이동
-    navigate("/cancelled");
-
-    setIsCancelModalOpen(false);
-    setSelectedOrder(null);
+  // 후기 모달 열기
+  const handleOpenReviewModal = (orderId) => {
+    setReviewOrderId(orderId);
+    setShowReviewModal(true);
   };
+
+  // 후기 모달 닫기
+  const handleCloseReviewModal = () => {
+    setShowReviewModal(false);
+    setReviewOrderId(null);
+  };
+
+  // 후기 등록 콜백
+  const handleSubmitReview = (orderId, rating, reviewText) => {
+    console.log("리뷰 등록:", { orderId, rating, reviewText });
+    setShowReviewModal(false);
+    setReviewOrderId(null);
+  };
+
+  const reviewOrder = orders.find((o) => o.id === reviewOrderId) || null;
 
   return (
     <div style={styles.orderPage}>
-      {/* 🔥 상단 주문 단계 + SVG 화살표 */}
+      {/* 🔥 상단 주문 단계 */}
       <div style={styles.orderSteps}>
         {steps.map((step, index) => (
           <React.Fragment key={step.id}>
@@ -279,8 +297,9 @@ function OrderDetail_OrderReceived() {
               <div style={styles.stepLabel}>{step.label}</div>
             </div>
 
-            {/* 마지막 단계 전까지 화살표 출력 */}
-            {index < steps.length - 1 && <ArrowIcon color={arrowColors[index]} />}
+            {index < steps.length - 1 && (
+              <ArrowIcon color={arrowColors[index]} />
+            )}
           </React.Fragment>
         ))}
       </div>
@@ -291,9 +310,6 @@ function OrderDetail_OrderReceived() {
       <div style={styles.orderListWrapper}>
         <div style={styles.orderListHeader}>
           <h2 style={styles.orderListTitle}>주문 내역</h2>
-          <span style={styles.orderListNotice}>
-            상품 준비가 시작되면 주문 취소가 어렵습니다.
-          </span>
         </div>
 
         <table style={styles.orderTable}>
@@ -304,8 +320,8 @@ function OrderDetail_OrderReceived() {
               <th style={styles.th}>수량</th>
               <th style={styles.th}>주문일</th>
               <th style={styles.th}>결제금액</th>
-              <th style={styles.th}>주문취소</th>
-              <th style={styles.th}>문의하기</th>
+              <th style={styles.th}>구매확정</th>
+              <th style={styles.th}>후기</th>
             </tr>
           </thead>
 
@@ -320,8 +336,13 @@ function OrderDetail_OrderReceived() {
                 }
               >
                 <td
-                  style={{ ...styles.td, ...styles.productName, cursor: "pointer" }}
-                  onClick={() => navigate(`/products/${order.id}`)}
+                  style={{
+                    ...styles.td,
+                    ...styles.productName,
+                    cursor: "pointer",
+                  }}
+                  onClick={() => navigate(`/orderpage/${order.id}`)}
+
                 >
                   {order.name}
                 </td>
@@ -336,23 +357,37 @@ function OrderDetail_OrderReceived() {
                 >
                   {order.host}
                 </td>
-
                 <td style={styles.td}>{order.quantity}</td>
                 <td style={styles.td}>{order.date}</td>
                 <td style={styles.td}>{order.total}</td>
 
+                {/* 구매확정 버튼 */}
                 <td style={styles.td}>
                   <button
                     type="button"
-                    style={styles.btnOutline}
-                    onClick={() => openCancelModal(order)} // 🔥 모달 오픈
+                    style={
+                      order.confirmed
+                        ? styles.btnConfirmDone
+                        : styles.btnConfirmDefault
+                    }
+                    onClick={() => {
+                      if (order.confirmed) return;
+                      setSelectedOrderId(order.id);
+                      setShowModal(true);
+                    }}
                   >
-                    주문 취소
+                    구매확정
                   </button>
                 </td>
+
+                {/* 후기 작성 버튼 */}
                 <td style={styles.td}>
-                  <button type="button" style={styles.btnFilled}>
-                    문의하기
+                  <button
+                    type="button"
+                    style={styles.btnFilled}
+                    onClick={() => handleOpenReviewModal(order.id)}
+                  >
+                    후기 작성
                   </button>
                 </td>
               </tr>
@@ -361,14 +396,28 @@ function OrderDetail_OrderReceived() {
         </table>
       </div>
 
-      {/* 🔥 주문 취소 모달 */}
-      <CancelModal
-        isOpen={isCancelModalOpen}
-        onClose={closeCancelModal}
-        onConfirm={handleConfirmCancel}
-      />
+      {/* 구매확정 모달 */}
+      {showModal && (
+        <ConfirmationPurchase
+          onCancel={handleCancelModal}
+          onConfirm={handleConfirmPurchase}
+        />
+      )}
+
+      {/* 후기 작성 모달 */}
+      {showReviewModal && reviewOrder && (
+        <ReviewModal
+          orderId={reviewOrder.id}
+          productName={reviewOrder.name}
+          host={reviewOrder.host}
+          price={reviewOrder.total}
+          imageUrl={reviewOrder.imageUrl}
+          onClose={handleCloseReviewModal}
+          onSubmit={handleSubmitReview}
+        />
+      )}
     </div>
   );
 }
 
-export default OrderDetail_OrderReceived;
+export default OrderDetail_Delivered;
