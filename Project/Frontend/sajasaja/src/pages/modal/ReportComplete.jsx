@@ -23,15 +23,6 @@ const styles = {
     position: "relative",
     textAlign: "center",
   },
-  closeButton: {
-    position: "absolute",
-    top: "10px",
-    right: "14px",
-    border: "none",
-    background: "none",
-    fontSize: "14px",
-    cursor: "pointer",
-  },
   messageLine: {
     fontSize: "14px",
     color: "#222222",
@@ -57,26 +48,25 @@ const ReportComplete = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
+  // 닫기 버튼
   const handleClose = () => {
     if (onClose) onClose();
   };
 
+  // 확인 버튼 → 메인으로 이동
   const handleConfirm = () => {
     if (onClose) onClose();
-    navigate("/"); // 메인 페이지로 이동
+    navigate("/"); // 메인 페이지 이동
   };
 
   return (
     <div style={styles.overlay}>
       <div style={styles.modal}>
-
-        {/* 메시지 */}
         <div style={styles.messageWrapper}>
           <div style={styles.messageLine}>신고가 접수되었습니다.</div>
           <div style={styles.messageLine}>의견 감사합니다.</div>
         </div>
 
-        {/* 확인 버튼 */}
         <button
           type="button"
           style={styles.confirmButton}
