@@ -43,6 +43,8 @@ import MyDeliveryInfo from './pages/MyDeliveryInfo.jsx';
 import EditMyDelivery from './pages/EditMyDelivery.jsx';
 import MyGroupPerchase from './pages/MyGroupPerchase.jsx';
 
+import UserReport from './pages/UserReport.jsx';
+
 
 function App() {
   const location = useLocation(); // 현재 경로 정보
@@ -80,6 +82,8 @@ function App() {
           <Route path="/mydelivery" element={<MyDeliveryInfo />} />
           <Route path="/editdelivery" element={<EditMyDelivery/>} />
           <Route path="/mygroupperchase" element={<MyGroupPerchase/>} />
+
+          <Route path="/userreport" element={<UserReport/>} />
 
           <Route path="/terms" element={<TermsOfUsePage/>} />
           <Route path="/privacy" element={<PrivacyPolicyPage/>} />
