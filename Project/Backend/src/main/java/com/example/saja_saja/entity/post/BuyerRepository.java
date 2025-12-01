@@ -17,8 +17,17 @@ public interface BuyerRepository extends JpaRepository<Buyer, Long> {
     Optional<Buyer> findByUserAndPostAndIsCanceled(User user, Post post, Boolean isCanceled);
     Page<Buyer> findAllByIsPaidIn(List<Integer> isPaids, Pageable pageable);
     Page<Buyer> findAllByIsPaid(Integer isPaid, Pageable pageable);
-    Page<Buyer> findAllByUserAndStatusInAndPostHostNot(User user, List<Integer> statuses, Pageable pageable);
-    Page<Buyer> findAllByUserAndStatusAndPostHostNot(User user, Integer status, Pageable pageable);
+
+    @Query("SELECT b FROM Buyer b " +
+            "WHERE b.user = :user " +
+            "AND b.status IN :statuses " +
+            "AND b.post.host != :user")
+    Page<Buyer> findAllByUserAndStatusInAndPostHostNot(@Param("user") User user, @Param("statuses") List<Integer> statuses, Pageable pageable);
+    @Query("SELECT b FROM Buyer b " +
+            "WHERE b.user = :user " +
+            "AND b.status = :status " +
+            "AND b.post.host != :user")
+    Page<Buyer> findAllByUserAndStatusAndPostHostNot(@Param("user") User user, @Param("status") Integer status, Pageable pageable);
 
     Page<Buyer> findAllByPayerNameContaining(String payerName, Pageable pageable);
     Page<Buyer> findAllByIsPaidInAndPayerNameContaining(List<Integer> isPaidList, String payerName, Pageable pageable);
