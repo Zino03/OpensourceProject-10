@@ -65,7 +65,8 @@ public class Buyer {
     // 0: 단순변심, 1: 공구취소, 2: 결제 미완료
     private Integer canceledReason;
 
-    // 0: 주문 접수, 1: 결제완료, 2: 상품 준비중, 3: 배송완료, 4: 구매확정
+    // TODO: status 사용 중인 곳 올바르게 수정
+    // 0: 주문 접수, 1: 결제완료, 2: 상품 준비중, 3: 배송중, 4: 배송완료, 5: 구매확정
     private Integer status;
 
     @OneToOne
