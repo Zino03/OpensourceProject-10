@@ -64,7 +64,7 @@ const CheckButton = styled.button`
   color: white;
   border: none;
   border-radius: 8px;
-  font-size: 11px;
+  font-size: 10px;
   cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
   white-space: nowrap;
   &:hover {
@@ -82,7 +82,7 @@ const ValidationMessage = styled.p`
 
 const SubmitButton = styled.button`
   width: 100%;
-  padding: 12px 16px;
+  padding: 12px;
   background-color: ${props => props.disabled ? '#999' : '#000'};
   color: white;
   border: none;
@@ -90,7 +90,7 @@ const SubmitButton = styled.button`
   font-size: 14px;
   font-weight: 500;
   cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
-  margin-top: 20px;
+  margin-top: 10px;
   &:hover {
     opacity: ${props => props.disabled ? '1' : '0.9'};
   }
@@ -136,47 +136,47 @@ const JoinPage = () => {
     if (tel.length === 11) {
       const phoneRegex = /^010\d{8}$/;
       if (phoneRegex.test(tel)) {
-        setTelMessage({ text: "올바른 형식입니다.", type: "success" });
+        setTelMessage(null); // 형식 맞으면 메시지 제거하고 중복확인 유도
       } else {
         setTelMessage({ text: "010으로 시작하는 번호를 입력해주세요.", type: "error" });
       }
-    } else {
-      setTelMessage({ text: "전화번호 11자리를 입력해주세요.", type: "error" });
     }
   }, [tel]);
 
-  
-
   // 전화번호 중복 확인
   const checkTel = async () => {
-    if (!tel) {
-      alert("닉네임을 입력해주세요.");
+    if (!tel || tel.length < 11) {
+      setTelMessage({ text: "올바른 전화번호를 입력해주세요.", type: "error" });
       return;
     }
     
     setIsLoading(true);
     try {
-      const response = await api.get(`/api/user/${tel}`);
-      if (response.status === 200) {
+      const response = await api.get(`/api/check/phone`, {
+        params: { phone: tel } 
+      });
+
+      console.log(response.data);
+      const isDuplicate = response.data;
+
+      if (isDuplicate) {
+        // true: 중복 -> 사용 불가
+        setTelMessage({ text: "이미 사용 중인 전화번호입니다.", type: "error" });
+        setIsTelVerified(false);
+      } else {
+        // false: 중복 아님 -> 사용 가능
         setTelMessage({ text: "사용 가능한 전화번호입니다.", type: "success" });
         setIsTelVerified(true);
       }
-
     } catch (error) {
-      // 중복이거나 에러인 경우
-      if (error.response && (error.response.status === 409 || error.response.status === 400)) {
-        setTelMessage({ text: "이미 사용 중인 전화번호입니다.", type: "error" });
-      } else {
-        const msg = error.response?.data?.message || "중복 확인 중 오류가 발생했습니다.";
-        setTelMessage({ text: msg, type: "error" });
-      }
+      console.error(error);
+      setTelMessage({ text: "중복 확인 중 오류가 발생했습니다.", type: "error" });
       setIsTelVerified(false);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // 2. 닉네임 변경 시 재검증 유도
   const handleNicknameChange = (e) => {
     setNickname(e.target.value);
     setIsNicknameVerified(false); 
@@ -186,26 +186,27 @@ const JoinPage = () => {
   // 닉네임 중복 확인 (Path Variable 방식)
   const checkNickname = async () => {
     if (!nickname) {
-      alert("닉네임을 입력해주세요.");
+      setNicknameMessage({ text: "닉네임을 입력해주세요.", type: "error" });
       return;
     }
     
     setIsLoading(true);
     try {
-      const response = await api.get(`/api/user/${nickname}`);
-      if (response.status === 200) {
+      // 주석에 적어주신 대로 Path Variable 방식 적용
+      const response = await api.get(`/api/check/nickname/${nickname}`);
+      // 백엔드 리턴값이 true(중복됨) / false(사용가능) 라고 가정
+      const isDuplicate = response.data;
+
+      if (isDuplicate) {
+        setNicknameMessage({ text: "이미 사용 중인 닉네임입니다.", type: "error" });
+        setIsNicknameVerified(false);
+      } else {
         setNicknameMessage({ text: "사용 가능한 닉네임입니다.", type: "success" });
         setIsNicknameVerified(true);
       }
-
     } catch (error) {
-      // 중복이거나 에러인 경우
-      if (error.response && (error.response.status === 409 || error.response.status === 400)) {
-        setNicknameMessage({ text: "이미 사용 중인 닉네임입니다.", type: "error" });
-      } else {
-        const msg = error.response?.data?.message || "중복 확인 중 오류가 발생했습니다.";
-        setNicknameMessage({ text: msg, type: "error" });
-      }
+      console.error(error);
+      setNicknameMessage({ text: "중복 확인 중 오류가 발생했습니다.", type: "error" });
       setIsNicknameVerified(false);
     } finally {
       setIsLoading(false);
@@ -230,19 +231,20 @@ const JoinPage = () => {
     setIsLoading(true);
     try {
       // [API] 백엔드 중복 확인 경로 확인 필요
-      const response = await api.post('/auth/check/email', { email });
+      const response = await api.post('/api/check/email', { email });
+      const isDuplicate = response.data;
 
-      if (response.status === 200) {
+       if (isDuplicate) {
+        setEmailMessage({ text: "이미 가입된 이메일입니다.", type: "error" });
+        setIsEmailVerified(false);
+      } else {
         setEmailMessage({ text: "사용 가능한 이메일입니다.", type: "success" });
         setIsEmailVerified(true);
       }
     } catch (error) {
-       if (error.response && error.response.status === 409) {
-        setEmailMessage({ text: "이미 가입된 이메일입니다.", type: "error" });
-      } else {
-        const msg = error.response?.data?.message || "사용할 수 없는 이메일입니다.";
-        setEmailMessage({ text: msg, type: "error" });
-      }
+      console.error(error);
+      const msg = error.response?.data?.message || "중복 확인 중 오류가 발생했습니다.";
+      setEmailMessage({ text: msg, type: "error" });
       setIsEmailVerified(false);
     } finally {
       setIsLoading(false);
@@ -286,7 +288,7 @@ const JoinPage = () => {
     if (!isTelVerified) {
       alert('전화번호 중복 확인이 필요합니다.');
       return;
-    } 
+    }
     if (!isEmailVerified) {
       alert('이메일 중복 확인이 필요합니다.');
       return;
@@ -321,20 +323,17 @@ const JoinPage = () => {
 
       // 회원가입 후 자동 로그인 처리 (토큰이 온다면)
       const token = response.data.accessToken || response.data.token; 
-      if (token) {
-        localStorage.setItem('accessToken', token); // 자동 로그인
-        alert("회원가입이 완료되었습니다!");
-        window.location.href = '/'; 
-      } else {
-        // 토큰이 안 오면 로그인 페이지로 이동
-        alert("회원가입이 완료되었습니다. 로그인해주세요.");
-        window.location.href = '/login';
+      if (response.status === 200 || response.status === 201) {
+        if (token) {
+           localStorage.setItem('accessToken', token); 
+        }
+        alert("회원가입이 완료되었습니다! (테스트용 가상 응답)");
+        window.location.href = '#/'; // 실제 환경에서는 '/' 등으로 이동
       }
-
     } catch (error) {
       console.error('회원가입 실패:', error);
       if (error.response) {
-         alert(`회원가입 실패: ${error.response.data.message || '입력 정보를 확인해주세요.'}`);
+          alert(`회원가입 실패: ${error.response.data.message || '입력 정보를 확인해주세요.'}`);
       } else {
         alert("서버와 연결할 수 없습니다.");
       }
@@ -355,14 +354,15 @@ const JoinPage = () => {
 
         <InputGroup>
           <Label>전화번호</Label>
-          <InputWithButton 
+          <InputWithButton>
+            <Input 
             type="text"
             placeholder="ex) 01012345678" 
             value={tel} 
             onChange={handleTelChange} 
-            maxLength={11}>
-            <CheckButton onClick={checkTel} disabled={isLoading || !tel}>
-              중복확인
+            maxLength={11}/>
+            <CheckButton onClick={checkTel} disabled={isTelVerified}>
+              {isTelVerified ? "확인완료" : "중복확인"}
             </CheckButton>
           </InputWithButton>
           {telMessage && (
@@ -380,9 +380,10 @@ const JoinPage = () => {
               value={nickname} 
               onChange={handleNicknameChange} 
               placeholder="닉네임을 입력하세요"
+              maxLength={11}
             />
-            <CheckButton onClick={checkNickname} disabled={isLoading || !nickname}>
-              중복확인
+            <CheckButton onClick={checkNickname} disabled={isNicknameVerified}>
+              {isNicknameVerified ? "확인완료" : "중복확인"}
             </CheckButton>
           </InputWithButton>
           {nicknameMessage && (
@@ -401,8 +402,8 @@ const JoinPage = () => {
               value={email} 
               onChange={handleEmailChange} 
             />
-            <CheckButton onClick={checkEmail} disabled={isLoading || !email}>
-              중복확인
+            <CheckButton onClick={checkEmail} disabled={isEmailVerified}>
+               {isEmailVerified ? "확인완료" : "중복확인"}
             </CheckButton>
           </InputWithButton>
           {emailMessage && (
@@ -433,6 +434,7 @@ const JoinPage = () => {
         </InputGroup>
 
         <SubmitButton onClick={handleJoin} disabled={isLoading}>
+          가입하기
         </SubmitButton>
 
       </SignupWrapper>
