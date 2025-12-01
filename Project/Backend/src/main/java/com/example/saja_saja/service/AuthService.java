@@ -16,6 +16,7 @@ import com.example.saja_saja.entity.member.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -82,11 +83,14 @@ public class AuthService {
         Authentication authentication;
         try {
             authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
+        } catch (BadCredentialsException e) {
+            // 아이디 없음 + 비번 틀림 둘 다 여기로 옴
+            throw new BadRequestException("이메일 또는 비밀번호가 올바르지 않습니다.", null);
         } catch (InternalAuthenticationServiceException e) {
             if (e.getCause() instanceof BadRequestException bre) {
                 throw bre;
             }
-            throw e;
+            throw e; // 서버 내부 문제니까 그대로 던져
         }
 
         TokenDto tokenDto = tokenProvider.generateTokenDto(authentication);
