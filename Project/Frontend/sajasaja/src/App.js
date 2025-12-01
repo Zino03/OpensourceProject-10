@@ -106,7 +106,7 @@ function App() {
             <Route index element={<AdminUserReport/>} />
 
             <Route path="report-user" element={<AdminUserReport/>} />
-            <Route path="report-review" element={<AdminReviewReport/>} /> 
+            <Route path="report-review" element={<AdminReviewReport/>} />
             <Route path="report-notice" element={<AdminNoticeReport/>} />
             <Route path="payment" element={<AdminPaymentManage/>} />
             <Route path="posts" element={<AdminPostManage/>} />
