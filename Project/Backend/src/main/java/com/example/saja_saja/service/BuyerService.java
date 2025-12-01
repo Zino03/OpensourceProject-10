@@ -26,13 +26,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -238,6 +236,7 @@ public class BuyerService {
         return new ResponseEntity(buyer, HttpStatus.OK);
     }
 
+    // 주최자가 본인거 수량변경
     @Transactional
     public ResponseEntity update(Member member, long postId, int requestQuantity) {
         Optional<Post> optionalP = postRepository.findById(postId);
@@ -304,6 +303,7 @@ public class BuyerService {
         return new ResponseEntity(buyer, HttpStatus.OK);
     }
 
+    // 주최자가 본인 공동구매 구매자들 리스트 조회
     public ResponseEntity buyerList(Member member, long postId) {
         Optional<Post> optional = postRepository.findById(postId);
 
@@ -343,6 +343,7 @@ public class BuyerService {
         return new ResponseEntity(buyers, HttpStatus.OK);
     }
 
+    // 운송장 등록
     @Transactional
     public ResponseEntity trackingNumberUpdate(Member member, long postId, TrackingNumberRequestDto trackingNumberRequestDto) {
         Optional<Post> optionalP = postRepository.findById(postId);
@@ -407,14 +408,21 @@ public class BuyerService {
             throw new BadRequestException("배송정보를 등록할 수 있는 사용자가 아닙니다.", null);
         }
 
+        // TODO: 주문 status가 상품 준비중일 때만 등록 가능??
+        if (!buyer.getStatus().equals(2)) {
+            throw new BadRequestException("배송정보를 등록할 수 있는 기간이 아닙니다.", null);
+        }
+
         buyer.setCourier(trackingNumberRequestDto.getCourier());
         buyer.setTrackingNumber(trackingNumberRequestDto.getTrackingNumber());
+        buyer.setStatus(3);
 
         buyerRepository.save(buyer);
 
         return new ResponseEntity(buyer, HttpStatus.OK);
     }
 
+    // 수령일 등록
     @Transactional
     public ResponseEntity receivedAtUpdate(Member member, long postId, ReceivedAtRequestDto receivedAtRequestDto) {
         Optional<Post> optionalP = postRepository.findById(postId);
@@ -475,22 +483,36 @@ public class BuyerService {
         }
 
         buyer.setReceivedAt(receivedAtRequestDto.getReceivedAt());
+        buyer.setStatus(4);
 
         buyerRepository.save(buyer);
 
         return new ResponseEntity(buyer, HttpStatus.OK);
     }
 
-    @Transactional
-    // 0: 주문 접수, 1: 결제완료, 2: 상품 준비중, 3: 배송완료, 4: 구매확정 5: 주문 취소
-    public ResponseEntity orderList(Member member, Integer status, Pageable pageable) {
-        if (status < 0 || status > 5) {
-            throw new BadRequestException("조회 불가한 status입니다.", null);
-        }
 
+    // 0: 주문 접수, 1: 결제완료, 2: 상품 준비중, 3: 배송중, 4: 배송완료, 5: 구매확정 6: 주문 취소
+    // 마이페이지에서 주문 내역 조회
+    @Transactional
+    public ResponseEntity orderList(Member member, Integer status, Pageable pageable) {
         try {
             User user = member.getUser();
-            Page<Buyer> buyerPage = buyerRepository.findAllByUserAndStatus(user, status, pageable);
+
+            Page<Buyer> buyerPage;
+
+            switch (status) {
+                case 0: case 1: case 2: case 3: case 6:
+                    buyerPage = buyerRepository.findAllByUserAndStatusAndPostHostNot(user, status, pageable);
+                    break;
+                case 4:
+                    List<Integer> statuses = new ArrayList<>();
+                    statuses.add(4);
+                    statuses.add(5);
+                    buyerPage = buyerRepository.findAllByUserAndStatusInAndPostHostNot(user, statuses, pageable);
+                    break;
+                default:
+                    throw new BadRequestException("조회 불가한 status입니다.", null);
+            }
 
             List<?> orders = null;
             Boolean hasMore = null;
@@ -532,13 +554,44 @@ public class BuyerService {
         }
     }
 
-    @Transactional
-    public ResponseEntity confirmOrder(Member member, Long buyerId) {
+    // 마이페이지에서 주문 상세 조회
+    public ResponseEntity order(Member member, Long buyerId) {
         Buyer buyer = buyerRepository.findById(buyerId)
                 .orElseThrow(() -> new ResourceNotFoundException("주문 내역을 찾을 수 없습니다."));
 
-        if (!buyer.getUser().equals(member.getUser())) {
+        User buyerUser = buyer.getUser();
+        if (!buyerUser.equals(member.getUser())) {
+            throw new BadRequestException("본인의 주문만 조회할 수 있습니다.", null);
+        }
+
+        if (buyerUser.equals(buyer.getPost().getHost())) {
+            throw new BadRequestException("주최 공동 구매 기록은 마이페이지에서 조회할 수 없습니다.", null);
+        }
+
+        try {
+            OrderResponseDto order = OrderResponseDto.of(buyer);
+
+            HashMap<String, Object> data = new HashMap<>();
+            data.put("order", order);
+            return new ResponseEntity(data, HttpStatus.OK);
+        } catch (Exception e) {
+            throw new RuntimeException("주문 상세를 불러올 수 없습니다.");
+        }
+    }
+
+    // 구매확정
+    @Transactional
+    public ResponseEntity confirmPurchase(Member member, Long buyerId) {
+        Buyer buyer = buyerRepository.findById(buyerId)
+                .orElseThrow(() -> new ResourceNotFoundException("주문 내역을 찾을 수 없습니다."));
+
+        User buyerUser = buyer.getUser();
+        if (!buyerUser.equals(member.getUser())) {
             throw new BadRequestException("본인의 주문만 구매 확정할 수 있습니다.", null);
+        }
+
+        if (buyerUser.equals(buyer.getPost().getHost())) {
+            throw new BadRequestException("주최 공동 구매 기록은 구매 확정할 수 없습니다.", null);
         }
 
         if (buyer.getStatus() != 3) {
@@ -558,22 +611,14 @@ public class BuyerService {
         }
     }
 
-    public ResponseEntity order(Member member, Long buyerId) {
-        Buyer buyer = buyerRepository.findById(buyerId)
-                .orElseThrow(() -> new ResourceNotFoundException("주문 내역을 찾을 수 없습니다."));
+    @Transactional
+//    @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul") // 매일 0시 실행
+    public void autoConfirmPurchases() {
+        LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
+        List<Buyer> buyersToConfirm = buyerRepository.findAllForAutoConfirm(sevenDaysAgo);
 
-        if (!buyer.getUser().equals(member.getUser())) {
-            throw new BadRequestException("본인의 주문만 조회할 수 있습니다.", null);
-        }
-
-        try {
-            OrderResponseDto order = OrderResponseDto.of(buyer);
-
-            HashMap<String, Object> data = new HashMap<>();
-            data.put("order", order);
-            return new ResponseEntity(data, HttpStatus.OK);
-        } catch (Exception e) {
-            throw new RuntimeException("주문 상세를 불러올 수 없습니다.");
+        for (Buyer buyer : buyersToConfirm) {
+            buyer.setStatus(5);
         }
     }
 }

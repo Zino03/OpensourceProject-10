@@ -71,37 +71,43 @@ public class OrderResponseDto {
 
     public static OrderResponseDto of(Buyer buyer) {
         User user = buyer.getUser();
-        UserAddress userAddress = buyer.getUserAddress();
+        UserAddress userAddress;
+        if(buyer.getIsDelivery().equals(true)) {
+            userAddress = buyer.getUserAddress();
+        } else {
+            userAddress = new UserAddress(-1l,"" ,"" ,"",-1,"","",EntranceAccess.OTHER,"",false, user);
+        }
         Post post = buyer.getPost();
         User host = post.getHost();
 
-        return new OrderResponseDto(
-                userAddress.getRecipient(),
-                userAddress.getStreet(),
-                userAddress.getPhone(),
-                userAddress.getEntranceAccess(),
-                userAddress.getEntranceDetail(),
-                post.getId(),
-                post.getImage(),
-                post.getTitle(),
-                post.getEndAt(),
-                host.getName(),
-                host.getNickname(),
-                post.getDeliveryFee(),
-                post.getPickupAddress().getStreet(),
-                buyer.getCreatedAt(),
-                buyer.getCourier(),
-                buyer.getTrackingNumber(),
-                buyer.getPrice(),
-                buyer.getQuantity(),
-                buyer.getIsDelivery(),
-                buyer.getStatus(),
-                buyer.getReceivedAt(),
-                user.getVirtualAccount(),
-                user.getVirtualAccountBank(),
-                user.getName(),
-                user.getPhone(),
-                user.getMember().getEmail()
-        );
+        return OrderResponseDto.builder()
+                .recipient(userAddress.getRecipient())
+                .addressStreet(userAddress.getStreet())
+                .addressPhone(userAddress.getPhone())
+                .entranceAccess(userAddress.getEntranceAccess())
+                .entranceDetail(userAddress.getEntranceDetail())
+                .postId(post.getId())
+                .postImg(post.getImage())
+                .postTitle(post.getTitle())
+                .endAt(post.getEndAt())
+                .hostName(host.getName())
+                .hostNickname(host.getNickname())
+                .deliveryFee(post.getDeliveryFee())
+                .pickupAddress(post.getPickupAddress().getStreet())
+                .createdAt(buyer.getCreatedAt())
+                .courier(buyer.getCourier())
+                .trackingNumber(buyer.getTrackingNumber())
+                .price(buyer.getPrice())
+                .quantity(buyer.getQuantity())
+                .isDelivery(buyer.getIsDelivery())
+                .status(buyer.getStatus())
+                .receivedAt(buyer.getReceivedAt())
+                .virtualAccount(user.getVirtualAccount())
+                .virtualAccountBank(user.getVirtualAccountBank())
+                .buyerName(user.getName())
+                .buyerPhone(user.getPhone())
+                .email(user.getMember().getEmail())
+                .build();
     }
+
 }

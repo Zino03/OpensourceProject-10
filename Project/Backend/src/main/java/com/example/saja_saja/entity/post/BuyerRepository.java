@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,7 +17,8 @@ public interface BuyerRepository extends JpaRepository<Buyer, Long> {
     Optional<Buyer> findByUserAndPostAndIsCanceled(User user, Post post, Boolean isCanceled);
     Page<Buyer> findAllByIsPaidIn(List<Integer> isPaids, Pageable pageable);
     Page<Buyer> findAllByIsPaid(Integer isPaid, Pageable pageable);
-    Page<Buyer> findAllByUserAndStatus(User user, Integer status, Pageable pageable);
+    Page<Buyer> findAllByUserAndStatusInAndPostHostNot(User user, List<Integer> statuses, Pageable pageable);
+    Page<Buyer> findAllByUserAndStatusAndPostHostNot(User user, Integer status, Pageable pageable);
 
     Page<Buyer> findAllByPayerNameContaining(String payerName, Pageable pageable);
     Page<Buyer> findAllByIsPaidInAndPayerNameContaining(List<Integer> isPaidList, String payerName, Pageable pageable);
@@ -25,4 +27,7 @@ public interface BuyerRepository extends JpaRepository<Buyer, Long> {
 
     @Query("SELECT b.status, COUNT(b) FROM Buyer b WHERE b.user = :user GROUP BY b.status")
     List<Object[]> countOrderStatusByUser(@Param("user") User user);
+
+    @Query("SELECT b FROM Buyer b WHERE b.status = 4 AND b.isCanceled = false AND b.receivedAt < :sevenDaysAgo")
+    List<Buyer> findAllForAutoConfirm(@Param("sevenDaysAgo") LocalDateTime sevenDaysAgo);
 }

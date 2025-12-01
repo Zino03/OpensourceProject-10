@@ -1,15 +1,14 @@
 package com.example.saja_saja.controller;
 
 import com.example.saja_saja.config.SecurityUtil;
-import com.example.saja_saja.dto.post.PostWithQuantityRequestDto;
 import com.example.saja_saja.dto.post.ReviewRequestDto;
 import com.example.saja_saja.dto.user.UserAddressRequestDto;
 import com.example.saja_saja.dto.user.UserRequestDto;
 import com.example.saja_saja.entity.member.Member;
 import com.example.saja_saja.entity.post.BuyerRepository;
 import com.example.saja_saja.entity.user.User;
-import com.example.saja_saja.exception.BadRequestException;
 import com.example.saja_saja.service.BuyerService;
+import com.example.saja_saja.service.PostService;
 import com.example.saja_saja.service.ReviewService;
 import com.example.saja_saja.service.UserService;
 import jakarta.validation.Valid;
@@ -35,6 +34,7 @@ public class UserController {
     private final BuyerService buyerService;
     private final BuyerRepository buyerRepository;
     private final ReviewService reviewService;
+    private final PostService postService;
 
 
     @GetMapping("/user/{nickname}")
@@ -96,7 +96,7 @@ public class UserController {
     // TODO: 주문내역 조회
     @GetMapping("/mypage/orders")
     public ResponseEntity getOrderList(
-            // 0: 주문 접수, 1: 결제완료, 2: 상품 준비중, 3: 배송완료, 4: 구매확정 5: 주문 취소
+            // 0: 주문 접수, 1: 결제완료, 2: 상품 준비중, 3: 배송중, 4: 수령 완료, 5: 주문 취소
             @RequestParam(required = false, defaultValue = "0") Integer status,
             @PageableDefault(page = 0, size = 15, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
@@ -116,7 +116,7 @@ public class UserController {
     @PutMapping("/mypage/order/{buyerId}/confirm")
     public ResponseEntity confirmOrder(@PathVariable Long buyerId) {
         Member member = userService.getMember(SecurityUtil.getCurrentUserId());
-        return buyerService.confirmOrder(member, buyerId);
+        return buyerService.confirmPurchase(member, buyerId);
     }
 
     // TODO: 후기 작성
@@ -131,11 +131,18 @@ public class UserController {
     }
 
     // TODO: 주문 상세
-    @GetMapping("mypage/order/{buyerId}")
+    @GetMapping("/mypage/order/{buyerId}")
     public ResponseEntity getOrder(@PathVariable Long buyerId) {
         Member member = userService.getMember(SecurityUtil.getCurrentUserId());
         return buyerService.order(member, buyerId);
     }
 
     // TODO: 주최 공구 조회
+    @GetMapping("/mypage/posts")
+    public ResponseEntity getPostList(
+            @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        Member member = userService.getMember(SecurityUtil.getCurrentUserId());
+        return postService.userPostList(pageable, member, member.getUser().getNickname());
+    }
 }
