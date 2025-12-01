@@ -2,6 +2,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+// 중복 닉네임, 빨간색, 글자수 제한
+
 // 🔥 은행 리스트 (파일은 public/images/banklogo/*.svg 기준)
 const bankOptions = [
   { id: "shinhan", name: "신한", logo: "/images/banklogo/shinhan.svg" },

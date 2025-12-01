@@ -106,6 +106,7 @@ const JoinPage = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
 
   // 검증 상태
+  const [isTelVerified, setIsTelVerified] = useState(false);
   const [isNicknameVerified, setIsNicknameVerified] = useState(false);
   const [isEmailVerified, setIsEmailVerified] = useState(false);
   
@@ -123,6 +124,8 @@ const JoinPage = () => {
   const handleTelChange = (e) => {
     const value = e.target.value.replace(/[^0-9]/g, ''); 
     if (value.length <= 11) setTel(value);
+    setIsTelVerified(false); 
+    setTelMessage(null);
   };
 
   useEffect(() => {
@@ -144,34 +147,34 @@ const JoinPage = () => {
 
   
 
-  // // 전화번호 중복 확인 (Path Variable 방식)
-  // const checkTel = async () => {
-  //   if (!tel) {
-  //     alert("닉네임을 입력해주세요.");
-  //     return;
-  //   }
+  // 전화번호 중복 확인
+  const checkTel = async () => {
+    if (!tel) {
+      alert("닉네임을 입력해주세요.");
+      return;
+    }
     
-  //   setIsLoading(true);
-  //   try {
-  //     const response = await api.get(`/api/user/${tel}`);
-  //     if (response.status === 200) {
-  //       setTelMessage({ text: "사용 가능한 전화번호입니다.", type: "success" });
-  //       setIsTelVerified(true);
-  //     }
+    setIsLoading(true);
+    try {
+      const response = await api.get(`/api/user/${tel}`);
+      if (response.status === 200) {
+        setTelMessage({ text: "사용 가능한 전화번호입니다.", type: "success" });
+        setIsTelVerified(true);
+      }
 
-  //   } catch (error) {
-  //     // 중복이거나 에러인 경우
-  //     if (error.response && (error.response.status === 409 || error.response.status === 400)) {
-  //       setTelMessage({ text: "이미 사용 중인 전화번호입니다.", type: "error" });
-  //     } else {
-  //       const msg = error.response?.data?.message || "중복 확인 중 오류가 발생했습니다.";
-  //       setTelMessage({ text: msg, type: "error" });
-  //     }
-  //     setIsTelVerified(false);
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
+    } catch (error) {
+      // 중복이거나 에러인 경우
+      if (error.response && (error.response.status === 409 || error.response.status === 400)) {
+        setTelMessage({ text: "이미 사용 중인 전화번호입니다.", type: "error" });
+      } else {
+        const msg = error.response?.data?.message || "중복 확인 중 오류가 발생했습니다.";
+        setTelMessage({ text: msg, type: "error" });
+      }
+      setIsTelVerified(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // 2. 닉네임 변경 시 재검증 유도
   const handleNicknameChange = (e) => {
@@ -280,6 +283,14 @@ const JoinPage = () => {
       alert('모든 항목을 입력해주세요.');
       return;
     }
+    if (!isTelVerified) {
+      alert('전화번호 중복 확인이 필요합니다.');
+      return;
+    } 
+    if (!isEmailVerified) {
+      alert('이메일 중복 확인이 필요합니다.');
+      return;
+    }
     if (!isNicknameVerified) {
       alert('닉네임 중복 확인이 필요합니다.');
       return;
@@ -344,13 +355,16 @@ const JoinPage = () => {
 
         <InputGroup>
           <Label>전화번호</Label>
-          <Input 
-            type="text" // number type은 maxlength가 안먹힘
+          <InputWithButton 
+            type="text"
             placeholder="ex) 01012345678" 
             value={tel} 
             onChange={handleTelChange} 
-            maxLength={11}
-          />
+            maxLength={11}>
+            <CheckButton onClick={checkTel} disabled={isLoading || !tel}>
+              중복확인
+            </CheckButton>
+          </InputWithButton>
           {telMessage && (
             <ValidationMessage className={telMessage.type}>
               {telMessage.text}

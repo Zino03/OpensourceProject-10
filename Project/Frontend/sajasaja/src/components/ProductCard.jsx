@@ -16,11 +16,11 @@ const ImageContainer = styled.div`
   width: 100%;
   height: 150px;
   overflow: hidden;
+  border: none;
 
   img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
   }
 `;
 
@@ -81,33 +81,41 @@ const Deadline = styled.div`
   text-align: right;
 `;
 
-
 // 카드 컴포넌트
-
 const ProductCard = ({ product }) => {
   const navigate = useNavigate();
 
-  // 데이터 받기 (임시)
   const { 
     id, 
     title, 
     price, 
-    imageUrl, 
-    totalCount, 
-    currentCount, 
-    deadline, 
-    currentStatus 
+    image,
+    quantity,
+    currentQuantity,
+    endAt,
+    category,
+    type,
   } = product;
 
   const handleCardClick = () => {
     navigate(`/products/${id}`);
   };
 
+  // 날짜 포맷팅
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    return dateString.split('T')[0];
+  };
+
   return (
     <CardWrapper onClick={handleCardClick}>
       <ImageContainer>
-        {currentStatus === '마감임박' && <StatusTag>마감임박</StatusTag>}
-        <img src="/images/im.png" alt={title} />
+        {type === 2 && (
+          <StatusTag>마감 임박</StatusTag>
+        )}
+        <img 
+          src={image ? "/images/im.png":image } 
+        />
       </ImageContainer>
 
       <InfoContainer>
@@ -115,13 +123,13 @@ const ProductCard = ({ product }) => {
         <BottomInfo>
           <DetailsContainer>
             <BottomContainer>
-              수량 <Quantity>{currentCount}/{totalCount}</Quantity>
+              수량 <Quantity>{currentQuantity}/{quantity}</Quantity>
             </BottomContainer>
             <BottomContainer>
-              기간 <Deadline>~{deadline}</Deadline>
+              기간 <Deadline>~{formatDate(endAt)}</Deadline>
             </BottomContainer>
           </DetailsContainer>
-          <Price>{price.toLocaleString()}원</Price>
+          <Price>{Number(price).toLocaleString()}원</Price>
         </BottomInfo>
       </InfoContainer>
     </CardWrapper>
