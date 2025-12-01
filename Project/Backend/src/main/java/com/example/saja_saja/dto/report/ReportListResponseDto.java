@@ -19,6 +19,8 @@ public class ReportListResponseDto {
 
     private String title;
 
+    private String content;
+
     private String reportedNickname;
 
     private LocalDateTime reportedAt;
@@ -26,33 +28,41 @@ public class ReportListResponseDto {
     // 0: 처리 대기, 1: 신고 기각, 2: 사용자 제재
     private Integer status;
 
+    private String BannedReason;
+
     public static ReportListResponseDto of(Object reportEntity) {
         if (reportEntity instanceof ReviewReport reviewReport) {
             return new ReportListResponseDto(
                 reviewReport.getId(),
                 reviewReport.getReporter().getNickname(),
                 reviewReport.getTitle(),
+                reviewReport.getContent(),
                 reviewReport.getReportedReview().getBuyer().getUser().getNickname(),
                 reviewReport.getReportedAt(),
-                reviewReport.getStatus()
+                reviewReport.getStatus(),
+                    null
             );
         } else if (reportEntity instanceof UserReport userReport) {
             return new ReportListResponseDto(
                 userReport.getId(),
                 userReport.getReporter().getNickname(),
                 userReport.getTitle(),
+                userReport.getContent(),
                 userReport.getReportedUser().getNickname(),
                 userReport.getReportedAt(),
-                userReport.getStatus()
+                userReport.getStatus(),
+                userReport.getReportedUser().getBannedReason()
             );
         } else if (reportEntity instanceof NoticeReport noticeReport) {
         return new ReportListResponseDto(
                 noticeReport.getId(),
                 noticeReport.getReporter().getNickname(),
                 noticeReport.getTitle(),
+                noticeReport.getContent(),
                 noticeReport.getReportedNotice().getPost().getHost().getNickname(),
                 noticeReport.getReportedAt(),
-                noticeReport.getStatus()
+                noticeReport.getStatus(),
+                null
             );
         }
 

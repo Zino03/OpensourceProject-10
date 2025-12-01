@@ -4,7 +4,6 @@ import com.example.saja_saja.config.SecurityUtil;
 import com.example.saja_saja.dto.report.ReportProcessRequestDto;
 import com.example.saja_saja.dto.report.ReportType;
 import com.example.saja_saja.entity.member.Member;
-import com.example.saja_saja.entity.member.Role;
 import com.example.saja_saja.service.UserService;
 import com.example.saja_saja.service.admin.AdminBuyerService;
 import com.example.saja_saja.service.admin.AdminPostService;
@@ -15,7 +14,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
@@ -43,15 +41,6 @@ public class AdminController {
     ) {
         Member member = userService.getMember(SecurityUtil.getCurrentUserId());
         return adminReportService.getReportList(member, type, status, searchType, searchQuery, pageable);
-    }
-
-    @GetMapping("/report/{type}/{reportId}")
-    public ResponseEntity getReport(@PathVariable ReportType type, @PathVariable Long reportId) {
-        Member member = userService.getMember(SecurityUtil.getCurrentUserId());
-        if (member.getRole() != Role.ADMIN) {
-            throw new AccessDeniedException("관리자 권한이 없습니다.");
-        }
-        return adminReportService.getReport(member, type, reportId);
     }
 
     @PutMapping("/report/{type}/{reportId}")
