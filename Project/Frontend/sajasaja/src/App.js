@@ -41,6 +41,7 @@ import UserPage from './pages/UserPage.jsx';
 import NewDeliveryInfo from './pages/NewDeliveryInfo.jsx';
 import MyDeliveryInfo from './pages/MyDeliveryInfo.jsx';
 import EditMyDelivery from './pages/EditMyDelivery.jsx';
+import MyGroupPerchase from './pages/MyGroupPerchase.jsx';
 
 
 function App() {
@@ -78,6 +79,7 @@ function App() {
           <Route path="/newdelivery" element={<NewDeliveryInfo />} />
           <Route path="/mydelivery" element={<MyDeliveryInfo />} />
           <Route path="/editdelivery" element={<EditMyDelivery/>} />
+          <Route path="/mygroupperchase" element={<MyGroupPerchase/>} />
 
           <Route path="/terms" element={<TermsOfUsePage/>} />
           <Route path="/privacy" element={<PrivacyPolicyPage/>} />

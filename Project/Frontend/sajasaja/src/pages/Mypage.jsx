@@ -173,7 +173,7 @@ const MyPage = () => {
 
   <div
     style={styles.menuItem}
-    onClick={() => handleClick("/my-group-buy")}
+    onClick={() => handleClick("/mygroupperchase")}
   >
     <span>MY 공구</span>
     <ChevronRight />
