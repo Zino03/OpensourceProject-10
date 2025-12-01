@@ -77,7 +77,7 @@ function App() {
           <Route path="/shipping" element={<OrderDetailShipping />} />
           <Route path="/delivered" element={<OrderDetailDelivered />} />
           <Route path="/cancelled" element={<OrderDetailCancelled />} />
-          <Route path="/orderpage" element={<OrderDetailPage />} />
+          <Route path="/orderpage/:id" element={<OrderDetailPage />} />
 
           <Route path="/mypage" element={<Mypage />} />
           <Route path="/myprofile" element={<MyProfile />} />
