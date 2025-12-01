@@ -72,7 +72,7 @@ const WarningText = styled.span`
 const FormSection = styled.div`
   display: flex;
   margin-bottom: 30px;
-  align-items: ${props => props.alignTop ? 'flex-start' : 'center'};
+  align-items: ${props => props.$alignTop ? 'flex-start' : 'center'};
 `;
 
 const Label = styled.div`
@@ -81,7 +81,7 @@ const Label = styled.div`
   font-size: 12px;
   flex-shrink: 0;
 
-  padding-top: ${props => props.alignTop ? '10px' : '0'};
+  padding-top: ${props => props.$alignTop ? '10px' : '0'};
 `;
 
 const InputArea = styled.div`
@@ -121,12 +121,12 @@ const CategoryButton = styled.button`
   font-size: 12px;
   cursor: pointer;
   border: none;
-  background-color: ${props => props.active ? '#FF7E00' : 'transparent'};
-  color: ${props => props.active ? '#fff' : '#666'};
-  font-weight: ${props => props.active ? '500' : '400'};
+  background-color: ${props => props.$active ? '#FF7E00' : 'transparent'};
+  color: ${props => props.$active ? '#fff' : '#666'};
+  font-weight: ${props => props.$active ? '500' : '400'};
 
   &:hover {
-    background-color: ${props => props.active ? '#FF7E00' : '#f5f5f5'};
+    background-color: ${props => props.$active ? '#FF7E00' : '#f5f5f5'};
   }
 `;
 
@@ -224,7 +224,6 @@ const GroupPurchaseRegister = () => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [imgFile, setImageFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(''); // 이미지 미리보기용
 
   const [selectedCategory, setSelectedCategory] = useState('');
   const [quantity, setQuantity] = useState('');
@@ -244,34 +243,47 @@ const GroupPurchaseRegister = () => {
 
   // 카테고리 매핑 (한글 -> 영어)
   const categoryMap = {
-    '식품': 'FOOD', '생활용품': 'DAILY_NECESSITY', '가전/전자기기': 'ELECTRONICS',
+    '식품': 'FOOD', '생활용품': 'HOUSEHOLD', '가전/전자기기': 'ELECTRONICS',
     '뷰티/케어': 'BEAUTY', '패션': 'FASHION', '잡화/액세서리': 'ACCESSORY',
-    '리빙/인테리어': 'INTERIOR', '반려동물': 'PET', '문구/취미': 'STATIONERY',
-    '스포츠': 'SPORTS', '유아/아동': 'BABY', '기타': 'EEE'
+    '리빙/인테리어': 'LIVING', '반려동물': 'PET', '문구/취미': 'HOBBY',
+    '스포츠': 'SPORTS', '유아/아동': 'KIDS', '기타': 'ETC'
   };
   const categories = Object.keys(categoryMap);
   const unitPrice = (quantity && price) ? Math.floor(Number(price) / Number(quantity)) : 0;
 
+  // 이미지 처리
   const handleImageChange = (e) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setImageFile(file);
-      setPreviewUrl(URL.createObjectURL(file)); // 미리보기 생성
     }
   };
 
   // 주소
   const handleAddressComplete = (selectedAddress) => {
     setAddress(selectedAddress);
+    setIsAddressOpen(false);
   };
 
-  // 1. 유효성 검사
+  // 전화번호 처리
+  const handleContactChange = (e) => {
+    // 숫자 이외의 문자는 모두 제거
+    const value = e.target.value.replace(/[^0-9]/g, ''); 
+    
+    // 11자리까지만 업데이트
+    if (value.length <= 11) {
+      setContact(value);
+    }
+  };
+
+  // 유효성 검사
   const handleRegisterClick = () => {
     if (!title || !selectedCategory || !quantity || !price || !content || !imgFile) {
       alert("모든 필수 항목(이미지 포함)을 입력해주세요.");
       setIsConfirmModalOpen(false);
       return;
       }
+      handleFinalSubmit();
     }
     
     const handleFinalSubmit = async () => {
@@ -282,7 +294,7 @@ const GroupPurchaseRegister = () => {
         const y = deadLine.substring(0, 4);
         const m = deadLine.substring(4, 6);
         const d = deadLine.substring(6, 8);
-        const dateObj = new Date(`${y}-${m}-${d}`); // 해당일 마지막 시간으로 설정
+        const dateObj = new Date(`${y}-${m}-${d}T23:59:59`); // 해당일 마지막 시간으로 설정
         formattedDate = dateObj.toISOString();
       }
 
@@ -308,7 +320,7 @@ const GroupPurchaseRegister = () => {
         quantity: Number(quantity)
       };
 
-      // 3. FormData 생성
+      // FormData 생성
       const formData = new FormData();
       formData.append('file', imgFile); // 이미지
       
@@ -318,13 +330,13 @@ const GroupPurchaseRegister = () => {
       });
       formData.append('request', jsonBlob);
 
-      // 4. API 요청
+      // API 요청
       const token = localStorage.getItem('accessToken'); // 토큰 가져오기
       
       const response = await api.post('/api/group-buying', formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data', // 중요
+          'Content-Type': 'multipart/form-data',
         },
       });
 
@@ -351,7 +363,7 @@ const GroupPurchaseRegister = () => {
         <ImageUploadBox>
           <FaCamera size={24} color="#ccc" />
           <span>이미지 등록</span>
-          <input type="file" accept="image/*" />
+          <input type="file" accept="image/*" onChange={handleImageChange} />
         </ImageUploadBox>
         <WarningText>공동구매 상품 사진을 1개 이상 첨부해주세요</WarningText>
       </ImageSectionWrapper>
@@ -359,7 +371,9 @@ const GroupPurchaseRegister = () => {
       <FormSection>
         <Label>제목</Label>
         <InputArea>
-          <StyledInput type="text" placeholder="제목을 입력해주세요." />
+          <StyledInput type="text" placeholder="제목을 입력해주세요."
+            value={title}
+            onChange={(e) => setTitle(e.target.value)} />
         </InputArea>
       </FormSection>
 
@@ -370,7 +384,7 @@ const GroupPurchaseRegister = () => {
             {categories.map((cat) => (
               <CategoryButton 
                 key={cat} 
-                active={selectedCategory === cat}
+                $active={selectedCategory === cat}
                 onClick={() => setSelectedCategory(cat)}
               >
                 {cat}
@@ -411,15 +425,17 @@ const GroupPurchaseRegister = () => {
         </InputArea>
       </FormSection>
 
-      <FormSection alignTop>
-        <Label alignTop>내용</Label>
+      <FormSection $alignTop>
+        <Label $alignTop>내용</Label>
         <InputArea>
-          <StyledTextArea placeholder="내용을 입력해주세요." />
+          <StyledTextArea placeholder="내용을 입력해주세요." 
+            value={content}
+            onChange={(e) => setContent(e.target.value)}/>
         </InputArea>
       </FormSection>
 
-      <FormSection alignTop>
-        <Label alignTop>수령장소</Label>
+      <FormSection $alignTop>
+        <Label $alignTop>수령장소</Label>
         <InputArea>
           <ComplexRow>
             <StyledInput 
@@ -460,6 +476,8 @@ const GroupPurchaseRegister = () => {
                 placeholder="배송비 입력" 
                 disabled={!isDelivery}
                 style={{ flex: 1 }}
+                value={deliveryFee}
+                onChange={(e) => setDeliveryFee(e.target.value)}
               />
             </div>
           </ComplexRow>
@@ -470,7 +488,11 @@ const GroupPurchaseRegister = () => {
           <Label>연락수단</Label>
           <InputArea>
             <ComplexRow>
-              <StyledInput type="text" placeholder="전화번호" style={{ width: '290px' }} />
+              <StyledInput type="text" placeholder="전화번호" 
+                style={{ width: '290px' }} 
+                value={contact}
+                onChange={handleContactChange}
+                maxLength={11}/>
             </ComplexRow>
           </InputArea>
           

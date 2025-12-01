@@ -56,8 +56,8 @@ const ModalButton = styled.button`
     opacity: 0.9;
   }
 
-  ${({ isConfirm }) => 
-    isConfirm 
+  ${({ $isConfirm }) => 
+    $isConfirm 
       ? `
         background-color: #000;
         color: #fff;
