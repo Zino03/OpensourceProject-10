@@ -1,7 +1,9 @@
-import React, { useState, useMemo } from 'react';
-import styled from 'styled-components';
-import ReportProcessModal from './modal/ReportProcessModal';
-import CustomSelect from '../components/CustomSelect';
+import React, { useState, useMemo, useEffect } from "react";
+import styled from "styled-components";
+import ReportProcessModal from "./modal/ReportProcessModal";
+import CustomSelect from "../components/CustomSelect";
+import { api, setInterceptor } from "../assets/setIntercepter";
+import { formatDate } from "../assets/utils";
 
 const SearchBar = styled.div`
   display: flex;
@@ -10,14 +12,16 @@ const SearchBar = styled.div`
   gap: 18px;
 
   input {
-    width: 80%;
+    width: calc(100% - 80px - 20px);
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 8px;
     font-size: 11px;
-    &:focus { outline: none; }
+    &:focus {
+      outline: none;
+    }
   }
-  
+
   select {
     padding: 8px 10px;
     border: 1px solid #ddd;
@@ -32,21 +36,22 @@ const Table = styled.table`
   border-collapse: collapse;
   font-size: 11px;
 
-  th{
+  th {
     padding: 16px 8px;
     background-color: #f9f9f9;
     font-weight: 600;
     border-bottom: 1px solid #eee;
     text-align: center;
   }
-  
+
   td {
     padding: 8px;
     border-bottom: 1px solid #eee;
     text-align: center;
   }
 
-  th:nth-child(4), td:nth-child(4) {
+  th:nth-child(4),
+  td:nth-child(4) {
     width: 30%;
   }
 `;
@@ -57,18 +62,18 @@ const StatusButton = styled.button`
   font-size: 10px;
   font-weight: 600;
   cursor: pointer;
-  
+
   &.waiting {
     background-color: #fff;
     color: #555;
   }
   &.rejected {
     background-color: #fff;
-    color: #FF5A5A;
+    color: #ff5a5a;
   }
   &.completed {
     background-color: #fff;
-    color: #44824A;
+    color: #44824a;
   }
 `;
 
@@ -94,36 +99,137 @@ const NoResult = styled.div`
   padding: 50px 0;
   color: #888;
   font-size: 14px;
-`
+`;
 
 const mockReports = [
-  { id: 1, reporter: '김서연', target: '변진호', content: '옥상으로 따라왕', date: '2025.11.10', status: 'waiting' },
-  { id: 2, reporter: '최지우', target: '변진호', content: '지금 모여주세요', date: '2025.11.13', status: 'rejected' },
-  { id: 3, reporter: '최지우', target: '변진호', content: '내일 볼까요 말까요', date: '2025.11.13', status: 'completed' },
-  { id: 4, reporter: '김서연', target: '변진호', content: '옥상으로 따라왕', date: '2025.11.10', status: 'waiting' },
-  { id: 5, reporter: '최지우', target: '변진호', content: '지금 모여주세요', date: '2025.11.13', status: 'rejected' },
-  { id: 6, reporter: '최지우', target: '변진호', content: '내일 볼까요 말까요', date: '2025.11.13', status: 'completed' },
-  { id: 7, reporter: '김서연', target: '변진호', content: '옥상으로 따라왕', date: '2025.11.10', status: 'waiting' },
-  { id: 8, reporter: '최지우', target: '변진호', content: '지금 모여주세요', date: '2025.11.13', status: 'rejected' },
-  { id: 9, reporter: '최지우', target: '변진호', content: '내일 볼까요 말까요', date: '2025.11.13', status: 'completed' },
-  { id: 10, reporter: '최지우', target: '변진호', content: '내일 볼까요 말까요', date: '2025.11.13', status: 'completed' },
+  {
+    id: 1,
+    reporter: "김서연",
+    target: "변진호",
+    content: "옥상으로 따라왕",
+    date: "2025.11.10",
+    status: "waiting",
+  },
+  {
+    id: 2,
+    reporter: "최지우",
+    target: "변진호",
+    content: "지금 모여주세요",
+    date: "2025.11.13",
+    status: "rejected",
+  },
+  {
+    id: 3,
+    reporter: "최지우",
+    target: "변진호",
+    content: "내일 볼까요 말까요",
+    date: "2025.11.13",
+    status: "completed",
+  },
+  {
+    id: 4,
+    reporter: "김서연",
+    target: "변진호",
+    content: "옥상으로 따라왕",
+    date: "2025.11.10",
+    status: "waiting",
+  },
+  {
+    id: 5,
+    reporter: "최지우",
+    target: "변진호",
+    content: "지금 모여주세요",
+    date: "2025.11.13",
+    status: "rejected",
+  },
+  {
+    id: 6,
+    reporter: "최지우",
+    target: "변진호",
+    content: "내일 볼까요 말까요",
+    date: "2025.11.13",
+    status: "completed",
+  },
+  {
+    id: 7,
+    reporter: "김서연",
+    target: "변진호",
+    content: "옥상으로 따라왕",
+    date: "2025.11.10",
+    status: "waiting",
+  },
+  {
+    id: 8,
+    reporter: "최지우",
+    target: "변진호",
+    content: "지금 모여주세요",
+    date: "2025.11.13",
+    status: "rejected",
+  },
+  {
+    id: 9,
+    reporter: "최지우",
+    target: "변진호",
+    content: "내일 볼까요 말까요",
+    date: "2025.11.13",
+    status: "completed",
+  },
+  {
+    id: 10,
+    reporter: "최지우",
+    target: "변진호",
+    content: "내일 볼까요 말까요",
+    date: "2025.11.13",
+    status: "completed",
+  },
 ];
 
 const statusOptions = [
-    { value: 'all', label: '전체' },
-    { value: 'waiting', label: '대기' },
-    { value: 'completed', label: '제재' },
-    { value: 'rejected', label: '반려' },
-  ];
-
+  { value: "all", label: "전체" },
+  { value: "waiting", label: "대기" },
+  { value: "completed", label: "제재" },
+  { value: "rejected", label: "반려" },
+];
 
 const AdminNoticePage = () => {
+  const [reports, setReports] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
 
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    const token = localStorage.getItem("accessToken");
+
+    if (!token) {
+      window.location.href = "/";
+    }
+
+    setInterceptor(token);
+
+    try {
+      const response = await api.get("/api/admin/reports/REVIEW");
+
+      console.log(response.data);
+
+      setReports(response.data.reports);
+    } catch (err) {
+      console.log(err);
+
+      if (err.response) {
+        alert(`${err.response.data.message || "알 수 없는 오류"}`);
+      } else {
+        // 네트워크 오류 등
+        alert("서버와 연결할 수 없습니다.");
+      }
+    }
+  };
+
   const handleOpenModal = (report) => {
     setSelectedReport(report);
-    setIsModalOpen(true);  
+    setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
@@ -131,46 +237,50 @@ const AdminNoticePage = () => {
     setSelectedReport(null);
   };
 
-  const [searchInputValue, setSearchInputValue] = useState('');
-  const [confirmedSearchTerm, setConfirmedSearchTerm] = useState(''); 
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [searchInputValue, setSearchInputValue] = useState("");
+  const [confirmedSearchTerm, setConfirmedSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
 
   // 엔터 감지
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      setConfirmedSearchTerm(searchInputValue); 
+    if (e.key === "Enter") {
+      setConfirmedSearchTerm(searchInputValue);
     }
   };
 
   const filteredNotice = useMemo(() => {
-    return mockReports.filter((notice) => {
+    return reports.filter((notice) => {
       // 상태 필터링
-      const statusMatch = filterStatus === 'all' || notice.status === filterStatus;
+      const statusMatch =
+        filterStatus === "all" || notice.status === filterStatus;
 
       // 검색어 필터링 (모든 필드 검사)
       // 데이터 객체의 값들(Values)만 뽑아서 배열로 만든 뒤, 하나라도 검색어를 포함하는지 확인
-      const searchMatch = Object.values(notice).some((val) => 
+      const searchMatch = Object.values(notice).some((val) =>
         String(val).toLowerCase().includes(confirmedSearchTerm.toLowerCase())
       );
 
       return statusMatch && searchMatch; // 두 조건 모두 만족해야 함
     });
-  }, [confirmedSearchTerm, filterStatus]);
+  }, [confirmedSearchTerm, filterStatus, reports]);
 
   // 콘텐츠 렌더링
   return (
     <>
       <SearchBar>
-        <input type="text" placeholder="검색" 
+        <input
+          type="text"
+          placeholder="검색"
           value={searchInputValue}
           onChange={(e) => setSearchInputValue(e.target.value)}
-          onKeyDown={handleKeyDown}/>
+          onKeyDown={handleKeyDown}
+        />
         <CustomSelect
-          value={filterStatus} 
-          onChange={(val) => setFilterStatus(val)} 
+          value={filterStatus}
+          onChange={(val) => setFilterStatus(val)}
           options={statusOptions}
-          style={{width: "80px"}}>
-        </CustomSelect>
+          style={{ width: "80px" }}
+        ></CustomSelect>
       </SearchBar>
 
       <Table>
@@ -185,19 +295,26 @@ const AdminNoticePage = () => {
           </tr>
         </thead>
         <tbody>
-        {filteredNotice.length > 0 ? (
-            filteredNotice.map((notice) => (
+          {filteredNotice.length > 0 ? (
+            filteredNotice.map((notice, i) => (
               <tr key={notice.id}>
-                <td>{notice.id}</td>
-                <td>{notice.reporter}</td>
-                <td>{notice.target}</td>
-                <td>{notice.content}</td>
-                <td>{notice.date}</td>
+                <td>{i + 1}</td>
+                <td>{notice.reporterNickname}</td>
+                <td>{notice.reportedNickname}</td>
+                <td>{notice.title}</td>
+                <td>{formatDate(notice.reportedAt)}</td>
                 <td>
-                <StatusButton className={notice.status} onClick={() => handleOpenModal(notice)}>
-                  {notice.status === 'waiting' ? '대기' : notice.status === 'rejected' ? '반려' : '제재'}
-                </StatusButton>
-              </td>
+                  <StatusButton
+                    className={notice.status}
+                    onClick={() => handleOpenModal(notice)}
+                  >
+                    {notice.status === 0
+                      ? "대기"
+                      : notice.status === 1
+                      ? "반려"
+                      : "제재"}
+                  </StatusButton>
+                </td>
               </tr>
             ))
           ) : (
@@ -223,15 +340,15 @@ const AdminNoticePage = () => {
       </Pagination>
 
       {isModalOpen && selectedReport && (
-        <ReportProcessModal 
+        <ReportProcessModal
           isOpen={isModalOpen}
           onClose={handleCloseModal}
           type="notice"
-          data={selectedReport} 
+          data={selectedReport}
         />
       )}
     </>
   );
 };
 
-export default AdminNoticePage;   
+export default AdminNoticePage;

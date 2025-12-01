@@ -3,6 +3,7 @@ import styled from "styled-components";
 import ReportProcessModal from "./modal/ReportProcessModal";
 import CustomSelect from "../components/CustomSelect";
 import { api, setInterceptor } from "../assets/setIntercepter";
+import { formatDate } from "../assets/utils";
 
 const SearchBar = styled.div`
   display: flex;
@@ -11,7 +12,7 @@ const SearchBar = styled.div`
   gap: 18px;
 
   input {
-    width: 80%;
+    width: calc(100% - 80px - 20px);
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 8px;
@@ -100,32 +101,32 @@ const NoResult = styled.div`
   font-size: 14px;
 `;
 
-const mockReports = [
-  {
-    id: 1,
-    reporter: "김서연",
-    target: "변진호",
-    content: "변진호 유저님을 신고합니다.",
-    date: "2025.11.10",
-    status: "waiting",
-  },
-  {
-    id: 2,
-    reporter: "최지우",
-    target: "변진호",
-    content: "변진호 유저님을 신고합니다.",
-    date: "2025.11.13",
-    status: "rejected",
-  },
-  {
-    id: 3,
-    reporter: "최지우",
-    target: "변진호",
-    content: "변진호 유저님을 신고합니다.",
-    date: "2025.11.13",
-    status: "completed",
-  },
-];
+// const mockReports = [
+//   {
+//     id: 1,
+//     reporter: "김서연",
+//     target: "변진호",
+//     content: "변진호 유저님을 신고합니다.",
+//     date: "2025.11.10",
+//     status: "waiting",
+//   },
+//   {
+//     id: 2,
+//     reporter: "최지우",
+//     target: "변진호",
+//     content: "변진호 유저님을 신고합니다.",
+//     date: "2025.11.13",
+//     status: "rejected",
+//   },
+//   {
+//     id: 3,
+//     reporter: "최지우",
+//     target: "변진호",
+//     content: "변진호 유저님을 신고합니다.",
+//     date: "2025.11.13",
+//     status: "completed",
+//   },
+// ];
 
 const statusOptions = [
   { value: "all", label: "전체" },
@@ -135,7 +136,7 @@ const statusOptions = [
 ];
 
 const AdminUserPage = () => {
-  const [reports, setReports] = useState(mockReports);
+  const [reports, setReports] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
 
@@ -147,18 +148,27 @@ const AdminUserPage = () => {
     const token = localStorage.getItem("accessToken");
 
     if (!token) {
-      // window.location.href = "/";
+      window.location.href = "/";
     }
 
     setInterceptor(token);
 
-    const response = await api
-      .get("/api/admin/reports/USER")
-      .catch((err) => console.log(err));
+    try {
+      const response = await api.get("/api/admin/reports/USER");
 
-    console.log(response.data);
+      console.log(response.data);
 
-    // setReports(response.data);
+      setReports(response.data.reports);
+    } catch (err) {
+      console.log(err);
+
+      if (err.response) {
+        alert(`${err.response.data.message || "알 수 없는 오류"}`);
+      } else {
+        // 네트워크 오류 등
+        alert("서버와 연결할 수 없습니다.");
+      }
+    }
   };
 
   const handleOpenModal = (report) => {
@@ -204,7 +214,7 @@ const AdminUserPage = () => {
 
       return statusMatch && searchMatch; // 두 조건 모두 만족해야 함
     });
-  }, [confirmedSearchTerm, filterStatus]);
+  }, [confirmedSearchTerm, filterStatus, reports]);
 
   // 콘텐츠 렌더링
   return (
@@ -238,21 +248,21 @@ const AdminUserPage = () => {
         </thead>
         <tbody>
           {filteredUser.length > 0 ? (
-            filteredUser.map((user) => (
+            filteredUser.map((user, i) => (
               <tr key={user.id}>
-                <td>{user.id}</td>
-                <td>{user.reporter}</td>
-                <td>{user.target}</td>
-                <td>{user.content}</td>
-                <td>{user.date}</td>
+                <td>{i + 1}</td>
+                <td>{user.reporterNickname}</td>
+                <td>{user.reportedNickname}</td>
+                <td>{user.title}</td>
+                <td>{formatDate(user.reportedAt)}</td>
                 <td>
                   <StatusButton
                     className={user.status}
                     onClick={() => handleOpenModal(user)}
                   >
-                    {user.status === "waiting"
+                    {user.status === 0
                       ? "대기"
-                      : user.status === "rejected"
+                      : user.status === 1
                       ? "반려"
                       : "제재"}
                   </StatusButton>

@@ -2,6 +2,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+// 중복 닉네임, 빨간색, 글자수 제한
+
 // 🔥 은행 리스트 (파일은 public/images/banklogo/*.svg 기준)
 const bankOptions = [
   { id: "shinhan", name: "신한", logo: "/images/banklogo/shinhan.svg" },
@@ -301,7 +303,7 @@ function MyProfile() {
 
     if (nickname === originalNickname) {
       setNicknameMessage("현재 사용 중인 닉네임입니다.");
-      setIsNicknameValid(true);
+      setIsNicknameValid(false);
       return;
     }
 
@@ -478,6 +480,7 @@ function MyProfile() {
                 onChange={handleChange}
                 style={styles.input}
                 placeholder="간편하게 작성하세요"
+                maxLength={10}
               />
               <button
                 type="button"
