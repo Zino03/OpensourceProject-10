@@ -93,7 +93,7 @@ public class UserController {
         return userService.deleteUserAddress(userId, addressId);
     }
 
-    // TODO: 주문내역 조회
+    // 주문내역 조회
     @GetMapping("/mypage/orders")
     public ResponseEntity getOrderList(
             // 0: 주문 접수, 1: 결제완료, 2: 상품 준비중, 3: 배송중, 4: 수령 완료, 5: 주문 취소
@@ -102,6 +102,13 @@ public class UserController {
     ) {
         Member member = userService.getMember(SecurityUtil.getCurrentUserId());
         return buyerService.orderList(member, status, pageable);
+    }
+
+    // 주문 상세
+    @GetMapping("/mypage/order/{buyerId}")
+    public ResponseEntity getOrder(@PathVariable Long buyerId) {
+        Member member = userService.getMember(SecurityUtil.getCurrentUserId());
+        return buyerService.order(member, buyerId);
     }
 
     // 주문 취소 (단순 변심)
@@ -119,7 +126,7 @@ public class UserController {
         return buyerService.confirmPurchase(member, buyerId);
     }
 
-    // TODO: 후기 작성
+    // 후기 작성
     @PostMapping("/mypage/order/{buyerId}/review")
     public ResponseEntity review(
             @PathVariable Long buyerId,
@@ -130,14 +137,7 @@ public class UserController {
         return reviewService.save(member, postId, req);
     }
 
-    // TODO: 주문 상세
-    @GetMapping("/mypage/order/{buyerId}")
-    public ResponseEntity getOrder(@PathVariable Long buyerId) {
-        Member member = userService.getMember(SecurityUtil.getCurrentUserId());
-        return buyerService.order(member, buyerId);
-    }
-
-    // TODO: 주최 공구 조회
+    // 주최 공구 조회
     @GetMapping("/mypage/posts")
     public ResponseEntity getPostList(
             @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
