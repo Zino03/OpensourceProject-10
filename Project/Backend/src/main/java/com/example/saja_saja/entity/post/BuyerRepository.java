@@ -39,4 +39,9 @@ public interface BuyerRepository extends JpaRepository<Buyer, Long> {
 
     @Query("SELECT b FROM Buyer b WHERE b.status = 4 AND b.isCanceled = false AND b.receivedAt < :sevenDaysAgo")
     List<Buyer> findAllForAutoConfirm(@Param("sevenDaysAgo") LocalDateTime sevenDaysAgo);
-}
+
+    @Query("SELECT b.status, COUNT(b) FROM Buyer b " +
+            "JOIN b.post p " +
+            "WHERE b.user = :user AND p.host != :user " +
+            "GROUP BY b.status")
+    List<Object[]> countOrderStatusByUserAndPostHostNot(@Param("user") User user);}

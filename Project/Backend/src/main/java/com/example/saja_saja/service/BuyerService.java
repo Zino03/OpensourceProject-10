@@ -528,7 +528,7 @@ public class BuyerService {
                 );
             }
 
-            List<Object[]> rawCounts = buyerRepository.countOrderStatusByUser(user);
+            List<Object[]> rawCounts = buyerRepository.countOrderStatusByUserAndPostHostNot(user);
 
             Map<Integer, Long> statusCounts = new HashMap<>();
             for (int i = 0; i <= 5; i++) {
