@@ -200,6 +200,12 @@ const AdminReviewPage = () => {
     loadData();
   }, []);
 
+  useEffect(() => {
+    if (isModalOpen === false) {
+      loadData();
+    }
+  }, [isModalOpen]);
+
   const loadData = async () => {
     const token = localStorage.getItem("accessToken");
 

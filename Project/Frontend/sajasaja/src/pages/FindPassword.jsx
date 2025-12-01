@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import styled from 'styled-components';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
 import { api } from "../assets/setIntercepter";
 
 // 비밀번호 찾기 전체 폼
@@ -58,13 +58,13 @@ const InputGroup = styled.div`
 // 에러 메시지
 const ErrorMessage = styled.p`
   font-size: 10px;
-  color: #FF5A5A;
+  color: #ff5a5a;
   font-weight: 600;
   margin-top: -12px;
   margin-bottom: 24px;
-  
+
   &::before {
-    content: '*';
+    content: "*";
     margin-right: 4px;
   }
 `;
@@ -90,27 +90,29 @@ const Button = styled.button`
 
 // Input 아래 버튼
 const BackButton = styled(Button)`
-  background-color: #FF7E00; 
+  background-color: #ff7e00;
   color: white;
 `;
 
 const FindButton = styled(Button)`
-  background-color: #CFCFCF; 
+  background-color: #cfcfcf;
   color: white;
 `;
 
 const FindPassword = () => {
   const navigate = useNavigate();
-  
+
   // 입력값 상태 관리
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+
   // 에러 메시지 표시
   const [showError, setShowError] = useState(false);
 
   const handleFind = async () => {
     // 1. 유효성 검사
+    console.log(name, email);
+
     if (!name || !email) {
       setShowError(true);
       return;
@@ -119,23 +121,23 @@ const FindPassword = () => {
     try {
       // 2. 서버 통신 (import한 api 인스턴스 사용)
       // 경로는 백엔드 설정에 맞춰 수정하세요. 예: /api/member/findPw
-      const response = await api.post("/api/member/findPw", { 
-        name: name, 
-        email: email 
+      const response = await api.post("/auth/findpw", {
+        name: name,
+        email: email,
       });
 
       console.log("전송 성공:", response.data);
 
       // 3. 성공 처리
       setShowError(false);
-      alert('입력하신 이메일로 비밀번호 재설정 링크(혹은 임시비밀번호)를 보냈습니다.');
-      navigate('/login'); // 로그인 페이지로 이동
-
+      alert(
+        "입력하신 이메일로 비밀번호 재설정 링크(혹은 임시비밀번호)를 보냈습니다."
+      );
+      navigate("/login"); // 로그인 페이지로 이동
     } catch (err) {
-      console.error("전송 실패:", err);
+      console.error("전송 실패:", err.response.data);
       // 4. 실패 처리
       setShowError(true); // 에러 메시지 표시
-      
     }
   };
 
@@ -147,45 +149,40 @@ const FindPassword = () => {
 
           <InputGroup>
             <label>이름</label>
-            <input 
-              type="text" 
-              placeholder="ex) 홍길동" 
+            <input
+              type="text"
+              placeholder="ex) 홍길동"
               value={name}
               onChange={(e) => {
                 setName(e.target.value);
-                if(showError) setShowError(false); // 입력 시 에러 끔
+                if (showError) setShowError(false); // 입력 시 에러 끔
               }}
             />
           </InputGroup>
 
           <InputGroup>
             <label>가입한 이메일</label>
-            <input 
-              type="email" 
-              placeholder="ex) ID@example.com" 
+            <input
+              type="email"
+              placeholder="ex) ID@example.com"
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value);
-                if(showError) setShowError(false); // 입력 시 에러 끔
+                if (showError) setShowError(false); // 입력 시 에러 끔
               }}
             />
           </InputGroup>
 
           {showError && (
-            <ErrorMessage>
-              해당하는 이메일이 존재하지 않습니다!
-            </ErrorMessage>
+            <ErrorMessage>해당하는 이메일이 존재하지 않습니다!</ErrorMessage>
           )}
 
           <ButtonGroup>
-            <BackButton onClick={handleFind}>
-              찾기
-            </BackButton>
-            <FindButton onClick={() => navigate('/login')}>
+            <BackButton onClick={handleFind}>찾기</BackButton>
+            <FindButton onClick={() => navigate("/login")}>
               로그인 화면으로 돌아가기
             </FindButton>
           </ButtonGroup>
-
         </FindPwWrapper>
       </PageWrapper>
     </>
