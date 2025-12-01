@@ -72,15 +72,16 @@ const WarningText = styled.span`
 const FormSection = styled.div`
   display: flex;
   margin-bottom: 30px;
-  align-items: flex-start;
+  align-items: ${props => props.alignTop ? 'flex-start' : 'center'};
 `;
 
 const Label = styled.div`
   width: 150px;
   font-weight: 500;
   font-size: 12px;
-  padding-top: 7px;
   flex-shrink: 0;
+
+  padding-top: ${props => props.alignTop ? '10px' : '0'};
 `;
 
 const InputArea = styled.div`
@@ -133,13 +134,13 @@ const CategoryButton = styled.button`
 const SplitRow = styled.div`
   display: flex;
   gap: 60px; 
-  align-items: flex-start;
+  align-items: center;
 `;
 
 const SplitItem = styled.div`
   flex: 1;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   position: relative;
 `;
 
@@ -148,7 +149,6 @@ const SubLabel = styled.span`
   font-size: 12px;
   white-space: nowrap;
   margin-right: 20px;
-  margin-top: 8px;
 `;
 
 // 가격 밑에 계산된 힌트 텍스트
@@ -179,6 +179,10 @@ const ComplexRow = styled.div`
   gap: 40px;
   margin-bottom: 8px;
   align-items: center;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
 `;
 
 const CheckboxLabel = styled.label`
@@ -217,47 +221,127 @@ const SubmitButton = styled.button`
 `;
 
 const GroupPurchaseRegister = () => {
-  // 상태 관리
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [imgFile, setImageFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(''); // 이미지 미리보기용
+
   const [selectedCategory, setSelectedCategory] = useState('');
   const [quantity, setQuantity] = useState('');
   const [price, setPrice] = useState('');
+  
   const [isDelivery, setIsDelivery] = useState(true);
+  const [deliveryFee, setDeliveryFee] = useState(''); // 배송비
 
-  // 주소 관리
   const [address, setAddress] = useState('');
   const [detailAddress, setDetailAddress] = useState(''); 
   const [isAddressOpen, setIsAddressOpen] = useState(false); 
-  const [deadLine, setDeadLine] = useState('')
+  
+  const [contact, setContact] = useState(''); // 연락수단
+  const [deadLine, setDeadLine] = useState(''); // 마감일자 (ex: 20251130)
 
-  // // 1. 유효성 검사
-  //   if (!title || !selectedCategory || !quantity || !price || !content || !imgFile) {
-  //     alert("모든 필수 항목(이미지 포함)을 입력해주세요.");
-  //     setIsConfirmModalOpen(false);
-  //     return;
-  //   }
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 
-  //   // 2. 백엔드가 원하는 JSON 구조 생성
-  //   // (endAt은 현재 날짜 기준 7일 뒤로 임시 설정했습니다. 필요 시 날짜 입력창을 만드세요)
-  //   const expiryDate = new Date();
-  //   expiryDate.setDate(expiryDate.getDate() + 7);
+  // 카테고리 매핑 (한글 -> 영어)
+  const categoryMap = {
+    '식품': 'FOOD', '생활용품': 'DAILY_NECESSITY', '가전/전자기기': 'ELECTRONICS',
+    '뷰티/케어': 'BEAUTY', '패션': 'FASHION', '잡화/액세서리': 'ACCESSORY',
+    '리빙/인테리어': 'INTERIOR', '반려동물': 'PET', '문구/취미': 'STATIONERY',
+    '스포츠': 'SPORTS', '유아/아동': 'BABY', '기타': 'EEE'
+  };
+  const categories = Object.keys(categoryMap);
+  const unitPrice = (quantity && price) ? Math.floor(Number(price) / Number(quantity)) : 0;
 
+  const handleImageChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setImageFile(file);
+      setPreviewUrl(URL.createObjectURL(file)); // 미리보기 생성
+    }
+  };
+
+  // 주소
   const handleAddressComplete = (selectedAddress) => {
     setAddress(selectedAddress);
   };
 
-  // 카테고리 목록
-  const categories = [
-    '식품', '생활용품', '가전/전자기기', '뷰티/케어', '패션', '잡화/액세서리',
-    '리빙/인테리어', '반려동물', '문구/취미', '스포츠', '교육', '유아/아동'
-  ];
+  // 1. 유효성 검사
+  const handleRegisterClick = () => {
+    if (!title || !selectedCategory || !quantity || !price || !content || !imgFile) {
+      alert("모든 필수 항목(이미지 포함)을 입력해주세요.");
+      setIsConfirmModalOpen(false);
+      return;
+      }
+    }
+    
+    const handleFinalSubmit = async () => {
+    try {
+      // 날짜 포맷 변환 (YYYYMMDD -> ISO Date)
+      let formattedDate = new Date().toISOString(); // 기본값: 오늘
+      if (deadLine && deadLine.length === 8) {
+        const y = deadLine.substring(0, 4);
+        const m = deadLine.substring(4, 6);
+        const d = deadLine.substring(6, 8);
+        const dateObj = new Date(`${y}-${m}-${d}`); // 해당일 마지막 시간으로 설정
+        formattedDate = dateObj.toISOString();
+      }
 
-  // 1개당 가격 계산
-  const unitPrice = (quantity && price) ? Math.floor(Number(price) / Number(quantity)) : 0;
+      // JSON 객체 생성
+      const requestData = {
+        post: {
+          contact: contact,
+          price: Number(price),
+          quantity: Number(quantity),
+          isDeliveryAvailable: isDelivery,
+          endAt: formattedDate,
+          deliveryFee: isDelivery ? Number(deliveryFee) : 0,
+          pickupAddress: {
+            id: 0, // 신규
+            street: `${address} ${detailAddress}`,
+            latitude: 0, 
+            longitude: 0 
+          },
+          title: title,
+          content: content,
+          category: categoryMap[selectedCategory] || 'all'
+        },
+        quantity: Number(quantity)
+      };
 
-  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-  const handleFinalSubmit = () => {
-    setIsConfirmModalOpen(false);
+      // 3. FormData 생성
+      const formData = new FormData();
+      formData.append('file', imgFile); // 이미지
+      
+      // JSON 데이터를 Blob으로 감싸서 추가 (백엔드 @RequestPart("request") 대응)
+      const jsonBlob = new Blob([JSON.stringify(requestData)], {
+        type: 'application/json'
+      });
+      formData.append('request', jsonBlob);
+
+      // 4. API 요청
+      const token = localStorage.getItem('accessToken'); // 토큰 가져오기
+      
+      const response = await api.post('/api/group-buying', formData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data', // 중요
+        },
+      });
+
+      if (response.status === 200 || response.status === 201) {
+        alert("공구 등록이 완료되었습니다!");
+        setIsConfirmModalOpen(false);
+        window.location.href = '/'; // 메인으로 이동
+      }
+
+    } catch (error) {
+      console.error("등록 에러:", error);
+      alert("등록 중 오류가 발생했습니다. 다시 시도해주세요.");
+      setIsConfirmModalOpen(false);
+    }
   };
+
+
 
   return (
     <Container>
@@ -327,15 +411,15 @@ const GroupPurchaseRegister = () => {
         </InputArea>
       </FormSection>
 
-      <FormSection>
-        <Label>내용</Label>
+      <FormSection alignTop>
+        <Label alignTop>내용</Label>
         <InputArea>
           <StyledTextArea placeholder="내용을 입력해주세요." />
         </InputArea>
       </FormSection>
 
-      <FormSection>
-        <Label>수령장소</Label>
+      <FormSection alignTop>
+        <Label alignTop>수령장소</Label>
         <InputArea>
           <ComplexRow>
             <StyledInput 
@@ -417,7 +501,7 @@ const GroupPurchaseRegister = () => {
       <RegisterModal 
         isOpen={isConfirmModalOpen}
         onClose={() => setIsConfirmModalOpen(false)} 
-        onConfirm={handleFinalSubmit} 
+        onConfirm={handleRegisterClick} 
       />
     </Container>
   );
