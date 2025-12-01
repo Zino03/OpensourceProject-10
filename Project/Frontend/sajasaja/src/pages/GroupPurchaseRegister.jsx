@@ -5,15 +5,8 @@ import styled from 'styled-components';
 import { FaCamera } from "react-icons/fa";
 import AddressFindModal from './modal/AddressFindModal';
 import RegisterModal from './modal/RegisterModal';
-import axios from 'axios';
 import { useNavigate } from "react-router-dom";
-
-const api = axios.create({
-  baseURL: 'http://192.168.31.28:8080', // 백엔드 주소
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+import { api } from '../assets/setIntercepter';
 
 const Container = styled.div`
   width: 100%;
@@ -285,7 +278,7 @@ const GroupPurchaseRegister = () => {
 
   // 🔹 모달에서 "등록하기" 눌렀을 때 실행될 함수
   const handleRegisterClick = () => {
-    if (!title || !selectedCategory || !quantity || !price || !content || !imgFile) {
+    if (!title || !selectedCategory || !quantity || !myQuantity || !price || !content || !imgFile) {
       alert("모든 필수 항목(이미지 포함)을 입력해주세요.");
       setIsConfirmModalOpen(false);
       return;
@@ -320,7 +313,7 @@ const GroupPurchaseRegister = () => {
           },
           title: title,
           content: content,
-          category: categoryMap[selectedCategory] || 'all'
+          category: categoryMap[selectedCategory] || 'ETC'
         },
         quantity: Number(quantity)
       };
@@ -335,10 +328,10 @@ const GroupPurchaseRegister = () => {
 
       const token = localStorage.getItem('accessToken');
       
-      const response = await api.post('/api/group-buying', formData, {
+      const response = await api.post('/api/posts', formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data',
+          'Content-Type': undefined, // ★ 이 한 줄을 꼭 추가해보세요!
         },
       });
 
