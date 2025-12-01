@@ -38,11 +38,11 @@ public class AdminController {
             @PathVariable ReportType type,
             @RequestParam(required = false, defaultValue = "-1") Integer status,
             @RequestParam(required = false, defaultValue = "0") Integer searchType,
-            @RequestParam(required = false, defaultValue = "") String searchName,
+            @RequestParam(required = false, defaultValue = "") String searchQuery,
             @PageableDefault(page = 0, size = 15, sort = "reportedAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         Member member = userService.getMember(SecurityUtil.getCurrentUserId());
-        return adminReportService.getReportList(member, type, status, searchType, searchName, pageable);
+        return adminReportService.getReportList(member, type, status, searchType, searchQuery, pageable);
     }
 
     @GetMapping("/report/{type}/{reportId}")
@@ -77,11 +77,11 @@ public class AdminController {
     @GetMapping("/posts")
     public ResponseEntity getAdminPostList(
             @RequestParam(required = false, defaultValue = "-1") Integer process,       // -1: 전체, 0: 대기, 1: 승인, 4: 반려
-            @RequestParam(required = false, defaultValue = "") String title,
+            @RequestParam(required = false, defaultValue = "") String searchQuery,
             @PageableDefault(page = 0, size = 15, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         Member member = userService.getMember(SecurityUtil.getCurrentUserId());
-        return adminPostService.getAdminPostList(member, process, title, pageable);
+        return adminPostService.getAdminPostList(member, process, searchQuery, pageable);
     }
 
     @PutMapping("/post/{postId}")

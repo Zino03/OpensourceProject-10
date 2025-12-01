@@ -14,5 +14,7 @@ public class UserRequestDto {
 
     private String nickname;
 
+    private String accountBank;
+
     private String account;
 }
