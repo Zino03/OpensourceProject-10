@@ -1,5 +1,7 @@
-import React from 'react';
-import styled from 'styled-components';
+import React from "react";
+import styled from "styled-components";
+import { formatDate } from "../../assets/utils";
+import { api, setInterceptor } from "../../assets/setIntercepter";
 
 const Overlay = styled.div`
   position: fixed;
@@ -92,7 +94,7 @@ const TableRow = styled.div`
 `;
 
 const Col = styled.div`
-  flex: ${props => props.width || 1};
+  flex: ${(props) => props.width || 1};
   padding: 0 5px;
 `;
 
@@ -110,8 +112,9 @@ const Button = styled.button`
   font-weight: 600;
   cursor: pointer;
   border: none;
-  
-  background-color: ${props => props.type === 'cancel' ? '#BDBDBD' : '#000'};
+
+  background-color: ${(props) =>
+    props.type === "cancel" ? "#BDBDBD" : "#000"};
   color: #fff;
 
   &:hover {
@@ -123,26 +126,55 @@ const PaymentProcessModal = ({ isOpen, onClose, data, onSave }) => {
   if (!isOpen || !data) return null;
 
   // 부모에서 받은 data: { id, title, depositor, buyer, amount, deadline, paymentDeadline, status }
-  const detailData = {
-    orderDate: '2025-11-12', 
-    productName: data.title, 
-    price: Number(data.amount) / 3, 
-    quantity: 3,
-    totalAmount: Number(data.amount),
-    buyerName: data.buyer,
-    phone: '010-1234-5678', 
-    email: 'example@email.com', 
-    paymentMethod: '무통장입금',
-    virtualAccount: '농협 1234567890', 
-    statusText: data.status === 'waiting' ? '결제 대기' : data.status === 'completed' ? '결제 완료' : '취소됨',
-    depositDeadline: data.paymentDeadline
-  };
+  // const detailData = {
+  //   orderDate: "2025-11-12",
+  //   productName: data.title,
+  //   price: Number(data.amount) / 3,
+  //   quantity: 3,
+  //   totalAmount: Number(data.amount),
+  //   buyerName: data.buyer,
+  //   phone: "010-1234-5678",
+  //   email: "example@email.com",
+  //   paymentMethod: "무통장입금",
+  //   virtualAccount: "농협 1234567890",
+  //   statusText:
+  //     data.status === "waiting"
+  //       ? "결제 대기"
+  //       : data.status === "completed"
+  //       ? "결제 완료"
+  //       : "취소됨",
+  //   depositDeadline: data.paymentDeadline,
+  // };
 
   // 상태 변경 핸들러
-  const handleStatusChange = (newStatus) => {
+  const handleStatusChange = async (process) => {
     // 부모 컴포넌트의 데이터를 업데이트
-    onSave(data.id, { status: newStatus });
-    alert(newStatus === 'waiting' ? '재입금 대기 상태로 변경되었습니다.' : '결제 완료 처리되었습니다.');
+
+    const token = localStorage.getItem("accessToken");
+
+    if (!token) {
+      window.location.href = "/";
+    }
+
+    setInterceptor(token);
+
+    try {
+      const response = await api.put(
+        `/api/admin/buyer/${data.id}?process=${process}`
+      );
+
+      console.log(response.data);
+    } catch (err) {
+      console.log(err);
+
+      if (err.response) {
+        alert(`${err.response.data.message || "알 수 없는 오류"}`);
+      } else {
+        // 네트워크 오류 등
+        alert("서버와 연결할 수 없습니다.");
+      }
+    }
+
     onClose();
   };
 
@@ -160,10 +192,12 @@ const PaymentProcessModal = ({ isOpen, onClose, data, onSave }) => {
               <Col width={1.5}>금액</Col>
             </TableHeader>
             <TableRow>
-              <Col width={4} style={{textAlign: 'left', paddingLeft: '15px'}}>{detailData.productName}</Col>
-              <Col width={1.5}>{Math.round(detailData.price).toLocaleString()}</Col>
-              <Col width={1}>{detailData.quantity}</Col>
-              <Col width={1.5}>{detailData.totalAmount.toLocaleString()}</Col>
+              <Col width={4} style={{ textAlign: "left", paddingLeft: "15px" }}>
+                {data.postTitle}
+              </Col>
+              <Col width={1.5}>{Math.round(data.price).toLocaleString()}</Col>
+              <Col width={1}>{data.quantity}</Col>
+              <Col width={1.5}>{data.buyerPrice.toLocaleString()}</Col>
             </TableRow>
           </ProductTable>
         </Section>
@@ -174,15 +208,15 @@ const PaymentProcessModal = ({ isOpen, onClose, data, onSave }) => {
           <SectionTitle>구매자정보</SectionTitle>
           <InfoRow>
             <Label>구매자</Label>
-            <Value>{detailData.buyerName}</Value>
+            <Value>{data.buyerNickname}</Value>
           </InfoRow>
           <InfoRow>
             <Label>전화번호</Label>
-            <Value>{detailData.phone}</Value>
+            <Value>{data.buyerPhone}</Value>
           </InfoRow>
           <InfoRow>
             <Label>이메일</Label>
-            <Value>{detailData.email}</Value>
+            <Value>{data.buyerEmail}</Value>
           </InfoRow>
         </Section>
 
@@ -191,29 +225,44 @@ const PaymentProcessModal = ({ isOpen, onClose, data, onSave }) => {
         <Section>
           <SectionTitle>결제정보</SectionTitle>
           <InfoRow>
+            <Label>입금자명</Label>
+            <Value>{data.payerName}</Value>
+          </InfoRow>
+          <InfoRow>
             <Label>결제방법</Label>
-            <Value>{detailData.paymentMethod}</Value>
+            <Value>무통장입금</Value>
           </InfoRow>
           <InfoRow>
             <Label>가상계좌</Label>
-            <Value>{detailData.virtualAccount}</Value>
+            <Value>
+              {data.virtualAccountBank} {data.virtualAccount}
+            </Value>
           </InfoRow>
           <InfoRow>
             <Label>결제 상태</Label>
-            <Value>{detailData.statusText}</Value>
+            <Value>
+              {data.isPaid === 1
+                ? "결제 완료"
+                : data.isPaid === 3
+                ? "주문 취소"
+                : data.isPaid === 0
+                ? "입금 대기"
+                : "재입금 대기"}
+            </Value>
           </InfoRow>
           <InfoRow>
             <Label>입금 기한</Label>
-            <Value>{detailData.depositDeadline}</Value>
+            <Value>{formatDate(data.paymentEndAt)}</Value>
           </InfoRow>
         </Section>
 
         <ButtonGroup>
-          <Button type="cancel" onClick={onClose}>닫기</Button>
-          <Button onClick={() => handleStatusChange('waiting')}>재입금 대기</Button>
-          <Button onClick={() => handleStatusChange('completed')}>결제 완료</Button>
+          <Button type="cancel" onClick={onClose}>
+            닫기
+          </Button>
+          <Button onClick={() => handleStatusChange(2)}>재입금 대기</Button>
+          <Button onClick={() => handleStatusChange(1)}>결제 완료</Button>
         </ButtonGroup>
-
       </ModalContainer>
     </Overlay>
   );

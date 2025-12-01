@@ -1,6 +1,7 @@
-import React from 'react';
-import styled from 'styled-components';
-import { FaCheck, FaEyeSlash} from "react-icons/fa";
+import React from "react";
+import styled from "styled-components";
+import { FaCheck, FaEyeSlash } from "react-icons/fa";
+import { api, setInterceptor } from "../../assets/setIntercepter";
 
 // 게시물 모달
 const ModalOverlay = styled.div`
@@ -20,7 +21,7 @@ const ModalContainer = styled.div`
   background-color: #fff;
   padding: 24px;
   border-radius: 12px;
-  width: 320px; 
+  width: 320px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -59,25 +60,45 @@ const ModalButton = styled.button`
   }
 
   &.cancel-btn {
-    background-color: #E0E0E0;
+    background-color: #e0e0e0;
     color: #333;
     margin-top: 8px;
     &:hover {
-      background-color: #D0D0D0;
+      background-color: #d0d0d0;
     }
   }
 `;
 
 // props: onClose (모달 닫기), onAction (각 액션 처리), post (선택된 게시물 정보)
 const PostManageModal = ({ onClose, onAction, post }) => {
+  const handleStatusChange = async (process) => {
+    // 부모 컴포넌트의 데이터를 업데이트
 
-  // 각 버튼 클릭 핸들러
-  const handleApprove = () => {
-    onAction('approve', post.id);
-    onClose();
-  };
-  const handleCompanion = () => {
-    onAction('companion', post.id);
+    const token = localStorage.getItem("accessToken");
+
+    if (!token) {
+      window.location.href = "/";
+    }
+
+    setInterceptor(token);
+
+    try {
+      const response = await api.put(
+        `/api/admin/post/${post.id}?process=${process}`
+      );
+
+      console.log(response.data);
+    } catch (err) {
+      console.log(err);
+
+      if (err.response) {
+        alert(`${err.response.data.message || "알 수 없는 오류"}`);
+      } else {
+        // 네트워크 오류 등
+        alert("서버와 연결할 수 없습니다.");
+      }
+    }
+
     onClose();
   };
 
@@ -85,19 +106,24 @@ const PostManageModal = ({ onClose, onAction, post }) => {
     <ModalOverlay onClick={onClose}>
       <ModalContainer onClick={(e) => e.stopPropagation()}>
         <ModalTitle>게시물 관리</ModalTitle>
-        
-        <ModalButton className="black-btn" onClick={handleApprove}>
+
+        <ModalButton
+          className="black-btn"
+          onClick={() => handleStatusChange(1)}
+        >
           <FaCheck /> 승인
         </ModalButton>
-        
-        <ModalButton className="black-btn" onClick={handleCompanion}>
+
+        <ModalButton
+          className="black-btn"
+          onClick={() => handleStatusChange(4)}
+        >
           <FaEyeSlash /> 반려
         </ModalButton>
-        
+
         <ModalButton className="cancel-btn" onClick={onClose}>
           취소
         </ModalButton>
-        
       </ModalContainer>
     </ModalOverlay>
   );
