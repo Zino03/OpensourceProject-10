@@ -5,6 +5,7 @@ import com.example.saja_saja.entity.report.ReviewReport;
 import com.example.saja_saja.entity.report.UserReport;
 import com.example.saja_saja.exception.BadRequestException;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class ReportResponseDto {
     private Long id;
 
@@ -33,38 +35,36 @@ public class ReportResponseDto {
 
     public static ReportResponseDto of(Object reportEntity) {
         if (reportEntity instanceof ReviewReport reviewReport) {
-            return new ReportResponseDto(
-                    reviewReport.getId(),
-                    reviewReport.getReporter().getNickname(),
-                    reviewReport.getReportedReview().getBuyer().getUser().getNickname(),
-                    reviewReport.getTitle(),
-                    reviewReport.getContent(),
-                    reviewReport.getReportedAt(),
-                    reviewReport.getStatus(),
-                    null
-            );
+            return ReportResponseDto.builder()
+                    .id(reviewReport.getId())
+                    .reporterNickname(reviewReport.getReporter().getNickname())
+                    .reportedNickname(reviewReport.getReportedReview().getBuyer().getUser().getNickname())
+                    .title(reviewReport.getTitle())
+                    .content(reviewReport.getContent())
+                    .reportedAt(reviewReport.getReportedAt())
+                    .status(reviewReport.getStatus())
+                    .build();
         } else if (reportEntity instanceof UserReport userReport) {
-            return new ReportResponseDto(
-                    userReport.getId(),
-                    userReport.getReporter().getNickname(),
-                    userReport.getReportedUser().getNickname(),
-                    userReport.getTitle(),
-                    userReport.getContent(),
-                    userReport.getReportedAt(),
-                    userReport.getStatus(),
-                    userReport.getReportedUser().getBannedReason()
-            );
+            return ReportResponseDto.builder()
+                    .id(userReport.getId())
+                    .reporterNickname(userReport.getReporter().getNickname())
+                    .reportedNickname(userReport.getReportedUser().getNickname())
+                    .title(userReport.getTitle())
+                    .content(userReport.getContent())
+                    .reportedAt(userReport.getReportedAt())
+                    .status(userReport.getStatus())
+                    .BannedReason(userReport.getReportedUser().getBannedReason())
+                    .build();
         } else if (reportEntity instanceof NoticeReport noticeReport) {
-            return new ReportResponseDto(
-                    noticeReport.getId(),
-                    noticeReport.getReporter().getNickname(),
-                    noticeReport.getReportedNotice().getPost().getHost().getNickname(),
-                    noticeReport.getTitle(),
-                    noticeReport.getContent(),
-                    noticeReport.getReportedAt(),
-                    noticeReport.getStatus(),
-                    null
-            );
+            return ReportResponseDto.builder()
+                    .id(noticeReport.getId())
+                    .reporterNickname(noticeReport.getReporter().getNickname())
+                    .reportedNickname(noticeReport.getReportedNotice().getPost().getHost().getNickname())
+                    .title(noticeReport.getTitle())
+                    .content(noticeReport.getContent())
+                    .reportedAt(noticeReport.getReportedAt())
+                    .status(noticeReport.getStatus())
+                    .build();
         }
 
         throw new BadRequestException("지원하지 않는 Report Entity 타입입니다.", null);
