@@ -245,7 +245,7 @@ const UserPage = () => {
   };
 
   const handleReport = () => {
-    alert("신고하기 클릭");
+    navigate("/userreport");
   };
 
   return (
