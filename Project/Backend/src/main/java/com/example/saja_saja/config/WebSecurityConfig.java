@@ -42,7 +42,7 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(requests -> requests
                         .dispatcherTypeMatchers(DispatcherType.FORWARD).permitAll()
                         .requestMatchers("/error").permitAll()
-                        .requestMatchers("/auth/login", "/auth/signup").permitAll()
+                        .requestMatchers("/auth/login", "/auth/signup", "/auth/findpw").permitAll()
                         .requestMatchers("/uploads/post/**","/uploads/profile/**").permitAll()
                         .requestMatchers("/", "/swagger-ui/**", "/v3/api-docs/**",
                                 "/swagger-ui.html", "/css/**", "/js/**").permitAll()

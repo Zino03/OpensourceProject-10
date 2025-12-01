@@ -1,5 +1,6 @@
 package com.example.saja_saja.service;
 
+import com.example.saja_saja.dto.member.FindPwRequestDto;
 import com.example.saja_saja.dto.member.LoginRequestDto;
 import com.example.saja_saja.dto.token.TokenDto;
 import com.example.saja_saja.dto.token.TokenRequestDto;
@@ -21,14 +22,17 @@ import org.springframework.security.authentication.InternalAuthenticationService
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 
+import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -38,12 +42,24 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final TokenProvider tokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
-    public static HashMap<String, Object> data = new HashMap<>();
     private final UserRepository userRepository;
 
     public boolean passwordDuplicate(String password, String passwordCk) {
         return password.equals(passwordCk);
     }
+
+    public static String randomPassword() {
+        int length = 10;
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        SecureRandom rnd = new SecureRandom();
+        StringBuilder sb = new StringBuilder(length);
+
+        for (int i = 0; i < length; i++) {
+            sb.append(chars.charAt(rnd.nextInt(chars.length())));
+        }
+        return sb.toString();
+    }
+
 
     @Transactional
     public ResponseEntity signup(MemberRequestDto memberRequestDto, BindingResult errors) {
@@ -70,6 +86,8 @@ public class AuthService {
 
         Member user = memberRequestDto.toMember(passwordEncoder);
 
+        HashMap<String, Object> data = new HashMap<>();
+
         data.put("message", "회원가입이 완료되었습니다");
         data.put("data", MemberResponseDto.of(memberRepository.save(user)));
 
@@ -77,7 +95,47 @@ public class AuthService {
     }
 
     @Transactional
-    public ResponseEntity login(LoginRequestDto loginRequestDto) {
+    public ResponseEntity<?> findPw(FindPwRequestDto findPwRequestDto, BindingResult errors) {
+        if (errors.hasErrors()) {
+            Map<String, String> validatorResult = new HashMap<>();
+            for (FieldError error : errors.getFieldErrors()) {
+                String validKeyName = String.format("valid_%s", error.getField());
+                validatorResult.put(validKeyName, error.getDefaultMessage());
+            }
+            return ResponseEntity.ok(validatorResult);
+        }
+
+        Optional<Member> optionalM = memberRepository.findByEmail(findPwRequestDto.getEmail());
+
+        if (optionalM.isEmpty() ||
+                !optionalM.get().getUser().getName().equals(findPwRequestDto.getName())) {
+            throw new BadRequestException("존재하지 않는 사용자입니다.", null);
+        }
+
+        Member member = optionalM.get();
+        String tempPassword = randomPassword();
+        member.setPassword(passwordEncoder.encode(tempPassword));
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("tempPassword", tempPassword);
+
+        return ResponseEntity.ok(data);
+    }
+
+
+    @Transactional
+    public ResponseEntity login(LoginRequestDto loginRequestDto, BindingResult errors) {
+        if(errors.hasErrors()) {
+            Map<String, String> validatorResult = new HashMap<>();
+
+            for (FieldError error : errors.getFieldErrors()) {
+                String validKeyName = String.format("valid_%s", error.getField());
+                validatorResult.put(validKeyName, error.getDefaultMessage());
+            }
+
+            return new ResponseEntity(validatorResult, HttpStatus.OK);
+        }
+
         UsernamePasswordAuthenticationToken authenticationToken = loginRequestDto.toAuthentication();
 
         Authentication authentication;
@@ -101,6 +159,8 @@ public class AuthService {
                 .build();
 
         refreshTokenRepository.save(refreshToken);
+
+        HashMap<String, Object> data = new HashMap<>();
 
         data.clear();
         data.put("message", "로그인이 완료되었습니다");
