@@ -222,6 +222,8 @@ const GroupPurchaseRegister = () => {
   
   const [isDelivery, setIsDelivery] = useState(true);
   const [deliveryFee, setDeliveryFee] = useState('');
+  const [latitude, setLatitude] = useState(0);
+  const [longitude, setLongitude] = useState(0); 
 
   const [address, setAddress] = useState('');
   const [detailAddress, setDetailAddress] = useState(''); 
@@ -264,8 +266,10 @@ const GroupPurchaseRegister = () => {
     };
   }, [previewUrl]);
 
-  const handleAddressComplete = (selectedAddress) => {
+  const handleAddressComplete = (selectedAddress, lat, lon) => {
     setAddress(selectedAddress);
+    setLatitude(lat);
+    setLongitude(lon);
     setIsAddressOpen(false);
   };
 
@@ -307,9 +311,9 @@ const GroupPurchaseRegister = () => {
           deliveryFee: isDelivery ? Number(deliveryFee) : 0,
           pickupAddress: {
             id: 0,
-            street: `${address}`,
-            latitude: 35, 
-            longitude: 6 
+            street: `${address} ${detailAddress}`,
+            latitude: latitude, 
+            longitude: longitude
           },
           title: title,
           content: content,
