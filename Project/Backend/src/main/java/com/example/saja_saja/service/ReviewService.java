@@ -50,7 +50,9 @@ public class ReviewService {
             throw new BadRequestException("이미 등록된 후기가 있습니다.", null);
         }
 
-        buyer.setStatus(4); // 자동 구매 확정
+        if(buyer.getStatus() != 5) {
+            throw new BadRequestException("구매 확정 후에 후기를 작성할 수 있습니다.", null);
+        }
 
         Review review = Review.builder()
                 .buyer(buyer)
