@@ -346,7 +346,14 @@ function OrderDetail_Delivered() {
                   {order.name}
                 </td>
 
-                <td style={{ ...styles.td, minWidth: "100px" }}>
+                <td
+                  style={{
+                    ...styles.td,
+                    minWidth: "100px",
+                    cursor: "pointer",          // 마우스 올렸을 때 손모양
+                  }}
+                  onClick={() => navigate("/userpage")}  // ✅ 여기서 사용자 프로필로 이동
+                >
                   {order.host}
                 </td>
                 <td style={styles.td}>{order.quantity}</td>
