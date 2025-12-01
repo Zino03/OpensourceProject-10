@@ -1,7 +1,9 @@
-import React, { useState, useMemo } from 'react';
-import styled from 'styled-components';
-import PostManageModal from './modal/PostManageModal';
-import CustomSelect from '../components/CustomSelect';
+import React, { useState, useMemo, useEffect } from "react";
+import styled from "styled-components";
+import PostManageModal from "./modal/PostManageModal";
+import CustomSelect from "../components/CustomSelect";
+import { api, setInterceptor } from "../assets/setIntercepter";
+import { formatDate } from "../assets/utils";
 
 const SearchBar = styled.div`
   display: flex;
@@ -10,14 +12,16 @@ const SearchBar = styled.div`
   gap: 18px;
 
   input {
-    width: 80%;
+    width: calc(100% - 80px - 20px);
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 5px;
     font-size: 11px;
-    &:focus { outline: none; }
+    &:focus {
+      outline: none;
+    }
   }
-  
+
   select {
     padding: 8px 10px;
     border: 1px solid #ddd;
@@ -32,21 +36,22 @@ const Table = styled.table`
   border-collapse: collapse;
   font-size: 11px;
 
-  th{
+  th {
     padding: 16px 8px;
     background-color: #f9f9f9;
     font-weight: 600;
     border-bottom: 1px solid #eee;
     text-align: center;
   }
-  
+
   td {
     padding: 8px;
     border-bottom: 1px solid #eee;
     text-align: center;
   }
 
-  th:nth-child(2), td:nth-child(2) {
+  th:nth-child(2),
+  td:nth-child(2) {
     width: 30%;
   }
 `;
@@ -57,18 +62,18 @@ const StatusButton = styled.button`
   font-size: 10px;
   font-weight: 600;
   cursor: pointer;
-  
+
   &.waiting {
     background-color: #fff;
     color: #555;
   }
   &.companion {
     background-color: #fff;
-    color: #FF5A5A;
+    color: #ff5a5a;
   }
   &.approve {
     background-color: #fff;
-    color: #44824A;
+    color: #44824a;
   }
 `;
 
@@ -94,26 +99,91 @@ const NoResult = styled.div`
   padding: 50px 0;
   color: #888;
   font-size: 14px;
-`
+`;
 
 const mockPosts = [
-  { id: 1, title: '닭가슴살 공구', writer: '변진호', deadline: '2025.11.20', date: '2025.11.10', status: 'waiting' },
-  { id: 2, title: '딸기 공구', writer: '변진호', deadline: '2025.11.20', date: '2025.11.13', status: 'approve' },
-  { id: 3, title: '피자 공구', writer: '변진호', deadline: '2025.11.20', date: '2025.11.13', status: 'waiting' },
-  { id: 4, title: '노트북 공구', writer: '변진호', deadline: '2025.11.20', date: '2025.11.13', status: 'companion' },
+  {
+    id: 1,
+    title: "닭가슴살 공구",
+    writer: "변진호",
+    deadline: "2025.11.20",
+    date: "2025.11.10",
+    status: "waiting",
+  },
+  {
+    id: 2,
+    title: "딸기 공구",
+    writer: "변진호",
+    deadline: "2025.11.20",
+    date: "2025.11.13",
+    status: "approve",
+  },
+  {
+    id: 3,
+    title: "피자 공구",
+    writer: "변진호",
+    deadline: "2025.11.20",
+    date: "2025.11.13",
+    status: "waiting",
+  },
+  {
+    id: 4,
+    title: "노트북 공구",
+    writer: "변진호",
+    deadline: "2025.11.20",
+    date: "2025.11.13",
+    status: "companion",
+  },
 ];
 
 const statusOptions = [
-    { value: 'all', label: '전체' },
-    { value: 'waiting', label: '대기' },
-    { value: 'approve', label: '승인' },
-    { value: 'companion', label: '반려' },
-  ];
+  { value: "all", label: "전체" },
+  { value: "waiting", label: "대기" },
+  { value: "approve", label: "승인" },
+  { value: "companion", label: "반려" },
+];
 
 const AdminPaymentManage = () => {
-  const [posts, setPosts] = useState(mockPosts); 
+  const [posts, setPosts] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedPost, setSelectedPost] = useState(null); 
+  const [selectedPost, setSelectedPost] = useState(null);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  useEffect(() => {
+    if (isModalOpen === false) {
+      loadData();
+    }
+  }, [isModalOpen]);
+
+  const loadData = async () => {
+    const token = localStorage.getItem("accessToken");
+
+    if (!token) {
+      window.location.href = "/";
+    }
+
+    setInterceptor(token);
+
+    try {
+      const response = await api.get("/api/admin/posts");
+
+      console.log(response.data);
+
+      setPosts(response.data.posts);
+    } catch (err) {
+      console.log(err);
+
+      if (err.response) {
+        alert(`${err.response.data.message || "알 수 없는 오류"}`);
+      } else {
+        // 네트워크 오류 등
+        alert("서버와 연결할 수 없습니다.");
+      }
+    }
+  };
 
   const handleManageClick = (post) => {
     setSelectedPost(post);
@@ -127,63 +197,71 @@ const AdminPaymentManage = () => {
 
   const handleModalAction = (actionType, postId) => {
     console.log(`Action: ${actionType}, Post ID: ${postId}`);
-    
+
     // 임시
-    let newStatus = '대기';
-    switch(actionType) {
-      case 'approve': newStatus = '승인'; break;
-      case 'companion': newStatus = '반려'; break;
-      default: return;
+    let newStatus = "대기";
+    switch (actionType) {
+      case "approve":
+        newStatus = "승인";
+        break;
+      case "companion":
+        newStatus = "반려";
+        break;
+      default:
+        return;
     }
 
-    setPosts(prevPosts => 
-      prevPosts.map(post => 
+    setPosts((prevPosts) =>
+      prevPosts.map((post) =>
         post.id === postId ? { ...post, status: newStatus } : post
       )
     );
   };
 
-
-  const [searchInputValue, setSearchInputValue] = useState('');
-  const [confirmedSearchTerm, setConfirmedSearchTerm] = useState(''); 
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [searchInputValue, setSearchInputValue] = useState("");
+  const [confirmedSearchTerm, setConfirmedSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
 
   // 엔터 감지
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      setConfirmedSearchTerm(searchInputValue); 
+    if (e.key === "Enter") {
+      setConfirmedSearchTerm(searchInputValue);
     }
   };
 
   const filteredPost = useMemo(() => {
-    return mockPosts.filter((post) => {
+    return posts.filter((post) => {
       // 상태 필터링
-      const statusMatch = filterStatus === 'all' || post.status === filterStatus;
+      const statusMatch =
+        filterStatus === "all" || post.status === filterStatus;
 
       // 검색어 필터링 (모든 필드 검사)
       // 데이터 객체의 값들(Values)만 뽑아서 배열로 만든 뒤, 하나라도 검색어를 포함하는지 확인
-      const searchMatch = Object.values(post).some((val) => 
+      const searchMatch = Object.values(post).some((val) =>
         String(val).toLowerCase().includes(confirmedSearchTerm.toLowerCase())
       );
 
       return statusMatch && searchMatch; // 두 조건 모두 만족해야 함
     });
-  }, [confirmedSearchTerm, filterStatus]);
+  }, [confirmedSearchTerm, filterStatus, posts]);
 
   // 콘텐츠 렌더링
   return (
     <>
       <SearchBar>
-        <input type="text" placeholder="검색" 
+        <input
+          type="text"
+          placeholder="검색"
           value={searchInputValue}
           onChange={(e) => setSearchInputValue(e.target.value)}
-          onKeyDown={handleKeyDown}/>
+          onKeyDown={handleKeyDown}
+        />
         <CustomSelect
-          value={filterStatus} 
-          onChange={(val) => setFilterStatus(val)} 
+          value={filterStatus}
+          onChange={(val) => setFilterStatus(val)}
           options={statusOptions}
-          style={{width: "80px"}}>
-        </CustomSelect>
+          style={{ width: "80px" }}
+        ></CustomSelect>
       </SearchBar>
 
       <Table>
@@ -198,18 +276,25 @@ const AdminPaymentManage = () => {
           </tr>
         </thead>
         <tbody>
-        {filteredPost.length > 0 ? (
-            filteredPost.map((post) => (
+          {filteredPost.length > 0 ? (
+            filteredPost.map((post, i) => (
               <tr key={post.id}>
-                <td>{post.id}</td>
+                <td>{i + 1}</td>
                 <td>{post.title}</td>
-                <td>{post.writer}</td>
-                <td>{post.deadline}</td>
-                <td>{post.date}</td>
+                <td>{post.hostNickname}</td>
+                <td>{formatDate(post.endAt)}</td>
+                <td>{formatDate(post.createdAt)}</td>
                 <td>
-                <StatusButton className={post.status} onClick={() => handleManageClick(post)}>
-                  {post.status === 'approve' ? '승인' : post.status === 'companion' ? '반려' : '대기'}
-                </StatusButton>
+                  <StatusButton
+                    className={post.process}
+                    onClick={() => handleManageClick(post)}
+                  >
+                    {post.process === 1
+                      ? "승인"
+                      : post.status === 4
+                      ? "반려"
+                      : "대기"}
+                  </StatusButton>
                 </td>
               </tr>
             ))
@@ -220,8 +305,8 @@ const AdminPaymentManage = () => {
               </td>
             </tr>
           )}
-          </tbody>
-        </Table>
+        </tbody>
+      </Table>
 
       <Pagination>
         <span>&lt;&lt;</span>
@@ -235,11 +320,11 @@ const AdminPaymentManage = () => {
         <span>&gt;&gt;</span>
       </Pagination>
       {isModalOpen && selectedPost && (
-        <PostManageModal 
+        <PostManageModal
           post={selectedPost}
           onClose={handleCloseModal}
           onAction={handleModalAction}
-          style={{transition: "all 1s"}}
+          style={{ transition: "all 1s" }}
         />
       )}
     </>

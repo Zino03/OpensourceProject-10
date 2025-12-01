@@ -1,7 +1,9 @@
-import React, { useState, useMemo } from 'react';
-import styled from 'styled-components';
-import PaymentProcessModal  from './modal/PaymentProcessModal';
-import CustomSelect from '../components/CustomSelect';
+import React, { useState, useMemo, useEffect } from "react";
+import styled from "styled-components";
+import PaymentProcessModal from "./modal/PaymentProcessModal";
+import CustomSelect from "../components/CustomSelect";
+import { api, setInterceptor } from "../assets/setIntercepter";
+import { formatDate } from "../assets/utils";
 
 const SearchBar = styled.div`
   display: flex;
@@ -10,14 +12,16 @@ const SearchBar = styled.div`
   gap: 18px;
 
   input {
-    width: 80%;
+    width: calc(100% - 80px - 20px);
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 8px;
     font-size: 11px;
-    &:focus { outline: none; }
+    &:focus {
+      outline: none;
+    }
   }
-  
+
   select {
     padding: 8px 10px;
     border: 1px solid #ddd;
@@ -32,21 +36,22 @@ const Table = styled.table`
   border-collapse: collapse;
   font-size: 11px;
 
-  th{
+  th {
     padding: 16px 20px;
     background-color: #f9f9f9;
     font-weight: 600;
     border-bottom: 1px solid #eee;
     text-align: center;
   }
-  
+
   td {
     padding: 8px 20px;
     border-bottom: 1px solid #eee;
     text-align: center;
   }
 
-  th:nth-child(2), td:nth-child(2) {
+  th:nth-child(2),
+  td:nth-child(2) {
     width: 25%;
   }
 `;
@@ -57,7 +62,7 @@ const StatusButton = styled.button`
   font-size: 10px;
   font-weight: 600;
   cursor: pointer;
-  
+
   &.waiting {
     background-color: #fff;
     color: #555;
@@ -68,11 +73,11 @@ const StatusButton = styled.button`
   }
   &.rejected {
     background-color: #fff;
-    color: #FF5A5A;
+    color: #ff5a5a;
   }
   &.completed {
     background-color: #fff;
-    color: #44824A;
+    color: #44824a;
   }
 `;
 
@@ -98,30 +103,103 @@ const NoResult = styled.div`
   padding: 50px 0;
   color: #888;
   font-size: 14px;
-`
+`;
 
 const mockPayments = [
-  { id: 1, title: '닭가슴살 공구', depositor: '변진호', buyer: '김서연', amount: '20000', deadline: '2025.12.20', paymentDeadline: '2025.11.10', status: 'waiting' },
-  { id: 2, title: '딸기 공구', depositor: '변진호', buyer: '김서연', amount: '400000', deadline: '2025.12.10', paymentDeadline: '2025.11.13', status: 'rejected' },
-  { id: 3, title: '피자 공구', depositor: '변진호', buyer: '김서연', amount: '28900', deadline: '2025.01.20', paymentDeadline: '2025.11.13', status: 'completed' },
-  { id: 4, title: '커피 공구', depositor: '변진호', buyer: '김서연', amount: '28900', deadline: '2025.01.20', paymentDeadline: '2025.11.13', status: 'rewaiting' },
+  {
+    id: 1,
+    title: "닭가슴살 공구",
+    depositor: "변진호",
+    buyer: "김서연",
+    amount: "20000",
+    deadline: "2025.12.20",
+    paymentDeadline: "2025.11.10",
+    status: "waiting",
+  },
+  {
+    id: 2,
+    title: "딸기 공구",
+    depositor: "변진호",
+    buyer: "김서연",
+    amount: "400000",
+    deadline: "2025.12.10",
+    paymentDeadline: "2025.11.13",
+    status: "rejected",
+  },
+  {
+    id: 3,
+    title: "피자 공구",
+    depositor: "변진호",
+    buyer: "김서연",
+    amount: "28900",
+    deadline: "2025.01.20",
+    paymentDeadline: "2025.11.13",
+    status: "completed",
+  },
+  {
+    id: 4,
+    title: "커피 공구",
+    depositor: "변진호",
+    buyer: "김서연",
+    amount: "28900",
+    deadline: "2025.01.20",
+    paymentDeadline: "2025.11.13",
+    status: "rewaiting",
+  },
 ];
 
 const statusOptions = [
-    { value: 'all', label: '전체' },
-    { value: 'waiting,rewaiting', label: '대기' },
-    { value: 'completed', label: '완료' },
-    { value: 'rejected', label: '취소' },
-  ];
+  { value: "all", label: "전체" },
+  { value: "waiting,rewaiting", label: "대기" },
+  { value: "completed", label: "완료" },
+  { value: "rejected", label: "취소" },
+];
 
 const AdminPaymentManage = () => {
-  const [payments, setPayments] = useState(mockPayments);
+  const [payments, setPayments] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedPayment, setSelectedPayment] = useState(null); 
+  const [selectedPayment, setSelectedPayment] = useState(null);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  useEffect(() => {
+    if (isModalOpen === false) {
+      loadData();
+    }
+  }, [isModalOpen]);
+
+  const loadData = async () => {
+    const token = localStorage.getItem("accessToken");
+
+    if (!token) {
+      window.location.href = "/";
+    }
+
+    setInterceptor(token);
+
+    try {
+      const response = await api.get("/api/admin/buyers");
+
+      console.log(response.data);
+
+      setPayments(response.data.buyers);
+    } catch (err) {
+      console.log(err);
+
+      if (err.response) {
+        alert(`${err.response.data.message || "알 수 없는 오류"}`);
+      } else {
+        // 네트워크 오류 등
+        alert("서버와 연결할 수 없습니다.");
+      }
+    }
+  };
 
   const handleOpenModal = (payment) => {
     setSelectedPayment(payment);
-    setIsModalOpen(true);  
+    setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
@@ -130,53 +208,58 @@ const AdminPaymentManage = () => {
   };
 
   const handleSavePayment = (id, updatedData) => {
-    setPayments(prevPayment => 
-      prevPayment.map(payment => 
+    setPayments((prevPayment) =>
+      prevPayment.map((payment) =>
         payment.id === id ? { ...payment, ...updatedData } : payment
       )
     );
   };
 
-  const [searchInputValue, setSearchInputValue] = useState('');
-  const [confirmedSearchTerm, setConfirmedSearchTerm] = useState(''); 
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [searchInputValue, setSearchInputValue] = useState("");
+  const [confirmedSearchTerm, setConfirmedSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
 
   // 엔터 감지
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      setConfirmedSearchTerm(searchInputValue); 
+    if (e.key === "Enter") {
+      setConfirmedSearchTerm(searchInputValue);
     }
   };
 
   const filteredPayments = useMemo(() => {
-    return mockPayments.filter((payment) => {
+    return payments.filter((payment) => {
       // 상태 필터링
-      const statusMatch = filterStatus === 'all' || filterStatus.split(',').includes(payment.status);
+      const statusMatch =
+        filterStatus === "all" ||
+        filterStatus.split(",").includes(payment.status);
 
       // 검색어 필터링 (모든 필드 검사)
       // 데이터 객체의 값들(Values)만 뽑아서 배열로 만든 뒤, 하나라도 검색어를 포함하는지 확인
-      const searchMatch = Object.values(payment).some((val) => 
+      const searchMatch = Object.values(payment).some((val) =>
         String(val).toLowerCase().includes(confirmedSearchTerm.toLowerCase())
       );
 
       return statusMatch && searchMatch; // 두 조건 모두 만족해야 함
     });
-  }, [confirmedSearchTerm, filterStatus]);
+  }, [confirmedSearchTerm, filterStatus, payments]);
 
   // 콘텐츠 렌더링
   return (
     <>
       <SearchBar>
-        <input type="text" placeholder="검색" 
+        <input
+          type="text"
+          placeholder="검색"
           value={searchInputValue}
           onChange={(e) => setSearchInputValue(e.target.value)}
-          onKeyDown={handleKeyDown}/>
+          onKeyDown={handleKeyDown}
+        />
         <CustomSelect
-          value={filterStatus} 
-          onChange={(val) => setFilterStatus(val)} 
+          value={filterStatus}
+          onChange={(val) => setFilterStatus(val)}
           options={statusOptions}
-          style={{width: "80px"}}>
-        </CustomSelect>
+          style={{ width: "80px" }}
+        ></CustomSelect>
       </SearchBar>
 
       <Table>
@@ -193,25 +276,28 @@ const AdminPaymentManage = () => {
           </tr>
         </thead>
         <tbody>
-        {filteredPayments.length > 0 ? (
-            filteredPayments.map((payment) => (
+          {filteredPayments.length > 0 ? (
+            filteredPayments.map((payment, i) => (
               <tr key={payment.id}>
-                <td>{payment.id}</td>
-                <td>{payment.title}</td>
-                <td>{payment.depositor}</td>
-                <td>{payment.buyer}</td>
-                <td>{Number(payment.amount).toLocaleString()}원</td>
-                <td>{payment.deadline}</td>
-                <td>{payment.paymentDeadline}</td>
+                <td>{i + 1}</td>
+                <td>{payment.postTitle}</td>
+                <td>{payment.payerName}</td>
+                <td>{payment.buyerNickname}</td>
+                <td>{Number(payment.buyerPrice).toLocaleString()}원</td>
+                <td>{formatDate(payment.postEndAt)}</td>
+                <td>{formatDate(payment.paymentEndAt)}</td>
                 <td>
-                  <StatusButton 
-                    className={payment.status} 
+                  <StatusButton
+                    className={payment.isPaid}
                     onClick={() => handleOpenModal(payment)}
                   >
-                    {payment.status === 'completed' ? '결제 완료' 
-                      : payment.status === 'rejected' ? '주문 취소' 
-                      : payment.status === 'waiting' ? '입금 대기'
-                      : '재입금 대기'}
+                    {payment.isPaid === 1
+                      ? "결제 완료"
+                      : payment.isPaid === 3
+                      ? "주문 취소"
+                      : payment.isPaid === 0
+                      ? "입금 대기"
+                      : "재입금 대기"}
                   </StatusButton>
                 </td>
               </tr>
@@ -239,11 +325,11 @@ const AdminPaymentManage = () => {
       </Pagination>
 
       {isModalOpen && selectedPayment && (
-        <PaymentProcessModal 
+        <PaymentProcessModal
           isOpen={isModalOpen}
           onClose={handleCloseModal}
           type="payment"
-          data={selectedPayment} 
+          data={selectedPayment}
           onSave={handleSavePayment}
         />
       )}

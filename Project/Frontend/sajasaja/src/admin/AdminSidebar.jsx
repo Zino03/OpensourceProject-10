@@ -1,18 +1,19 @@
-import React from 'react';
-import styled from 'styled-components';
-import { NavLink } from 'react-router-dom';
+import React from "react";
+import styled from "styled-components";
+import { NavLink } from "react-router-dom";
 
 // 왼쪽 사이드바
 const Sidebar = styled.div`
-  width: 180px;
+  width: 250px;
   border-right: 1px solid #eee;
   padding: 8px 24px;
+  margin: 0 20px;
   box-sizing: border-box;
-  flex-shrink: 0; 
+  flex-shrink: 0;
 `;
 
 const MenuGroup = styled.div`
-  margin-bottom: 24px;
+  margin-top: 24px;
 `;
 
 const MenuTitle = styled.h3`
@@ -29,13 +30,13 @@ const MenuItem = styled(NavLink)`
   padding: 4px 0;
   cursor: pointer;
   text-decoration: none;
-  
+
   &.active {
-    color: #2C3E50;
+    color: #2c3e50;
     font-weight: 600;
   }
   &:hover {
-    color: #2C3E50;
+    color: #2c3e50;
   }
 `;
 
@@ -59,7 +60,7 @@ const AdminSidebar = () => {
         <MenuItem to="/admin/posts">게시글</MenuItem>
       </MenuGroup>
     </Sidebar>
-  )
-}
+  );
+};
 
 export default AdminSidebar;
