@@ -307,31 +307,31 @@ const GroupPurchaseRegister = () => {
           deliveryFee: isDelivery ? Number(deliveryFee) : 0,
           pickupAddress: {
             id: 0,
-            street: `${address} ${detailAddress}`,
-            latitude: 0, 
-            longitude: 0 
+            street: `${address}`,
+            latitude: 35, 
+            longitude: 6 
           },
           title: title,
           content: content,
-          category: categoryMap[selectedCategory] || 'ETC'
+          category: categoryMap[selectedCategory] || 'FOOD'
         },
-        quantity: Number(quantity)
+        quantity: Number(myQuantity)
       };
 
       const formData = new FormData();
-      formData.append('file', imgFile);
+      formData.append('image', imgFile);
       
       const jsonBlob = new Blob([JSON.stringify(requestData)], {
         type: 'application/json'
       });
-      formData.append('request', jsonBlob);
+      formData.append('post', jsonBlob);
 
       const token = localStorage.getItem('accessToken');
       
       const response = await api.post('/api/posts', formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': undefined, // ★ 이 한 줄을 꼭 추가해보세요!
+          'Content-Type': undefined,
         },
       });
 
@@ -340,7 +340,7 @@ const GroupPurchaseRegister = () => {
         setIsConfirmModalOpen(false);
 
         // ✅ 여기서 MY공구 페이지로 이동
-        navigate('/mygroupperchase');
+        navigate('/');
       }
 
     } catch (error) {

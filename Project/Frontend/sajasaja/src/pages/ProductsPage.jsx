@@ -4,7 +4,6 @@ import ProductCard from '../components/ProductCard';
 import CustomSelectProduct from '../components/CustomSelectProduct';
 import { api, setInterceptor } from "../assets/setIntercepter";
 
-// --- 스타일 컴포넌트 ---
 const FilterSection = styled.section`
   padding: 36px 200px;
   border-bottom: 1px solid #eee;
@@ -145,7 +144,7 @@ const ProductsPage = () => {
         };
 
         if (confirmedSearchTerm) {
-          params.searchQuery = confirmedSearchTerm;
+          params.query = confirmedSearchTerm;
         }
         
         if (CATEGORY_MAP[selectedCategory]) {
