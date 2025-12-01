@@ -91,7 +91,7 @@ public class AdminBuyerService {
             Buyer buyer = buyerRepository.findById(buyerId)
                     .orElseThrow(() -> new ResourceNotFoundException("주문 내역을 찾을 수 없습니다."));
 
-            if (buyer.getIsPaid() != 0 || buyer.getIsPaid() != 2 || buyer.getIsCanceled()) {
+            if (!(buyer.getIsPaid() == 0 || buyer.getIsPaid() == 2) || buyer.getIsCanceled()) {
                 throw new BadRequestException("대기 중인 주문 내역만 처리 가능합니다.", null);
             }
 
