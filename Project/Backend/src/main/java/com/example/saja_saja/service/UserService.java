@@ -199,21 +199,41 @@ public class UserService {
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new ResourceNotFoundException("사용자 정보를 찾을 수 없습니다."));
 
+            Integer updateCnt = 0;
+
             if (req.getPassword() != null && !req.getPassword().isEmpty()) {
                 String hashedPassword = passwordEncoder.encode(req.getPassword());
                 member.setPassword(hashedPassword);
+                updateCnt++;
             }
 
             if (req.getEmail() != null && !req.getEmail().isEmpty()) {
                 member.setEmail(req.getEmail());
+                updateCnt++;
             }
 
-            if (req.getNickname() != null && !req.getNickname().isEmpty()) user.setNickname(req.getNickname());
+            if (req.getNickname() != null && !req.getNickname().isEmpty()) {
+                user.setNickname(req.getNickname());
+                updateCnt++;
+            }
             if (image != null && !image.isEmpty()) {
                 user.setProfileImg(imageService.uploadProfileImage(image));
+                updateCnt++;
             }
-            if (req.getAccountBank() != null && !req.getAccountBank().isEmpty()) user.setAccountBank(req.getAccountBank());
-            if (req.getAccount() != null && !req.getAccount().isEmpty()) user.setAccount(req.getAccount());
+            if (req.getAccountBank() != null && !req.getAccountBank().isEmpty()) {
+                user.setAccountBank(req.getAccountBank());
+                updateCnt++;
+            }
+            if (req.getAccount() != null && !req.getAccount().isEmpty()) {
+                user.setAccount(req.getAccount());
+                updateCnt++;
+            }
+
+            if (updateCnt == 0) {
+                HashMap<String, Object> data = new HashMap<>();
+                data.put("message", "수정된 정보가 없습니다.");
+                return new ResponseEntity(data, HttpStatus.OK);
+            }
 
             HashMap<String, Object> data = new HashMap<>();
             data.put("user", UserResponseDto.of(user));

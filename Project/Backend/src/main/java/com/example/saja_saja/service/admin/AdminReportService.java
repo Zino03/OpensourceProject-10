@@ -210,6 +210,10 @@ public class AdminReportService {
                                 .orElseThrow(() -> new ResourceNotFoundException("신고된 리뷰를 찾을 수 없습니다."));
 
                         review.setIsBanned(true);
+
+                        User host = review.getBuyer().getPost().getHost();
+                        host.setTotalStar(host.getTotalStar() - review.getStar());
+                        host.setReceivedReviewCount(host.getReceivedReviewCount() - 1);
                     }
                     reportResponse = ReportResponseDto.of(reviewReport);
                     break;
