@@ -608,28 +608,29 @@ const GroupPurchaseDetail = () => {
 
       // 주최자 여부 확인
       if (postData.host && postData.host.nickname === myNickname) {
-        setIsOrganizer(true);
-
-        // 주최자라면 참여자 목록 조회
-        const buyersResponse = await api.get(`/api/posts/${id}/buyers`);
-        const buyers = buyersResponse.data.buyers || [];
-
-        const mappedBuyers = buyers.map((b) => ({
-          id: b.buyerId,
-          name: b.name,
-          nickname: b.nickname,
-          amount: `${b.totalPrice?.toLocaleString()}원`,
-          address: b.address
-            ? `(${b.address.zipCode}) ${b.address.street} ${b.address.detail}`
-            : "주소 정보 없음",
-          status: b.isPaid === 1 ? "결제 완료" : "결제 대기",
-          date: b.receivedAt ? b.receivedAt.substring(0, 10) : "-",
-          invoice: b.trackingNumber ? { number: b.trackingNumber } : null,
-          pickup: b.receivedAt ? { receiveDate: b.receivedAt } : null,
-          receive: b.address ? "delivery" : "pickup",
-          phone: b.phone,
-        }));
-        setParticipants(mappedBuyers);
+         setIsOrganizer(true);
+         
+        if(postData.status === 0 || postData.status === 4 || postData.isCanceled === false) {
+          return
+        }
+        
+         // 주최자라면 참여자 목록 조회
+         const buyersResponse = await api.get(`/api/posts/${id}/buyers`);
+         const buyers = buyersResponse.data.buyers || [];
+         
+         const mappedBuyers = buyers.map(b => ({
+             id: b.buyerId,
+             name: b.name,
+             nickname: b.nickname,
+             amount: `${b.totalPrice?.toLocaleString()}원`,
+             address: b.address ? `(${b.address.zipCode}) ${b.address.street} ${b.address.detail}` : "주소 정보 없음",
+             status: b.isPaid === 1 ? '결제 완료' : '결제 대기',
+             date: b.receivedAt ? b.receivedAt.substring(0,10) : '-',
+             invoice: b.trackingNumber ? { number: b.trackingNumber } : null,
+             pickup: b.receivedAt ? { receiveDate: b.receivedAt } : null,
+             receive: b.address ? 'delivery' : 'pickup'
+         }));
+         setParticipants(mappedBuyers);
       }
 
       console.log(post);
@@ -641,7 +642,7 @@ const GroupPurchaseDetail = () => {
         console.log(latitude, longitude);
       }
     } catch (error) {
-      console.error("로드 실패:", error);
+      console.error("로드 실패:", error.response.data);
       alert("정보를 불러오는데 실패했습니다.");
     } finally {
       setIsLoading(false);

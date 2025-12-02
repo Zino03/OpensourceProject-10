@@ -23,8 +23,9 @@ public class UserPostListResponseDto {
     private Integer receivedPrice;
     // 0 : 대기, 1 : 진행중, 2 : 마감임박, 3 : 마감, 4 : 반려, 5: 취소
     private Integer status;
+    private Boolean isSettled;
 
-    public static UserPostListResponseDto of(Post post) {
+    public static UserPostListResponseDto of(Post post, Boolean settled) {
         return builder()
                 .id(post.getId())
                 .title(post.getTitle())
@@ -35,6 +36,7 @@ public class UserPostListResponseDto {
                 .currentQuantity(post.getCurrentQuantity())
                 .receivedPrice(post.getPrice()*post.getQuantity())
                 .status(post.getIsCanceled().equals(true) ? 5 : post.getStatus())
+                .isSettled(settled)
                 .build();
     }
 }
