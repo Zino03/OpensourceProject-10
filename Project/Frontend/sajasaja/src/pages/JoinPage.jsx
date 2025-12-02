@@ -329,8 +329,7 @@ const JoinPage = () => {
         if (token) {
            localStorage.setItem('accessToken', token); 
         }
-        alert("회원가입이 완료되었습니다! (테스트용 가상 응답)");
-        window.location.href = '#/'; // 실제 환경에서는 '/' 등으로 이동
+        window.location.href = '/'; // 실제 환경에서는 '/' 등으로 이동
       }
     } catch (error) {
       console.error('회원가입 실패:', error);
