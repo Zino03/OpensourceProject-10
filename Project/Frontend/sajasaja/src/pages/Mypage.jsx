@@ -120,7 +120,7 @@ const MyPage = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   // 사용되는 모든 상수를 컴포넌트 스코프 내부에 정의했습니다. (no-undef 해결)
-  const userNickname = localStorage.getItem("user_nickname"); 
+  const userNickname = localStorage.getItem("userNickname"); 
   const defaultProfileFilled = "/images/filledprofile.svg";
 
   //  useEffect: 컴포넌트 마운트 시 사용자 정보 fetch
