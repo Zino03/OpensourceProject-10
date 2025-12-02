@@ -146,9 +146,7 @@ const PaymentPage = () => {
             value={paymentMethod} 
             onChange={(e) => setPaymentMethod(e.target.value)}
           >
-            <option value="virtual_account">가상계좌</option>
-            <option value="credit_card">신용카드</option>
-            <option value="kakaopay">카카오페이</option>
+            <option value="virtual_account">무통장입금</option>
           </StyledSelect>
         </FormGroup>
 
