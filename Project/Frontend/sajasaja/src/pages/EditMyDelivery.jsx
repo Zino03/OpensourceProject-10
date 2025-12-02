@@ -335,10 +335,6 @@ const EditMyDelivery = () => {
       alert(`${getEntranceLabel()}를 입력해주세요.`);
       return;
     }
-    if (!agree) {
-      alert("개인정보 수집 및 이용에 동의해주세요.");
-      return;
-    }
 
     // 여기서 수정된 데이터 서버로 보내거나, 상위 상태 업데이트 등 처리
     const updated = {
@@ -530,36 +526,13 @@ const EditMyDelivery = () => {
               </>
             )}
           </InputArea>
-
-          <NoticeWrapper>
-            <NoticeTitle>개인정보 수집 이용안내</NoticeTitle>
-            <NoticeList>
-              <li>개인정보 수집 목적: 상품구매 시 배송처리</li>
-              <li>
-                수집 항목: 배송지명, 수령인정보(받는분, 연락처, 주소, 공동현관 출입방법)
-              </li>
-              <li>보유 및 이용기간: 정보 삭제 또는 회원 탈퇴 시까지</li>
-              <li>
-                확인 버튼을 누르지 않을 경우 배송지 정보가 저장되지 않습니다.
-              </li>
-            </NoticeList>
-
-            <CheckboxLabel>
-              <input
-                type="checkbox"
-                checked={agree}
-                onChange={(e) => setAgree(e.target.checked)}
-              />
-              위 개인정보 수집 및 이용에 동의합니다.
-            </CheckboxLabel>
-          </NoticeWrapper>
         </Section>
 
         <ButtonRow>
           <CancelButton type="button" onClick={() => navigate(-1)}>
             취소
           </CancelButton>
-          <SubmitButton type="submit">확인</SubmitButton>
+          <SubmitButton>확인</SubmitButton>
         </ButtonRow>
       </form>
     </Container>

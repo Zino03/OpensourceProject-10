@@ -30,7 +30,6 @@ const CancelButton = styled.button`
   }
 `;
 
-
 const CategoryTag = styled.div`
   font-size: 12px;
   color: #888;
@@ -345,11 +344,10 @@ const PurchaseButton = styled.button`
   font-size: 16px;
   font-weight: 500;
   cursor: pointer;
+  margin-top: 16px;     /* 👈 수량/가격 줄과 간격 */
 
   &:hover { opacity: 0.9; }
 `;
-
-
 
 const TabMenu = styled.div`
   display: flex;
@@ -364,8 +362,8 @@ const TabItem = styled.div`
   padding: 16px 0;
   font-size: 14px;
   font-weight: 500;
-  color: ${props => props.$active ? '#FF7E00' : '#555'};
-  border-bottom: 1px solid ${props => props.$active ? '#FF7E00' : 'transparent'};
+  color: ${props => props.$active ? '#000000ff' : '#555'};
+  border-bottom: 1px solid ${props => props.$active ? '#000000ff' : 'transparent'};
   cursor: pointer;
   
   &:hover {
@@ -565,8 +563,16 @@ const FilterButton = styled.button`
 `;
 
 const GroupPurchaseDetail = () => {
-  
+
   const navigate = useNavigate();
+
+  const handleCancelClick = () => {
+    const confirmed = window.confirm('공동구매를 취소하시겠습니까?');
+    if (confirmed) {
+      navigate("/mygrouppurchase");
+    }
+  };
+  
   const product = {
     title: '애니 피욘크 미니 프레첼 스낵 150g',
     currentCount: 87,
@@ -647,7 +653,7 @@ const GroupPurchaseDetail = () => {
       pickup: null,
       receive: 'delivery',
       receiver: '최지우',
-      req: '자유출입가능',          // 값만
+      req: '자유출입가능',
       entranceMethod: '자유출입가능',
       entrancePassword: '#1234#',
       tel: '010-8239-5709'
@@ -710,17 +716,18 @@ const GroupPurchaseDetail = () => {
 
   // 수량 상태
   const [quantity, setQuantity] = useState(1);
-const [baseCount] = useState(product.currentCount);
+  const [baseCount] = useState(product.currentCount);
 
-// 🔹 화면에 보여줄 현재 주문된 수량 (바뀌는 값)
-const [currentCount, setCurrentCount] = useState(product.currentCount);
+  // 🔹 화면에 보여줄 현재 주문된 수량 (바뀌는 값)
+  const [currentCount, setCurrentCount] = useState(product.currentCount);
+
   const handleDecrease = () => {
     setQuantity(prev => (prev > 1 ? prev - 1 : 1));
   };
 
   const handleApplyQuantity = () => {
-  setCurrentCount(baseCount + (quantity-1));   // ⭐ 처음 주문 수량 + 선택한 수량
-};
+    setCurrentCount(baseCount + (quantity-1));   // ⭐ 처음 주문 수량 + 선택한 수량
+  };
 
   const handleIncrease = () => {
     setQuantity(prev => prev + 1);
@@ -767,7 +774,6 @@ const [currentCount, setCurrentCount] = useState(product.currentCount);
 
   const progressPercent = Math.min((currentCount / product.goalCount) * 100, 100);
 
-
   return (
     <Container>
       <CategoryTag>
@@ -790,12 +796,8 @@ const [currentCount, setCurrentCount] = useState(product.currentCount);
 
         <InfoArea>
           <ProductTitleRow>
-          <ProductTitle>{product.title}</ProductTitle>
-
-          <CancelButton onClick={() => navigate("/mygrouppurchase")}>
-            공구취소
-          </CancelButton>
-        </ProductTitleRow>
+            <ProductTitle>{product.title}</ProductTitle>
+          </ProductTitleRow>
 
           <ProgressSection>
             <ProgressLabel>현재 주문된 수량</ProgressLabel>
@@ -827,19 +829,20 @@ const [currentCount, setCurrentCount] = useState(product.currentCount);
             <OrganizerRow>
               <Label>주최자</Label>
               <OrganizerBadge>
-              <OrganizerLeft onClick={() => navigate("/userpage")}>
-                <ProfileIcon
-                  src={product.organizerProfileImage || "/images/profile.png"}
-                  alt="profile"
-                />
-                <OrganizerName>{product.organizer}</OrganizerName>
-                <MannerLabel>3.2점</MannerLabel>
-              </OrganizerLeft>
-              <ContactButton>문의하기</ContactButton>
-            </OrganizerBadge>
+                <OrganizerLeft onClick={() => navigate("/userpage")}>
+                  <ProfileIcon
+                    src={product.organizerProfileImage || "/images/profile.png"}
+                    alt="profile"
+                  />
+                  <OrganizerName>{product.organizer}</OrganizerName>
+                  <MannerLabel>3.2점</MannerLabel>
+                </OrganizerLeft>
+                <ContactButton>문의하기</ContactButton>
+              </OrganizerBadge>
             </OrganizerRow>
           </DetailList>
 
+          {/* 🔻 구매 수량 & 가격 줄 */}
           <BottomArea>
             <QuantityArea>
               <QuantityLabel>구매 수량</QuantityLabel>
@@ -848,15 +851,16 @@ const [currentCount, setCurrentCount] = useState(product.currentCount);
                 <QtyValue>{quantity}</QtyValue>
                 <QtyButton onClick={handleIncrease}>+</QtyButton>
               </QuantityBox>
-              <ChangeQtyButton onClick={handleApplyQuantity}>
-              수량변경하기
-            </ChangeQtyButton>
-
             </QuantityArea>
             <PriceArea>
               <PriceText>{(product.price * quantity).toLocaleString()} 원</PriceText>
             </PriceArea>
           </BottomArea>
+
+          {/* 🔻 여기 추가: 공동구매 시작하기 버튼 (하단 상자 버튼) */}
+          <PurchaseButton onClick={() => setIsModalOpen(true)}>
+            공동구매 시작하기
+          </PurchaseButton>
         </InfoArea>
       </TopSection>
 
@@ -864,9 +868,6 @@ const [currentCount, setCurrentCount] = useState(product.currentCount);
         <TabItem $active={activeTab === 'info'} onClick={() => setActiveTab('info')}>상품 정보</TabItem>
         <TabItem $active={activeTab === 'notice'} onClick={() => setActiveTab('notice')}>공지</TabItem>
         <TabItem $active={activeTab === 'review'} onClick={() => setActiveTab('review')}>후기</TabItem>
-        {isOrganizer && (
-          <TabItem $active={activeTab === 'manage'} onClick={() => setActiveTab('manage')}>구매자 관리</TabItem>
-        )}
       </TabMenu>
 
       {activeTab === 'info' && (
@@ -932,64 +933,40 @@ const [currentCount, setCurrentCount] = useState(product.currentCount);
       )}
 
       {isOrganizer && activeTab === 'manage' && (
-      <Section>
-            <ManageHeader>
-              <TitleGroup>
-                <ManageTitle>공구 참여 명단</ManageTitle>
-                  <FilterButton 
-                    $active={participantFilter === 'delivery'}
-                    onClick={() => {setParticipantFilter('delivery')}}>
-                    배송 수령
-                  </FilterButton>
-
-                  <FilterButton 
-                    $active={participantFilter === 'pickup'}
-                    onClick={() => {setParticipantFilter('pickup')}}>
-                    직접 수령
-                  </FilterButton>
-                </TitleGroup>
-              {participantFilter === 'delivery' ? (
-                <ManageButtonGroup>
-                  <ManageButton onClick={() => setIsDeliveryInfoModalOpen(true)}>배송 정보</ManageButton>
-                  <ManageButton onClick={() => setIsInvoiceModalOpen(true)}>송장번호 등록</ManageButton>
-                </ManageButtonGroup>
-            ) : (<ManageButton onClick={() => setIsReceiveDateModalOpen(true)}>수령일자 등록</ManageButton>)}
-            </ManageHeader>
-            
-            {participantFilter === 'delivery' ? (
-              <ParticipantTable>
-                <thead>
-                  <tr>
-                    <th>성명</th>
-                    <th>닉네임</th>
-                    <th>결제 금액</th>
-                    <th>결제 상태</th>
-                    <th>수령 일자</th>
-                    <th>송장 등록</th>
+        <Section>
+          {participantFilter === 'delivery' ? (
+            <ParticipantTable>
+              <thead>
+                <tr>
+                  <th>성명</th>
+                  <th>닉네임</th>
+                  <th>결제 금액</th>
+                  <th>결제 상태</th>
+                  <th>수령 일자</th>
+                  <th>송장 등록</th>
+                </tr>
+              </thead>
+              <tbody onClick={() => setIsDeliveryInfoModalOpen(true)}>
+                {filteredParticipants.map((p, idx) => (
+                  <tr key={idx}>
+                    <td>{p.name}</td>
+                    <td>{p.nickname}</td>
+                    <td>{p.amount}</td>
+                    <td>{p.status}</td>
+                    <td>{p.date}</td>
+                    <td>
+                      {p.invoice ? (
+                        <RegisterStatusBadge $isRegistered={true}>등록 완료</RegisterStatusBadge>
+                      ) : (
+                        <RegisterStatusBadge $isRegistered={false}>미등록</RegisterStatusBadge>
+                      )}
+                    </td>
                   </tr>
-                </thead>
-                <tbody onClick={() => setIsDeliveryInfoModalOpen(true)}>
-                  {filteredParticipants.map((p, idx) => (
-                      <tr key={idx}>
-                        <td>{p.name}</td>
-                        <td>{p.nickname}</td>
-                        <td>{p.amount}</td>
-                        <td>{p.status}</td>
-                        <td>{p.date}</td>
-                        <td>
-                          {p.invoice ? (
-                            <RegisterStatusBadge $isRegistered={true}>등록 완료</RegisterStatusBadge>
-                          ) : (
-                            <RegisterStatusBadge $isRegistered={false}>미등록</RegisterStatusBadge>
-                          )}
-                        </td>
-                      </tr>
-                      )
-                    )}
-                </tbody>
-              </ParticipantTable>
-            ) : (
-              <ParticipantTable>
+                ))}
+              </tbody>
+            </ParticipantTable>
+          ) : (
+            <ParticipantTable>
               <thead>
                 <tr>
                   <th>성명</th>
@@ -1019,39 +996,39 @@ const [currentCount, setCurrentCount] = useState(product.currentCount);
                 ))}
               </tbody>
             </ParticipantTable>
-            )
-          }
-          </Section>
-        )}
+          )}
+        </Section>
+      )}
       
+      {/* 🔻 공동구매 시작하기 모달 */}
       <PurchaseModal 
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          product={{ ...product, quantity }} 
-        />
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        product={{ ...product, quantity }} 
+      />
 
       <InvoiceModal 
-          isOpen={isInvoiceModalOpen}
-          onClose={() => setIsInvoiceModalOpen(false)}
-          participants={filteredParticipants} 
-          onSave={handleInvoiceSave}
-        />
+        isOpen={isInvoiceModalOpen}
+        onClose={() => setIsInvoiceModalOpen(false)}
+        participants={filteredParticipants} 
+        onSave={handleInvoiceSave}
+      />
 
       <ReceiveModal 
-          isOpen={isReceiveDateModalOpen}
-          onClose={() => setIsReceiveDateModalOpen(false)}
-          participants={filteredParticipants} 
-          onSave={handleReceiveDateSave}
-        />
+        isOpen={isReceiveDateModalOpen}
+        onClose={() => setIsReceiveDateModalOpen(false)}
+        participants={filteredParticipants} 
+        onSave={handleReceiveDateSave}
+      />
 
       <DeliveryInfoModal 
-          isOpen={isDeliveryInfoModalOpen}
-          onClose={() => setIsDeliveryInfoModalOpen(false)}
-          participants={filteredParticipants} 
-        />
+        isOpen={isDeliveryInfoModalOpen}
+        onClose={() => setIsDeliveryInfoModalOpen(false)}
+        participants={filteredParticipants} 
+      />
 
     </Container>
-    );
-  };
+  );
+};
 
 export default GroupPurchaseDetail;
