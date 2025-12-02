@@ -203,7 +203,7 @@ const groups = [
   },
 ];
 
-const MyGroupPerchase = () => {
+const MyGroupPurchase = () => {
   const navigate = useNavigate();
 
   const handleClickGroup = (id) => {
@@ -274,4 +274,4 @@ const MyGroupPerchase = () => {
   );
 };
 
-export default MyGroupPerchase;
+export default MyGroupPurchase;
