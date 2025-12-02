@@ -67,7 +67,7 @@ const styles = {
   },
   badge: (type) => {
     const map = {
-      waiting: { bg: "#ffe0b3", color: "#ff7e00" },
+      waiting: { bg: "#fbcda4ff", color: "#ffffffff" },
       ongoing: { bg: "#ffb347", color: "#fff" },
       closing: { bg: "#ff9800", color: "#fff" },
       closed: { bg: "#ff7e00", color: "#fff" },
