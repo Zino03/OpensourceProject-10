@@ -589,6 +589,10 @@ const GroupPurchaseDetail = () => {
       if (postData.host && postData.host.nickname === myNickname) {
          setIsOrganizer(true);
          
+        if(postData.status === 0 || postData.status === 4 || postData.isCanceled === false) {
+          return
+        }
+        
          // 주최자라면 참여자 목록 조회
          const buyersResponse = await api.get(`/api/posts/${id}/buyers`);
          const buyers = buyersResponse.data.buyers || [];
@@ -603,13 +607,12 @@ const GroupPurchaseDetail = () => {
              date: b.receivedAt ? b.receivedAt.substring(0,10) : '-',
              invoice: b.trackingNumber ? { number: b.trackingNumber } : null,
              pickup: b.receivedAt ? { receiveDate: b.receivedAt } : null,
-             receive: b.address ? 'delivery' : 'pickup',
-             phone: b.phone
+             receive: b.address ? 'delivery' : 'pickup'
          }));
          setParticipants(mappedBuyers);
       }
     } catch (error) {
-      console.error("로드 실패:", error);
+      console.error("로드 실패:", error.response.data);
       alert("정보를 불러오는데 실패했습니다.");
     } finally {
       setIsLoading(false);

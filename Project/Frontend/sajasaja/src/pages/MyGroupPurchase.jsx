@@ -71,7 +71,7 @@ const styles = {
       ongoing: { bg: "#ffb347", color: "#fff" },
       closing: { bg: "#ff9800", color: "#fff" },
       closed: { bg: "#ff7e00", color: "#fff" },
-      rejected: { bg: "#b0b0b0", color: "#fff" },
+      rejected: { bg: "#828282ff", color: "#fff" },
       cancelled: { bg: "#000", color: "#fff" },
     };
     const { bg, color } = map[type] || map.waiting;
