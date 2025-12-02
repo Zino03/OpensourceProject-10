@@ -134,6 +134,8 @@ public class BuyerService {
                 .status(0)
                 .build();
 
+        post.setLastPaymentEndAt(buyer.getCreatedAt().plusDays(7));
+
         // 배송일 경우 배송지 복사
         if (isDelivery) {
             if (req.getUserAddressId() == null) {
@@ -228,7 +230,14 @@ public class BuyerService {
         }
 
         post.setCurrentQuantity(post.getCurrentQuantity() - buyer.getQuantity());
-        // post.setCurrentPaidQuantity(post.getCurrentPaidQuantity() - buyer.getQuantity());
+        post.setCurrentPaidQuantity(post.getCurrentPaidQuantity() - buyer.getQuantity());
+
+        Optional<Buyer> optionalLastBuyer = buyerRepository.findFirstByPostAndIsCanceledAndIsPaidOrderByIdDesc(post, false, 0);
+        if (optionalLastBuyer.isEmpty()) {
+            optionalLastBuyer = buyerRepository.findFirstByPostAndIsCanceledAndIsPaidOrderByIdDesc(post, false, 1);
+        }
+        Buyer lastBuyer = optionalLastBuyer.get();
+        post.setLastPaymentEndAt(lastBuyer.getCreatedAt().plusDays(7));
 
         buyerRepository.save(buyer);
         postRepository.save(post);

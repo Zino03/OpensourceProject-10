@@ -49,6 +49,7 @@ public class PostRequestDto {
                 .content(content)
                 .quantity(quantity)
                 .currentQuantity(0)
+                .currentPaidQuantity(0)
                 .isDeliveryAvailable(isDeliveryAvailable)
                 .deliveryFee(deliveryFee)
                 .pickupAddress(pickupAddress)

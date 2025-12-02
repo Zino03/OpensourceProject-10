@@ -44,4 +44,8 @@ public interface BuyerRepository extends JpaRepository<Buyer, Long> {
             "JOIN b.post p " +
             "WHERE b.user = :user AND p.host != :user " +
             "GROUP BY b.status")
-    List<Object[]> countOrderStatusByUserAndPostHostNot(@Param("user") User user);}
+    List<Object[]> countOrderStatusByUserAndPostHostNot(@Param("user") User user);
+
+
+    Optional<Buyer> findFirstByPostAndIsCanceledAndIsPaidOrderByIdDesc(Post post, Boolean isCanceled, Integer isPaid);
+}
