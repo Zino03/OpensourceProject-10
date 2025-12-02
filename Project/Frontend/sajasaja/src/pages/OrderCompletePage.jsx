@@ -12,7 +12,6 @@ const Container = styled.div`
   flex-direction: column;
 `;
 
-// 상단 완료 메시지 영역
 const Header = styled.div`
   display: flex;
   flex-direction: column;
@@ -30,7 +29,6 @@ const PageTitle = styled.h2`
 const IconWrapper = styled.div`
   font-size: 60px;
   margin-bottom: 20px;
-  
   display: flex;
   justify-content: center;
   align-items: center;
@@ -47,7 +45,6 @@ const OrderDate = styled.span`
   color: #888;
 `;
 
-// 정보 섹션
 const Section = styled.div`
   margin-bottom: 10px;
 `;
@@ -79,7 +76,6 @@ const Value = styled.span`
   text-align: right;
 `;
 
-// 하단 버튼
 const ConfirmButton = styled.button`
   width: 160px;
   height: 40px;
@@ -92,7 +88,6 @@ const ConfirmButton = styled.button`
   cursor: pointer;
   margin: 20px auto 0;
   align-self: center;
-
   &:hover { opacity: 0.9; }
 `;
 
@@ -107,21 +102,22 @@ const OrderCompletePage = () => {
   const navigate = useNavigate();
   const { state } = useLocation();
 
+  // state가 없을 경우를 대비한 기본값
   const orderData = state || {
-    date: '2025-11-13',
-    bank: '**은행',
-    account: '1234567812345678',
-    price: 3890,
-    deadline: '2025-11-20 23:59:59',
-    productName: '애니 피완크 미니 프레첼 스낵 150g',
-    quantity: 1,
+    date: new Date().toISOString().split('T')[0],
+    price: 0,
+    deadline: '-',
+    productName: '상품 정보 없음',
+    quantity: 0,
     method: '무통장입금',
-    depositor: '최지우',
-    email: 'a@A.com'
+    depositor: '-',
+    email: '-',
+    virtualAccountBank: '은행 정보 없음',
+    virtualAccount: '-'
   };
 
   const handleHome = () => {
-    navigate('/'); // 메인으로 이동
+    navigate('/'); 
   };
 
   return (
@@ -135,17 +131,19 @@ const OrderCompletePage = () => {
         <OrderDate>주문 일자 {orderData.date}</OrderDate>
       </Header>
 
-      {/* 입금 정보 */}
       <Section>
         <SectionTitle>입금 정보</SectionTitle>
         <InfoRow>
           <Label>계좌번호</Label>
-          <Value>{orderData.bank} {orderData.account}</Value>
+          <Value>
+            {/* 백엔드 응답 필드명에 맞춰 수정 필요 (예: virtualAccountBank) */}
+            {orderData.virtualAccountBank || "카카오뱅크"} {orderData.virtualAccount || "3333-00-0000000"}
+          </Value>
         </InfoRow>
         <InfoRow>
           <Label>결제금액</Label>
           <Value style={{ fontWeight: '700', color: '#000' }}>
-            {orderData.price.toLocaleString()} 원
+            {Number(orderData.price).toLocaleString()} 원
           </Value>
         </InfoRow>
         <InfoRow>
@@ -154,7 +152,6 @@ const OrderCompletePage = () => {
         </InfoRow>
       </Section>
 
-      {/* 주문 정보 */}
       <Section>
         <SectionTitle>주문 정보</SectionTitle>
         <InfoRow>
@@ -165,10 +162,10 @@ const OrderCompletePage = () => {
           <Label>구매수량</Label>
           <Value>{orderData.quantity}개</Value>
         </InfoRow>
-        <br /> {/* 시각적 분리를 위한 공백 */}
+        <br />
         <InfoRow>
           <Label>결제방식</Label>
-          <Value>{orderData.method}</Value>
+          <Value>무통장입금</Value>
         </InfoRow>
         <InfoRow>
           <Label>입금자명</Label>
@@ -181,9 +178,7 @@ const OrderCompletePage = () => {
       </Section>
 
       <Divider/>
-
       <ConfirmButton onClick={handleHome}>확인</ConfirmButton>
-
     </Container>
   );
 };

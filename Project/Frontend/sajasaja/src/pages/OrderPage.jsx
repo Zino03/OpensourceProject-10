@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Map, MapMarker, useKakaoLoader } from "react-kakao-maps-sdk"; // ✅ 지도 라이브러리 추가
+import { Map, MapMarker, useKakaoLoader } from "react-kakao-maps-sdk";
+import { api, setInterceptor } from '../assets/setIntercepter'; 
 
 const Container = styled.div`
   width: 100%;
@@ -11,7 +12,6 @@ const Container = styled.div`
   color: #333;
 `;
 
-// 섹션 스타일
 const Section = styled.section`
   margin-bottom: 40px;
 `;
@@ -22,7 +22,6 @@ const SectionTitle = styled.h3`
   margin-bottom: 16px;
 `;
 
-// 지도 컨테이너 (MapWrapper 대체)
 const MapContainer = styled.div`
   width: 100%;
   height: 200px;
@@ -45,7 +44,7 @@ const MapOverlayButton = styled.button`
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
-  z-index: 10; /* 지도 위에 뜨도록 z-index 추가 */
+  z-index: 10;
 `;
 
 const WarningText = styled.p`
@@ -56,7 +55,6 @@ const WarningText = styled.p`
   font-weight: 500;
 `;
 
-// 폼 레이아웃
 const FormRow = styled.div`
   display: flex;
   margin-bottom: 20px;
@@ -80,7 +78,6 @@ const InputArea = styled.div`
   gap: 10px;
 `;
 
-// 인풋 공통 스타일
 const StyledInput = styled.input`
   width: 100%;
   height: 40px;
@@ -114,7 +111,6 @@ const StyledSelect = styled.select`
   background: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 9L1 4h10z'/%3E%3C/svg%3E") no-repeat right 14px center;
 `;
 
-// 기본 배송지
 const Badge = styled.span`
   display: inline-flex;
   align-items: center;
@@ -129,7 +125,6 @@ const Badge = styled.span`
   height: 22px;
 `;
 
-// 연락처 인풋 그룹
 const PhoneGroup = styled.div`
   display: flex;
   align-items: center;
@@ -141,7 +136,6 @@ const PhoneGroup = styled.div`
   }
 `;
 
-// 주소 표시 박스 
 const AddressDisplayBox = styled.div`
   background-color: #F4F4F4;
   border: none;
@@ -162,7 +156,6 @@ const AddressDisplayBox = styled.div`
   }
 `;
 
-// 라디오 버튼 그룹
 const RadioGroup = styled.div`
   display: flex;
   gap: 24px;
@@ -202,7 +195,6 @@ const RadioLabel = styled.label`
   }
 `;
 
-// 주문 상품 테이블
 const ProductTable = styled.div`
   width: 100%;
   border-top: 1px solid #333;
@@ -226,9 +218,8 @@ const TableRow = styled.div`
   font-size: 14px;
 `;
 
-// 테이블 컬럼 비율 조정
 const ColInfo = styled.div` 
-  flex: 5; /* 정보 영역을 넓게 */
+  flex: 5; 
   padding-left: 20px; 
   display: flex; 
   align-items: center; 
@@ -245,7 +236,6 @@ const ProductImg = styled.img`
   border-radius: 6px;
 `;
 
-// 수량 조절기
 const MiniStepper = styled.div`
   display: flex;
   border: 1px solid #ddd;
@@ -254,6 +244,7 @@ const MiniStepper = styled.div`
     width: 28px; height: 28px;
     border: none; background: #fff; cursor: pointer;
     &:hover { background: #f9f9f9; }
+    &:disabled { color: #ccc; cursor: not-allowed; }
   }
   input {
     width: 34px; height: 28px;
@@ -262,7 +253,6 @@ const MiniStepper = styled.div`
   }
 `;
 
-// 결제 정보 박스
 const PaymentInfoBox = styled.div`
   border-top: 1px solid #333;
   border-bottom: 1px solid #ddd;
@@ -299,7 +289,7 @@ const PaymentRow = styled.div`
 
 const OrderButton = styled.button`
   width: 150px;
-  background-color: #000; /* 완전 검정 */
+  background-color: #000; 
   color: #fff;
   border: none;
   padding: 16px 0;
@@ -318,54 +308,149 @@ const OrderPage = () => {
   const navigate = useNavigate();
   const { state } = useLocation(); 
 
-  // ✅ 카카오 지도 로드 (앱 키는 본인 것으로 교체 권장)
   const [loadingMap, errorMap] = useKakaoLoader({
     appkey: "1182ee2a992f45fb1db2238604970e19", 
     libraries: ["services"],
   });
 
-  // 수령 방식 확인
   const receiveMethod = state?.method || 'delivery';
   const isDelivery = receiveMethod === 'delivery';
   
+  // 전달받은 상품 데이터
   const productData = state?.product || {
     title: '상품 정보 없음',
     price: 0,
     shippingCost: 0,
     image: 'https://via.placeholder.com/80',
-    // 지도 좌표 기본값 (없으면 충북대 좌표)
     latitude: 36.628583,
-    longitude: 127.457583
+    longitude: 127.457583,
+    goalCount: 999, // 기본값
+    currentCount: 0
   };
   
-  // 수량 (이전 페이지에서 받거나 기본값 1)
+  // ✅ 남은 수량 계산 (재고 제한)
+  const maxAvailable = (productData.goalCount || 0) - (productData.currentCount || 0);
+  
   const [quantity, setQuantity] = useState(state?.quantity || 1);
 
-  // 입력 상태
-  const [receiver, setReceiver] = useState('최지우');
-  const [phone, setPhone] = useState({ p1: '010', p2: '1**4', p3: '1**4' });
-  const [entranceMethod, setEntranceMethod] = useState('password'); 
-  const [entranceDetail, setEntranceDetail] = useState('1****6');
+  // 사용자 정보 & 배송지 State
+  const [receiver, setReceiver] = useState('');
+  const [phone, setPhone] = useState({ p1: '', p2: '', p3: '' });
+  const [address, setAddress] = useState({
+    zipCode: '',
+    street: '',
+    detail: ''
+  });
+  const [userAddresses, setUserAddresses] = useState([]); 
+  const [selectedAddressId, setSelectedAddressId] = useState('new'); 
 
-  // 금액 계산
+  const [entranceMethod, setEntranceMethod] = useState('password'); 
+  const [entranceDetail, setEntranceDetail] = useState('');
+
   const safePrice = Number(String(productData.price).replace(/[^\d]/g, ''));
   const safeShippingCost = Number(String(productData.shippingCost).replace(/[^\d]/g, ''));
   const safeQuantity = Number(quantity);
   const totalProductPrice = safePrice * safeQuantity;
   const finalPrice = totalProductPrice + safeShippingCost;
 
+  // ✅ 데이터 로드 & 기본 배송지 설정
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        alert("로그인이 필요합니다.");
+        navigate("/login");
+        return;
+      }
+      setInterceptor(token);
+
+      try {
+        // 2. 주소 목록
+        const addrResponse = await api.get("/api/mypage/addresses");
+        const addresses = addrResponse.data.addresses || []; 
+        setUserAddresses(addresses);
+      } catch (error) {
+        console.error("사용자 정보 로드 실패:", error);
+      }
+    };
+
+    fetchUserInfo();
+  }, [navigate]);
+
+  // 주소 객체를 state에 적용하는 함수
+  const applyAddressToState = (addr) => {
+      setSelectedAddressId(addr.id);
+      setReceiver(addr.recipient || "");
+      
+      if (addr.phone) {
+          const parts = addr.phone.split('-');
+          setPhone({
+              p1: parts[0] || '010',
+              p2: parts[1] || '',
+              p3: parts[2] || ''
+          });
+      }
+
+      setAddress({
+          zipCode: addr.zipCode,
+          street: addr.street,
+          detail: addr.detail
+      });
+      
+      if(addr.entranceAccess) {
+           const method = addr.entranceAccess.toLowerCase();
+           setEntranceMethod(method === 'call' ? 'security' : method === 'other' ? 'etc' : method);
+           setEntranceDetail(addr.entranceDetail || '');
+      }
+  };
+
+  const handleAddressSelect = (e) => {
+      const val = e.target.value;
+      setSelectedAddressId(val);
+
+      if (val === 'new') {
+          // 신규 입력: 초기화
+          setReceiver('');
+          setPhone({ p1: '010', p2: '', p3: '' });
+          setAddress({ zipCode: '', street: '', detail: '' });
+          setEntranceMethod('password');
+          setEntranceDetail('');
+      } else {
+          const selected = userAddresses.find(addr => addr.id === Number(val));
+          if (selected) {
+              applyAddressToState(selected);
+          }
+      }
+  };
+
+  // ✅ 수량 변경 핸들러 (최대 수량 제한 적용)
   const handleQtyChange = (val) => {
     if (val < 1) return;
+    if (val > maxAvailable) {
+        alert(`구매 가능한 최대 수량은 ${maxAvailable}개 입니다.`);
+        return;
+    }
     setQuantity(val);
   };
 
   const handleOrder = () => {
+    if (isDelivery && (!receiver || !phone.p2 || !phone.p3 || !address.street)) {
+        alert("배송 정보를 모두 입력해주세요.");
+        return;
+    }
+
     navigate('/payment', { 
       state: { 
         product: productData,
         quantity: quantity,
         totalPrice: finalPrice,
-        receiver: receiver,
+        deliveryInfo: isDelivery ? {
+            receiver,
+            phone: `${phone.p1}-${phone.p2}-${phone.p3}`,
+            address: address,
+            entrance: { method: entranceMethod, detail: entranceDetail }
+        } : null,
+        receiveMethod: receiveMethod 
       } 
     });
   };
@@ -376,21 +461,29 @@ const OrderPage = () => {
         <>
           <Section>
             <SectionTitle>배송정보</SectionTitle>
-            <Label>배송지 선택 <Badge>기본 배송지</Badge></Label>
+            <Label>배송지 선택 {selectedAddressId !== 'new' && <Badge>등록된 배송지</Badge>}</Label>
             <FormRow>
                 <InputArea>
-                  <StyledSelect>
-                    <option>집</option>
-                    <option>회사</option>
-                    <option>신규 입력</option>
+                  <StyledSelect onChange={handleAddressSelect} value={selectedAddressId}>
+                    {userAddresses.map(addr => (
+                        <option key={addr.id} value={addr.id}>
+                            {addr.name || addr.recipient} {addr.isDefault ? '(기본)' : ''}
+                        </option>
+                    ))}
+                    <option value="new">신규 입력</option>
                   </StyledSelect>
                 </InputArea>
             </FormRow>
-            {/* 기존 배송 입력 폼들 */}
+
             <Label>받는 분 <RequiredDot>•</RequiredDot></Label>
             <FormRow>
               <InputArea>
-                <StyledInput type="text" value={receiver} onChange={(e) => setReceiver(e.target.value)} />
+                <StyledInput 
+                    type="text" 
+                    value={receiver} 
+                    onChange={(e) => setReceiver(e.target.value)} 
+                    placeholder="이름을 입력하세요"
+                />
               </InputArea>
             </FormRow>
 
@@ -410,12 +503,20 @@ const OrderPage = () => {
             <Label>주소 <RequiredDot>•</RequiredDot></Label>
             <FormRow>
               <InputArea>
-                <StyledInput type="text" value="(12345)" readOnly style={{ width: '100px' }} />
-                <AddressDisplayBox>
-                  <div><span className="tag">도로명</span> <span className="text">충북 청주시 가나구 다라로 123...</span></div>
-                  <div style={{marginTop: '4px'}}><span className="tag">지 번</span> <span className="text">충북 청주시 가나구 삼성동 123...</span></div>
-                </AddressDisplayBox>
-                <StyledInput type="text" placeholder="상세주소 입력" value="101동 101호" />
+                <StyledInput type="text" value={address.zipCode} readOnly placeholder="우편번호" style={{ width: '100px' }} />
+                {address.street ? (
+                    <AddressDisplayBox>
+                    <div><span className="tag">도로명</span> <span className="text">{address.street}</span></div>
+                    </AddressDisplayBox>
+                ) : (
+                    <div style={{padding: '10px', color: '#999', fontSize: '12px'}}>주소를 선택하거나 입력해주세요.</div>
+                )}
+                <StyledInput 
+                    type="text" 
+                    placeholder="상세주소 입력" 
+                    value={address.detail} 
+                    onChange={(e) => setAddress({...address, detail: e.target.value})} 
+                />
               </InputArea>
             </FormRow>
           </Section>
@@ -443,7 +544,13 @@ const OrderPage = () => {
                     기타사항
                   </RadioLabel>
                 </RadioGroup>
-                <StyledInput type="text" placeholder="공동현관 비밀번호 입력" value={entranceDetail} onChange={(e) => setEntranceDetail(e.target.value)} />
+                <StyledInput 
+                    type="text" 
+                    placeholder={entranceMethod === 'password' ? "공동현관 비밀번호 입력" : "상세 내용 입력"} 
+                    value={entranceDetail} 
+                    onChange={(e) => setEntranceDetail(e.target.value)} 
+                    disabled={entranceMethod === 'free'}
+                />
               </InputArea>
             </FormRow>
           </Section>
@@ -452,31 +559,29 @@ const OrderPage = () => {
         <Section>
           <SectionTitle>수령 장소</SectionTitle>
           <MapContainer>
-            {/* ✅ 카카오 지도 렌더링 */}
             {loadingMap ? (
                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>지도 로딩 중...</div>
             ) : errorMap ? (
                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', color: 'red' }}>지도 에러</div>
             ) : (
                <Map
-                  center={{ 
-                    lat: parseFloat(productData.latitude || 36.628583), 
-                    lng: parseFloat(productData.longitude || 127.457583) 
-                  }}
-                  style={{ width: "100%", height: "100%" }}
-                  level={3}
+                 center={{ 
+                   lat: parseFloat(productData.latitude || 36.628583), 
+                   lng: parseFloat(productData.longitude || 127.457583) 
+                 }}
+                 style={{ width: "100%", height: "100%" }}
+                 level={3}
                >
                  <MapMarker 
-                    position={{ 
-                      lat: parseFloat(productData.latitude || 36.628583), 
-                      lng: parseFloat(productData.longitude || 127.457583) 
-                    }} 
+                   position={{ 
+                     lat: parseFloat(productData.latitude || 36.628583), 
+                     lng: parseFloat(productData.longitude || 127.457583) 
+                   }} 
                  >
                      <div style={{padding:"5px", color:"#000", fontSize:"12px"}}>수령 장소</div>
                  </MapMarker>
                </Map>
             )}
-            <MapOverlayButton>지도보기</MapOverlayButton>
           </MapContainer>
           <WarningText>수령장소를 확인해주세요!</WarningText>
         </Section>
@@ -497,13 +602,23 @@ const OrderPage = () => {
               <div>
                 <div style={{fontWeight: '700', fontSize: '15px', marginBottom: '6px', color: '#000'}}>{productData.title}</div>
                 <div style={{fontSize: '13px', color: '#666'}}>{productData.price.toLocaleString()} 원</div>
+                {/* 남은 수량 표시 (선택사항) */}
+                <div style={{fontSize: '11px', color: '#FF7E00', marginTop: '4px'}}>
+                    (구매 가능 수량: {maxAvailable}개)
+                </div>
               </div>
             </ColInfo>
             <ColQty>
               <MiniStepper>
-                <button onClick={() => handleQtyChange(quantity - 1)}>-</button>
+                <button 
+                    onClick={() => handleQtyChange(quantity - 1)}
+                    disabled={quantity <= 1}
+                >-</button>
                 <input type="text" value={quantity} readOnly />
-                <button onClick={() => handleQtyChange(quantity + 1)}>+</button>
+                <button 
+                    onClick={() => handleQtyChange(quantity + 1)}
+                    disabled={quantity >= maxAvailable}
+                >+</button>
               </MiniStepper>
             </ColQty>
             <ColPrice>
@@ -513,7 +628,6 @@ const OrderPage = () => {
         </ProductTable>
       </Section>
 
-      {/* 결제 정보 */}
       <Section>
         <SectionTitle>결제 정보</SectionTitle>
         <PaymentInfoBox>
