@@ -21,6 +21,8 @@ const ImageContainer = styled.div`
   img {
     width: 100%;
     height: 100%;
+    object-fit: cover;   /* ⭐ 비율 유지하면서 꽉 채우고, 넘치는 부분은 잘림 */
+    display: block;
   }
 `;
 
@@ -72,7 +74,8 @@ const BottomContainer = styled.div`
   display: flex;
   justify-content: space-between;
   gap: 8px;
-`
+`;
+
 const Quantity = styled.div`
   text-align: right;
 `;
@@ -114,7 +117,8 @@ const ProductCard = ({ product }) => {
           <StatusTag>마감 임박</StatusTag>
         )}
         <img 
-          src={image ? "/images/im.png":image } 
+          src={image || "/images/im.png"} 
+          alt={title}
         />
       </ImageContainer>
 

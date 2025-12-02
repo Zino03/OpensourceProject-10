@@ -364,8 +364,8 @@ const TabItem = styled.div`
   padding: 16px 0;
   font-size: 14px;
   font-weight: 500;
-  color: ${props => props.$active ? '#000000ff' : '#555'};
-  border-bottom: 1px solid ${props => props.$active ? '#000000ff' : 'transparent'};
+  color: ${props => props.$active ? '#FF7E00' : '#555'};
+  border-bottom: 1px solid ${props => props.$active ? '#FF7E00' : 'transparent'};
   cursor: pointer;
   
   &:hover {
@@ -565,13 +565,6 @@ const FilterButton = styled.button`
 `;
 
 const GroupPurchaseDetail = () => {
-
-    const handleCancelClick = () => {
-    const confirmed = window.confirm('공동구매를 취소하시겠습니까?');
-    if (confirmed) {
-      navigate("/mygrouppurchase");
-    }
-  };
   
   const navigate = useNavigate();
   const product = {
@@ -799,7 +792,7 @@ const [currentCount, setCurrentCount] = useState(product.currentCount);
           <ProductTitleRow>
           <ProductTitle>{product.title}</ProductTitle>
 
-          <CancelButton onClick={handleCancelClick}>
+          <CancelButton onClick={() => navigate("/mygrouppurchase")}>
             공구취소
           </CancelButton>
         </ProductTitleRow>

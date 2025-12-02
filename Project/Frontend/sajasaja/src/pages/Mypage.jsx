@@ -117,8 +117,8 @@ const MyPage = () => {
   const [memberInfo, setMemberInfo] = useState(null); 
   const [isLoading, setIsLoading] = useState(true);
 
-  // ⭐️ FIX: 사용되는 모든 상수를 컴포넌트 스코프 내부에 정의했습니다. (no-undef 해결)
-  const userNickname = localStorage.getItem("user_nickname"); // 🚨 로그인 시 닉네임을 저장해야 합니다.
+  // 사용되는 모든 상수를 컴포넌트 스코프 내부에 정의했습니다. (no-undef 해결)
+  const userNickname = localStorage.getItem("user_nickname"); 
   const defaultProfileCircle = "/images/profilecircle.svg";
   const defaultProfileFilled = "/images/filledprofile.svg";
 
@@ -128,7 +128,7 @@ const MyPage = () => {
       const token = localStorage.getItem('accessToken');
       
       // 1. 필수 인증 확인
-      if (!token || !setInterceptor(token)) { 
+      if (!token || !userNickname || !setInterceptor(token)) { 
           setIsLoading(false);
           console.error("인증 토큰 또는 닉네임 없음. 로그인이 필요합니다.");
           navigate('/login'); 
@@ -140,7 +140,7 @@ const MyPage = () => {
         // '/api/user/{nickname}' 엔드포인트는 ProfileResponseDto를 반환합니다.
         const response = await api.get(`/api/user/${userNickname}`);
 
-        setMemberInfo(response.data);
+        setMemberInfo(response.data.profile);
       } catch (error) {
         console.error("프로필 정보 조회 실패:", error);
         if (error.response && error.response.status === 401) {
