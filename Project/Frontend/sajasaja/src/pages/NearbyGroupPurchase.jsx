@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import styled from 'styled-components';
 import { FaPlus, FaMinus, FaSyncAlt } from "react-icons/fa";
-import { Map,  CustomOverlayMap, useKakaoLoader } from "react-kakao-maps-sdk";
+import { Map, CustomOverlayMap, useKakaoLoader } from "react-kakao-maps-sdk";
+import { api } from '../assets/setIntercepter'; // ✅ API 설정 import
 
 const Container = styled.div`
   display: flex;
@@ -168,6 +169,12 @@ const MarkerPin = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+  /* 선택되었을 때 스타일 변경 가능 */
+  opacity: ${props => props.$isActive ? 1 : 0.8};
+  transform: ${props => props.$isActive ? 'scale(1.2)' : 'scale(1)'};
+  transition: all 0.2s ease;
+  z-index: ${props => props.$isActive ? 999 : 1};
+  
   .img { height: 30px }
 `;
 
@@ -239,7 +246,7 @@ const ControlBtn = styled.button`
 const NoResult = styled.div`
   padding: 20px;
   text-align: center;
-  color:'#999;
+  color: #999;
 `
 
 const NearbyGroupPurchase = () => {
@@ -252,21 +259,11 @@ const NearbyGroupPurchase = () => {
   const [selectedLocationKey, setSelectedLocationKey] = useState(null);
   const [map, setMap] = useState(null);
 
-  // 더미 데이터
-  const mockItems = [
-    { id: 1, title: '애니 피욘크 미니 프레첼 150g', writer: '사자사자', price: 890, current: 87, total: 100, date: '2025-11-11', address: '충북 청주시 서원구 충대로 1 충북대학교 전자정보대학3관\n양성재 1층', lat: 36.628583, lng: 127.457583 },
-    { id: 2, title: '제주 감귤 10kg 공구', writer: '사자사자', price: 890, current: 87, total: 100, date: '2025-11-11', address: '충북 청주시 서원구 충대로 1 충북대학교 전자정보대학3관\n양성재 1층', lat: 36.628583, lng: 127.457583 }, // 같은 위치
-    { id: 3, title: '코스트코 베이글 1+1', writer: '사자사자', price: 890, current: 87, total: 100, date: '2025-11-11', address: '충북대 중문', lat: 36.629583, lng: 127.459583 },
-    { id: 4, title: '대파 한 단 나눔 공구', writer: '사자사자', price: 890, current: 87, total: 100, date: '2025-11-11', address: '충북대 정문', lat: 36.632583, lng: 127.460583 },
-    { id: 5, title: '생수 2L 6개입', writer: '사자사자', price: 890, current: 87, total: 100, date: '2025-11-11', address: '사창동 주민센터', lat: 36.634583, lng: 127.458583 },
-    { id: 6, title: '고구마 5kg', writer: '사자사자', price: 890, current: 87, total: 100, date: '2025-11-11', address: '청주체육관', lat: 36.638583, lng: 127.475583 },
-    { id: 7, title: '짱 멋진 가방', writer: '사자사자', price: 890, current: 87, total: 100, date: '2025-11-11', address: '충북대 후문', lat: 36.625583, lng: 127.455583 },
-];
+  // ✅ 데이터 State
+  const [posts, setPosts] = useState([]); // 서버에서 받아온 전체 데이터
+  const [visibleItems, setVisibleItems] = useState([]); // 현재 화면에 보일 데이터
 
-  // 현재 지도에 보이는 핀들
-  const [visibleItems, setVisibleItems] = useState(mockItems);
-
-  // 데이터를 위치 기준으로 그룹화
+  // ✅ 데이터를 위치 기준으로 그룹화 (마커 겹침 방지용)
   const groupedItems = useMemo(() => {
     const groups = {};
     visibleItems.forEach(item => {
@@ -287,29 +284,61 @@ const NearbyGroupPurchase = () => {
   // 사이드바에 표시할 아이템 필터링
   // 위치가 선택되어 있다면 그 위치 아이템만, 아니면 전체 표시
   const displayItems = selectedLocationKey 
-    ? groupedItems[selectedLocationKey].items || []
+    ? groupedItems[selectedLocationKey]?.items || []
     : visibleItems;
 
   const handleMarkerClick = (key) => {
     setSelectedLocationKey(key);
   };
 
-  useEffect(() => {
-    if (map) handleRefresh();
-  }, [map]);
+  // ✅ 서버에서 데이터 가져오는 함수
+  const fetchPosts = async (lat, lng) => {
+    try {
+      const response = await api.get('/api/posts/map', {
+        params: {
+          lat: lat,
+          lon: lng,
+          page: 0
+        }
+      });
 
-  const handleZoomIn = () => map && map.setLevel(map.getLevel() - 1);
-  const handleZoomOut = () => map && map.setLevel(map.getLevel() + 1);
-  const handleRefresh = () => {
-    if (!map) return;
+      // 서버 데이터를 프론트엔드 구조로 매핑
+      // PostListResponseDto 구조에 맞춰 수정
+      const mappedData = response.data.content ? response.data.content.map(post => ({
+        id: post.id,
+        title: post.title,
+        writer: post.nickname, 
+        price: post.price,
+        current: post.currentQuantity,
+        total: post.quantity,
+        date: post.endAt ? post.endAt.substring(0, 10) : '',
+        address: post.address || '', // 서버 DTO 필드명 확인 필요
+        lat: post.latitude,
+        lng: post.longitude,
+        image: post.image // 이미지 경로
+      })) : [];
 
-    // 현재 지도의 영역(Bounds) 가져오기
-    const bounds = map.getBounds();
-    const sw = bounds.getSouthWest(); // 남서쪽 좌표
-    const ne = bounds.getNorthEast(); // 북동쪽 좌표
+      setPosts(mappedData);
+      
+      // 데이터 가져온 후 바로 필터링 (지도 범위에 맞는 것만)
+      if (map) {
+        filterVisibleItems(map, mappedData);
+      } else {
+        setVisibleItems(mappedData);
+      }
 
-    // 영역 내에 있는 데이터만 필터링
-    const newVisibleItems = mockItems.filter(item => {
+    } catch (err) {
+      console.error("지도 데이터 조회 실패:", err);
+    }
+  };
+
+  // ✅ 지도 범위 내 아이템 필터링 함수
+  const filterVisibleItems = (mapInstance, allPosts) => {
+    const bounds = mapInstance.getBounds();
+    const sw = bounds.getSouthWest(); // 남서쪽
+    const ne = bounds.getNorthEast(); // 북동쪽
+
+    const newVisibleItems = allPosts.filter(item => {
       return (
         item.lat >= sw.getLat() && item.lat <= ne.getLat() &&
         item.lng >= sw.getLng() && item.lng <= ne.getLng()
@@ -317,7 +346,28 @@ const NearbyGroupPurchase = () => {
     });
 
     setVisibleItems(newVisibleItems);
-    setSelectedLocationKey(null); // 필터링 후 선택 초기화
+    setSelectedLocationKey(null);
+  };
+
+  // ✅ 1. 지도가 로드되면 초기 데이터 로드 (충북대 기준 or 현재 위치)
+  useEffect(() => {
+    if (map) {
+      const center = map.getCenter();
+      fetchPosts(center.getLat(), center.getLng());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map]);
+
+  const handleZoomIn = () => map && map.setLevel(map.getLevel() - 1);
+  const handleZoomOut = () => map && map.setLevel(map.getLevel() + 1);
+  
+  // ✅ 2. 새로고침 버튼 클릭 시
+  const handleRefresh = () => {
+    if (!map) return;
+    
+    const center = map.getCenter();
+    // 현재 중심 좌표 기준으로 서버 재요청
+    fetchPosts(center.getLat(), center.getLng());
   };
 
   if (loading) return <div style={{width: "100%", height: "100vh", display:"flex", justifyContent:"center", alignItems:"center"}}>지도 로딩 중...</div>;
@@ -341,7 +391,7 @@ const NearbyGroupPurchase = () => {
               <CardWrapper key={item.id} onClick={() => console.log('카드 클릭', item.id)}>
                 <CardTop>
                   <CardImage>
-                    <img src={item.image || "https://via.placeholder.com/90"} alt="상품" />
+                    <img src={item.image || "/images/sajasaja.png"} alt="상품" onError={(e) => e.target.src="/images/sajasaja.png"} />
                   </CardImage>
                   
                   <CardInfo>
@@ -377,17 +427,17 @@ const NearbyGroupPurchase = () => {
               </CardWrapper>
             ))
           ) : (
-            <NoResult>상품이 없습니다.</NoResult>
+            <NoResult>이 지역에는 진행 중인 공구가 없습니다.</NoResult>
           )}
         </ListContainer>
       </Sidebar>
 
       <MapArea>
         <Map
-          center={{ lat: 36.628583, lng: 127.457583 }} // 초기 중심 좌표
+          center={{ lat: 36.628583, lng: 127.457583 }} // 초기값 (충북대)
           style={{ width: "100%", height: "100%" }}
-          level={3} // 확대 레벨
-          onCreate={setMap} // 지도 객체 저장 
+          level={3}
+          onCreate={setMap}
         >
           {Object.entries(groupedItems).map(([key, group]) => {
             const isActive = selectedLocationKey === key; 
@@ -396,7 +446,8 @@ const NearbyGroupPurchase = () => {
               <CustomOverlayMap
                 key={key}
                 position={{ lat: group.lat, lng: group.lng }}
-                yAnchor={1} // 마커의 아래쪽 끝이 좌표에 오도록 설정
+                yAnchor={1}
+                zIndex={isActive ? 999 : 1}
               >
                 <MarkerPin 
                   $isActive={isActive}
@@ -415,7 +466,7 @@ const NearbyGroupPurchase = () => {
             <ControlBtn data-label="축소" onClick={handleZoomOut}><FaMinus /></ControlBtn>
           </ControlGroup>
           <ControlGroup>
-            <ControlBtn data-label="새로고침" onClick={handleRefresh}><FaSyncAlt /></ControlBtn>
+            <ControlBtn data-label="이 위치에서 검색" onClick={handleRefresh}><FaSyncAlt /></ControlBtn>
           </ControlGroup>
         </MapControls>
       </MapArea>
