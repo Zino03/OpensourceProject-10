@@ -1,4 +1,3 @@
-
 import { FaRegBell } from "react-icons/fa";
 import PurchaseModal from './modal/PurchaseModal';
 import InvoiceModal from './modal/InvoiceModal';
@@ -31,9 +30,9 @@ const CategoryTag = styled.div`
 const TopSection = styled.div`
   display: flex;
   gap: 60px;
-  margin-bottom: 20px;
+  margin-bottom: 40px;
 
-  @media (max-width: 768px) {
+  @media (max-width: 750px) {
     flex-direction: column;
     gap: 40px;
   }
@@ -51,22 +50,22 @@ const ImageArea = styled.div`
 
 const MainImageWrapper = styled.div`
   width: 100%;
-  height: 400px;
-  border: 1px solid #eee;
-  border-radius: 8px;
+  aspect-ratio: 4 / 4;
+  border-radius: 10px;
   overflow: hidden;
   position: relative;
-  margin-bottom: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background-color: #fafafa;
+  border: 1px solid #f2f2f2;
 `;
 
 const Badge = styled.div`
   position: absolute;
   top: 20px;
   right: 20px;
-  background-color: #FF3B30; 
+  background-color: #D32F2F; 
   color: #fff;
   font-size: 12px;
   font-weight: 500;
@@ -84,12 +83,14 @@ const ThumbnailList = styled.div`
   display: flex;
   gap: 12px;
   justify-content: center;
+  margin-top: 12px;
+  display: none; /* 현재 디자인에는 썸네일이 없어서 숨김 */
 `;
 
 const Thumbnail = styled.div`
   width: 60px;
   height: 60px;
-  border: 1px solid ${props => props.active ? '#FF7E00' : '#eee'};
+  border: 1px solid ${props => props.$active ? '#FF7E00' : '#eee'};
   border-radius: 4px;
   cursor: pointer;
   overflow: hidden;
@@ -109,16 +110,22 @@ const InfoArea = styled.div`
   padding-top: 10px;
 `;
 
-const ProductTitle = styled.h1`
-  font-size: 20px;
-  font-weight: 600;
-  margin-bottom: 20px;
+const ProductTitleRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
 `;
 
-// 진행률 바
+const ProductTitle = styled.h1`
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.4;
+`;
+
 const ProgressSection = styled.div`
-  margin-bottom: 20px;
-  padding-bottom: 30px;
+  margin-bottom: 24px;
+  padding-bottom: 24px;
   border-bottom: 1px solid #eee;
 `;
 
@@ -129,14 +136,14 @@ const ProgressLabel = styled.div`
 `;
 
 const CurrentCount = styled.div`
-  font-size: 24px;
-  font-weight: 600;
+  font-size: 26px;
+  font-weight: 700;
   margin-bottom: 12px;
 `;
 
 const ProgressBarContainer = styled.div`
   width: 100%;
-  height: 8px;
+  height: 6px;
   background-color: #f0f0f0;
   border-radius: 4px;
   overflow: hidden;
@@ -144,7 +151,7 @@ const ProgressBarContainer = styled.div`
 
 const ProgressBarFill = styled.div`
   height: 100%;
-  width: ${props => props.percent}%;
+  width: ${props => props.$percent}%;
   background-color: #FF7E00;
 `;
 
@@ -154,7 +161,7 @@ const DetailList = styled.div`
   flex-direction: column;
   gap: 16px;
   font-size: 12px;
-  margin-bottom: 30px;
+  margin-bottom: 0;
 `;
 
 const DetailRow = styled.div`
@@ -193,9 +200,17 @@ const OrganizerBadge = styled.div`
   align-items: center;
   gap: 8px;
   border: 1px solid #eee;
-  padding: 6px 12px;
-  border-radius: 4px;
+  padding: 10px 14px;
+  border-radius: 8px;
   background-color: #fff;
+  width: 100%;
+  justify-content: space-between;
+`;
+
+const OrganizerLeft = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
 `;
 
 const ProfileIcon = styled.div`
@@ -215,25 +230,81 @@ const MannerLabel = styled.span`
 `;
 
 const ContactButton = styled.button`
-  background-color: #FF7E00;
-  color: white;
-  border: none;
+  background-color: #f7f7f7;
+  color: #333;
+  border: 1px solid #ddd;
   font-size: 12px;
-  padding: 4px 10px;
+  padding: 6px 16px;
   border-radius: 4px;
   cursor: pointer;
-  margin-left: 70px;
 `;
 
-
-// 가격 및 구매 버튼 영역
+// 가격 및 구매 버튼 영역 (하단 수량/가격 줄)
 const BottomArea = styled.div`
-  margin-top: auto;
+  margin-top: 32px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-end;
+  }
+`;
+
+const QuantityArea = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 13px;
+`;
+
+const QuantityLabel = styled.span`
+  color: #333;
+`;
+
+const QuantityBox = styled.div`
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid #e5e5e5;
+`;
+
+const QtyButton = styled.button`
+  width: 32px;
+  height: 32px;
+  border: none;
+  background-color: #f7f7f7;
+  font-size: 16px;
+  cursor: pointer;
+`;
+
+const QtyValue = styled.div`
+  min-width: 40px;
+  text-align: center;
+  font-size: 14px;
+  background-color: #fff;
+`;
+
+const ChangeQtyButton = styled.button`
+  background-color: #FF7E00;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+
+  &:hover { opacity: 0.9; }
 `;
 
 const PriceArea = styled.div`
   text-align: right;
-  margin-bottom: 20px;
 `;
 
 const PriceText = styled.div`
@@ -241,6 +312,7 @@ const PriceText = styled.div`
   font-weight: 700;
 `;
 
+// 아래 탭 & 공통 영역 --------------------------
 const PurchaseButton = styled.button`
   width: 100%;
   background-color: #FF7E00;
@@ -268,8 +340,8 @@ const TabItem = styled.div`
   padding: 16px 0;
   font-size: 14px;
   font-weight: 500;
-  color: ${props => props.active ? '#FF7E00' : '#555'};
-  border-bottom: 1px solid ${props => props.active ? '#FF7E00' : 'transparent'};
+  color: ${props => props.$active ? '#FF7E00' : '#555'};
+  border-bottom: 1px solid ${props => props.$active ? '#FF7E00' : 'transparent'};
   cursor: pointer;
   
   &:hover {
@@ -372,7 +444,7 @@ const ReportButton = styled.button`
   align-items: center;
   gap: 4px;
   
-  &:hover { color: #FF3B30; }
+  &:hover { color: #D32F2F; }
 `;
 
 const CommentContent = styled.div`
@@ -429,8 +501,8 @@ const RegisterStatusBadge = styled.span`
   font-size: 10px;
   padding: 6px 10px;
   border-radius: 20px;
-  color: ${props => props.isRegistered ? '#00902F' : '#888'};
-  background-color: ${props => props.isRegistered ? '#E3FCEF' : '#F0F0F0'};
+  color: ${props => props.$isRegistered ? '#00902F' : '#888'};
+  background-color: ${props => props.$isRegistered ? '#E3FCEF' : '#F0F0F0'};
 `;
 
 const ParticipantTable = styled.table`
@@ -454,8 +526,8 @@ const ParticipantTable = styled.table`
 
 const FilterButton = styled.button`
   background-color: #fff;
-  border: 1px solid ${props => props.active ? '#FF7E00' : '#000'};
-  color: ${props => props.active ? '#FF7E00' : '#000'};
+  border: 1px solid ${props => props.$active ? '#FF7E00' : '#000'};
+  color: ${props => props.$active ? '#FF7E00' : '#000'};
   padding: 2px 12px;
   border-radius: 6px;
   font-size: 10px;
@@ -471,7 +543,7 @@ const FilterButton = styled.button`
 const GroupPurchaseDetail = () => {
   const navigate = useNavigate();
   const product = {
-    title: '애니 피완크 미니 프레첼 스낵 150g',
+    title: '애니 피욘크 미니 프레첼 스낵 150g',
     currentCount: 87,
     goalCount: 100,
     startDate: '2025. 11. 16',
@@ -480,8 +552,9 @@ const GroupPurchaseDetail = () => {
     shipping: '배송 가능',
     shippingCost: '3,000원',
     organizer: '사자사자',
-    mannerScore: 65,
+    mannerScore: 3.5,
     price: 890,
+    imageUrl: '/images/sample_pretzel.png', // 👉 실제 이미지 경로로 바꿔 써
     description: 'text'
   };
 
@@ -499,17 +572,127 @@ const GroupPurchaseDetail = () => {
   ];
 
   const [participants, setParticipants] = useState([
-    { id: 1, name: '변진호(주최자)', nickname: '사자사자', amount: '7,000원', address: '(12345)\n도로명: 충북 청주시 가나구 다라로 123(삼성동, 사자아파트)****\n지   번: 충북 청주시 가나구 삼성동 123 ****', status: '결제 완료', date: '2025-11-06', invoice: null, pickup: null, receive: 'pickup' },
-    { id: 2, name: '최지우', nickname: '직접수령', amount: '7,000원', address: '(12345)\n도로명: 충북 청주시 가나구 다라로 123(삼성동, 사자아파트)****\n지   번: 충북 청주시 가나구 삼성동 123 ****', status: '결제 완료', date: '2025-11-06', invoice: null, pickup: null, receive: 'pickup' },
-    { id: 3, name: '김서연', nickname: '너도하자', amount: '7,000원', address: '(12345)\n도로명: 충북 청주시 가나구 다라로 123(삼성동, 사자아파트)****\n지   번: 충북 청주시 가나구 삼성동 123 ****', status: '결제 대기', date: '-', invoice: null, pickup: null, receive: 'pickup' },
-    { id: 4, name: '조수빈', nickname: '휴학', amount: '7,000원', address: '(12345)\n도로명: 충북 청주시 가나구 다라로 123(삼성동, 사자아파트)****\n지   번: 충북 청주시 가나구 삼성동 123 ****', status: '결제 대기', date: '-', invoice: null, pickup: null, receive: 'delivery', receiver: '김서연', req: '공동현관 출입방법\n자유출입', tel:'010-2169-6918' },
-    { id: 5, name: '최지우', nickname: '배송수령', amount: '7,000원', address: '(12345)\n도로명: 충북 청주시 가나구 다라로 123(삼성동, 사자아파트)****\n지   번: 충북 청주시 가나구 삼성동 123 ****', status: '결제 완료', date: '2025-11-06', invoice: null, pickup: null, receive: 'delivery', receiver: '김서연', req: '공동현관 출입방법\n자유출입', tel:'010-2169-6918' },
-    { id: 6, name: '김서연', nickname: '너도하자', amount: '7,000원', address: '(12345)\n도로명: 충북 청주시 가나구 다라로 123(삼성동, 사자아파트)****\n지   번: 충북 청주시 가나구 삼성동 123 ****', status: '결제 대기', date: '-', invoice: null, pickup: null, receive: 'delivery', receiver: '김서연', req: '공동현관 출입방법\n자유출입', tel:'010-2169-6918' },
-    { id: 7, name: '조수빈', nickname: '휴학', amount: '7,000원', address: '(12345)\n도로명: 충북 청주시 가나구 다라로 123(삼성동, 사자아파트)****\n지   번: 충북 청주시 가나구 삼성동 123 ****', status: '결제 대기', date: '-', invoice: null, pickup: null, receive: 'delivery', receiver: '김서연', req: '공동현관 출입방법\n자유출입', tel:'010-2169-6918' },
+    {
+      id: 1,
+      name: '변진호(주최자)',
+      nickname: '사자사자',
+      amount: '7,000원',
+      address: '(12345)\n도로명: 충북 청주시 가나구 다라로 123(삼성동, 사자아파트)****\n지   번: 충북 청주시 가나구 삼성동 123 ****',
+      status: '결제 완료',
+      date: '2025-11-06',
+      invoice: null,
+      pickup: null,
+      receive: 'pickup'
+    },
+    {
+      id: 2,
+      name: '최지우',
+      nickname: '직접수령',
+      amount: '7,000원',
+      address: '(12345)\n도로명: 충북 청주시 가나구 다라로 123(삼성동, 사자아파트)****\n지   번: 충북 청주시 가나구 삼성동 123 ****',
+      status: '결제 완료',
+      date: '2025-11-06',
+      invoice: null,
+      pickup: null,
+      receive: 'pickup'
+    },
+    {
+      id: 3,
+      name: '김서연',
+      nickname: '너도하자',
+      amount: '7,000원',
+      address: '(12345)\n도로명: 충북 청주시 가나구 다라로 123(삼성동, 사자아파트)****\n지   번: 충북 청주시 가나구 삼성동 123 ****',
+      status: '결제 대기',
+      date: '-',
+      invoice: null,
+      pickup: null,
+      receive: 'pickup'
+    },
+
+    // ✅ 배송 수령 데이터 (값만 넣도록 수정)
+    {
+      id: 4,
+      name: '조수빈',
+      nickname: '휴학',
+      amount: '7,000원',
+      address: '충북 청주시 가나구 다라로 123(삼성동, 사자아파트) 123동 1234호',
+      status: '결제 대기',
+      date: '-',
+      invoice: null,
+      pickup: null,
+      receive: 'delivery',
+      receiver: '최지우',
+      req: '자유출입가능',          // 값만
+      entranceMethod: '자유출입가능',
+      entrancePassword: '#1234#',
+      tel: '010-8239-5709'
+    },
+    {
+      id: 5,
+      name: '최지우',
+      nickname: '배송수령',
+      amount: '7,000원',
+      address: '충북 청주시 가나구 다라로 123(삼성동, 사자아파트) 123동 1234호',
+      status: '결제 완료',
+      date: '2025-11-06',
+      invoice: null,
+      pickup: null,
+      receive: 'delivery',
+      receiver: '최지우',
+      req: '자유출입가능',
+      entranceMethod: '자유출입가능',
+      entrancePassword: '#1234#',
+      tel: '010-8239-5709'
+    },
+    {
+      id: 6,
+      name: '김서연',
+      nickname: '너도하자',
+      amount: '7,000원',
+      address: '충북 청주시 가나구 다라로 123(삼성동, 사자아파트) 123동 1234호',
+      status: '결제 대기',
+      date: '-',
+      invoice: null,
+      pickup: null,
+      receive: 'delivery',
+      receiver: '최지우',
+      req: '자유출입가능',
+      entranceMethod: '자유출입가능',
+      entrancePassword: '#1234#',
+      tel: '010-8239-5709'
+    },
+    {
+      id: 7,
+      name: '조수빈',
+      nickname: '휴학',
+      amount: '7,000원',
+      address: '충북 청주시 가나구 다라로 123(삼성동, 사자아파트) 123동 1234호',
+      status: '결제 대기',
+      date: '-',
+      invoice: null,
+      pickup: null,
+      receive: 'delivery',
+      receiver: '최지우',
+      req: '자유출입가능',
+      entranceMethod: '자유출입가능',
+      entrancePassword: '#1234#',
+      tel: '010-8239-5709'
+    },
   ]);
 
   const [activeTab, setActiveTab] = useState('info');
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // 수량 상태
+  const [quantity, setQuantity] = useState(1);
+
+  const handleDecrease = () => {
+    setQuantity(prev => (prev > 1 ? prev - 1 : 1));
+  };
+
+  const handleIncrease = () => {
+    setQuantity(prev => prev + 1);
+  };
 
   // 송장 번호 등록 모달
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
@@ -561,24 +744,27 @@ const GroupPurchaseDetail = () => {
       <TopSection>
         <ImageArea>
           <MainImageWrapper>
-            <Badge>마감임박</Badge>
-            <MainImage alt="상품 이미지" />
+            {/* 필요하면 마감 뱃지 다시 사용 */}
+            {/* <Badge>마감임박</Badge> */}
+            <MainImage src={product.imageUrl} alt="상품 이미지" />
           </MainImageWrapper>
           <ThumbnailList>
-            <Thumbnail active={true}>
-                <img alt="썸네일" />
+            <Thumbnail $active={true}>
+              <img src={product.imageUrl} alt="썸네일" />
             </Thumbnail>
           </ThumbnailList>
         </ImageArea>
 
         <InfoArea>
-          <ProductTitle>{product.title}</ProductTitle>
+          <ProductTitleRow>
+            <ProductTitle>{product.title}</ProductTitle>
+          </ProductTitleRow>
 
           <ProgressSection>
             <ProgressLabel>현재 주문된 수량</ProgressLabel>
             <CurrentCount>{product.currentCount}</CurrentCount>
             <ProgressBarContainer>
-              <ProgressBarFill percent={progressPercent} />
+              <ProgressBarFill $percent={progressPercent} />
             </ProgressBarContainer>
           </ProgressSection>
 
@@ -604,29 +790,39 @@ const GroupPurchaseDetail = () => {
             <OrganizerRow>
               <Label>주최자</Label>
               <OrganizerBadge>
-                <ProfileIcon>🦁</ProfileIcon>
-                <OrganizerName>{product.organizer}</OrganizerName>
-                <MannerLabel>매너점수 {product.mannerScore}점</MannerLabel>
+                <OrganizerLeft>
+                  <ProfileIcon>🦁</ProfileIcon>
+                  <OrganizerName>{product.organizer}</OrganizerName>
+                  <MannerLabel> {product.mannerScore}</MannerLabel>
+                </OrganizerLeft>
                 <ContactButton>문의하기</ContactButton>
               </OrganizerBadge>
             </OrganizerRow>
           </DetailList>
 
           <BottomArea>
+            <QuantityArea>
+              <QuantityLabel>구매 수량</QuantityLabel>
+              <QuantityBox>
+                <QtyButton onClick={handleDecrease}>-</QtyButton>
+                <QtyValue>{quantity}</QtyValue>
+                <QtyButton onClick={handleIncrease}>+</QtyButton>
+              </QuantityBox>
+              <ChangeQtyButton onClick={() => setIsModalOpen(true)}>수량변경하기</ChangeQtyButton>
+            </QuantityArea>
             <PriceArea>
-              <PriceText>{product.price.toLocaleString()} 원</PriceText>
+              <PriceText>{(product.price * quantity).toLocaleString()} 원</PriceText>
             </PriceArea>
-            <PurchaseButton onClick={() => setIsModalOpen(true)}>공동구매 시작하기</PurchaseButton>
           </BottomArea>
         </InfoArea>
       </TopSection>
 
       <TabMenu>
-        <TabItem active={activeTab === 'info'} onClick={() => setActiveTab('info')}>상품 정보</TabItem>
-        <TabItem active={activeTab === 'notice'} onClick={() => setActiveTab('notice')}>공지</TabItem>
-        <TabItem active={activeTab === 'review'} onClick={() => setActiveTab('review')}>후기</TabItem>
+        <TabItem $active={activeTab === 'info'} onClick={() => setActiveTab('info')}>상품 정보</TabItem>
+        <TabItem $active={activeTab === 'notice'} onClick={() => setActiveTab('notice')}>공지</TabItem>
+        <TabItem $active={activeTab === 'review'} onClick={() => setActiveTab('review')}>후기</TabItem>
         {isOrganizer && (
-          <TabItem active={activeTab === 'manage'} onClick={() => setActiveTab('manage')}>구매자 관리</TabItem>
+          <TabItem $active={activeTab === 'manage'} onClick={() => setActiveTab('manage')}>구매자 관리</TabItem>
         )}
       </TabMenu>
 
@@ -698,13 +894,13 @@ const GroupPurchaseDetail = () => {
               <TitleGroup>
                 <ManageTitle>공구 참여 명단</ManageTitle>
                   <FilterButton 
-                    active={participantFilter === 'delivery'}
+                    $active={participantFilter === 'delivery'}
                     onClick={() => {setParticipantFilter('delivery')}}>
                     배송 수령
                   </FilterButton>
 
                   <FilterButton 
-                    active={participantFilter === 'pickup'}
+                    $active={participantFilter === 'pickup'}
                     onClick={() => {setParticipantFilter('pickup')}}>
                     직접 수령
                   </FilterButton>
@@ -739,9 +935,9 @@ const GroupPurchaseDetail = () => {
                         <td>{p.date}</td>
                         <td>
                           {p.invoice ? (
-                            <RegisterStatusBadge isRegistered={true}>등록 완료</RegisterStatusBadge>
+                            <RegisterStatusBadge $isRegistered={true}>등록 완료</RegisterStatusBadge>
                           ) : (
-                            <RegisterStatusBadge isRegistered={false}>미등록</RegisterStatusBadge>
+                            <RegisterStatusBadge $isRegistered={false}>미등록</RegisterStatusBadge>
                           )}
                         </td>
                       </tr>
@@ -771,9 +967,9 @@ const GroupPurchaseDetail = () => {
                     <td>{p.pickup ? p.pickup.receiveDate : '-'}</td>
                     <td>
                       {p.pickup ? (
-                        <RegisterStatusBadge isRegistered={true}>등록 완료</RegisterStatusBadge>
+                        <RegisterStatusBadge $isRegistered={true}>등록 완료</RegisterStatusBadge>
                       ) : (
-                        <RegisterStatusBadge isRegistered={false}>미등록</RegisterStatusBadge>
+                        <RegisterStatusBadge $isRegistered={false}>미등록</RegisterStatusBadge>
                       )}
                     </td>
                   </tr>
@@ -788,7 +984,7 @@ const GroupPurchaseDetail = () => {
       <PurchaseModal 
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
-          product={product} 
+          product={{ ...product, quantity }} 
         />
 
       <InvoiceModal 
