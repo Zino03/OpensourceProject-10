@@ -160,10 +160,18 @@ public class AuthService {
 
         refreshTokenRepository.save(refreshToken);
 
+        Optional<Member> optionalM = memberRepository.findById(Long.parseLong(authentication.getName()));
+
+        if(optionalM.isEmpty()) {
+            System.out.println(authentication.getName());
+            throw new BadRequestException("존재하지 않는 유저입니다.", null);
+        }
+
         HashMap<String, Object> data = new HashMap<>();
 
         data.clear();
         data.put("message", "로그인이 완료되었습니다");
+        data.put("userNickname", optionalM.get().getUser().getNickname());
         data.put("token", tokenDto);
 
         return new ResponseEntity(data, HttpStatus.OK);

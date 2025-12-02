@@ -46,6 +46,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/uploads/post/**","/uploads/profile/**").permitAll()
                         .requestMatchers("/", "/swagger-ui/**", "/v3/api-docs/**",
                                 "/swagger-ui.html", "/css/**", "/js/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/user/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/posts").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/posts/*").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")

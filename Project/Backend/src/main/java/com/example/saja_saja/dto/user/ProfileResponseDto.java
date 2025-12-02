@@ -30,18 +30,23 @@ public class ProfileResponseDto {
 
     private List<PostListResponseDto> closedPosts;
 
-    public static ProfileResponseDto of(User user) {
+    public static ProfileResponseDto of(User user, Boolean mypage) {
         List<Post> userPosts = user.getPosts();
 
-        List<PostListResponseDto> activePostList = userPosts.stream()
-                .filter(post -> post.getIsCanceled() == false && (post.getStatus() == 1 || post.getStatus() == 2))
-                .map(PostListResponseDto::of)
-                .collect(Collectors.toList());
+        List<PostListResponseDto> activePostList = null;
+        List<PostListResponseDto> closedPostList = null;
 
-        List<PostListResponseDto> closedPostList = userPosts.stream()
-                .filter(post -> post.getIsCanceled() == false && post.getStatus() == 3)
-                .map(PostListResponseDto::of)
-                .collect(Collectors.toList());
+        if (!mypage) {
+            activePostList = userPosts.stream()
+                    .filter(post -> post.getIsCanceled() == false && (post.getStatus() == 1 || post.getStatus() == 2))
+                    .map(PostListResponseDto::of)
+                    .collect(Collectors.toList());
+
+            closedPostList = userPosts.stream()
+                    .filter(post -> post.getIsCanceled() == false && post.getStatus() == 3)
+                    .map(PostListResponseDto::of)
+                    .collect(Collectors.toList());
+        }
 
         Double calculatedMannerScore = 0.0;
         if (user.getIsBanned()) calculatedMannerScore = -1.0;

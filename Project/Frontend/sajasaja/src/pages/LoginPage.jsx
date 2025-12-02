@@ -132,10 +132,15 @@ const LoginPage = () => {
       //  토큰 저장 로직
       // response.data.accessToken
       const token = response.data.token.accessToken;
+      const nickname = response.data.userNickname;
 
       if (token) {
         // 토큰을 로컬 스토리지에 저장 (자동 로그인을 위함)
         localStorage.setItem("accessToken", token);
+
+      if (nickname) {
+            localStorage.setItem("userNickname", nickname);
+        }
 
         // 로그인 성공 시 메인 페이지로 이동
         window.location.href = "/";

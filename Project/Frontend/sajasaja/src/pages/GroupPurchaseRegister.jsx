@@ -292,14 +292,23 @@ const GroupPurchaseRegister = () => {
     
   const handleFinalSubmit = async () => {
     try {
-      let formattedDate = new Date().toISOString();
+      // 1. 날짜 객체 생성 (기본값: 현재 시간)
+      let dateObj = new Date();
+      
+      // 마감일 입력값이 있을 경우 (예: 20240520)
       if (deadLine && deadLine.length === 8) {
         const y = deadLine.substring(0, 4);
         const m = deadLine.substring(4, 6);
         const d = deadLine.substring(6, 8);
-        const dateObj = new Date(`${y}-${m}-${d}T23:59:59`);
-        formattedDate = dateObj.toISOString();
+        // 해당 날짜의 23시 59분 59초로 설정
+        dateObj = new Date(`${y}-${m}-${d}T23:59:59`);
       }
+
+      // 2. ⭐️ [핵심 수정] 로컬 시간대 기준 ISO 문자열 생성 (Z 제거)
+      // 한국 시간(KST) 등 사용자 로컬 시간대를 유지하기 위해 오프셋을 적용합니다.
+      const offset = dateObj.getTimezoneOffset() * 60000;
+      const localDate = new Date(dateObj.getTime() - offset);
+      const formattedDate = localDate.toISOString().slice(0, 19); //
 
       const requestData = {
         post: {
@@ -311,13 +320,13 @@ const GroupPurchaseRegister = () => {
           deliveryFee: isDelivery ? Number(deliveryFee) : 0,
           pickupAddress: {
             id: 0,
-            street: `${address} ${detailAddress}`,
+            street: `${address},${detailAddress}`,
             latitude: latitude, 
             longitude: longitude
           },
           title: title,
           content: content,
-          category: categoryMap[selectedCategory] || 'FOOD'
+          category: categoryMap[selectedCategory] || 'ETC'
         },
         quantity: Number(myQuantity)
       };
