@@ -658,7 +658,7 @@ const GroupPurchaseDetail = () => {
 
       try {
           // 백엔드 엔드포인트에 맞춰 POST 요청
-          await api.post(`/api/posts/${id}/notices`, {
+          await api.post(`/api/post/${id}/notice`, {
               content: noticeContent
           });
           alert("공지가 등록되었습니다.");
@@ -675,7 +675,7 @@ const GroupPurchaseDetail = () => {
       if (!window.confirm("정말 이 공지를 삭제하시겠습니까?")) return;
 
       try {
-          await api.delete(`/api/posts/${id}/notices/${noticeId}`);
+          await api.delete(`/api/post/${id}/notice/${noticeId}`);
           alert("공지가 삭제되었습니다.");
           fetchPostDetail(); // 목록 갱신
       } catch (error) {
