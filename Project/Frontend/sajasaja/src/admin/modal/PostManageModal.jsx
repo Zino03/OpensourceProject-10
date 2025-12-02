@@ -83,7 +83,7 @@ const PostManageModal = ({ onClose, onAction, post }) => {
     setInterceptor(token);
 
     try {
-      const response = await api.put(
+      const response = await api.patch(
         `/api/admin/post/${post.id}?process=${process}`
       );
 

@@ -228,7 +228,7 @@ const MyPage = () => {
 
           <div
             style={styles.menuItem}
-            onClick={() => handleClick("/mygroupperchase")}
+            onClick={() => handleClick("/mygrouppurchase")}
           >
             <span>MY 공구</span>
             <ChevronRight />

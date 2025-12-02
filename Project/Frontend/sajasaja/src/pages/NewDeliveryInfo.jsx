@@ -217,10 +217,10 @@ const NewDeliveryInfo = () => {
   const getEntranceAccessEnum = (method) => {
     switch (method) {
         case "password": return "PASSWORD";
-        case "security": return "SECURITY_OFFICE";
+        case "security": return "CALL";
         case "free": return "FREE";
-        case "etc": return "ETC";
-        default: return "ETC";
+        case "etc": return "OTHER";
+        default: return "OTHER";
     }
   };
 
