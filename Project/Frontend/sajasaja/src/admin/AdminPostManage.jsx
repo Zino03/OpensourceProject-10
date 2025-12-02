@@ -101,41 +101,6 @@ const NoResult = styled.div`
   font-size: 14px;
 `;
 
-const mockPosts = [
-  {
-    id: 1,
-    title: "닭가슴살 공구",
-    writer: "변진호",
-    deadline: "2025.11.20",
-    date: "2025.11.10",
-    status: "waiting",
-  },
-  {
-    id: 2,
-    title: "딸기 공구",
-    writer: "변진호",
-    deadline: "2025.11.20",
-    date: "2025.11.13",
-    status: "approve",
-  },
-  {
-    id: 3,
-    title: "피자 공구",
-    writer: "변진호",
-    deadline: "2025.11.20",
-    date: "2025.11.13",
-    status: "waiting",
-  },
-  {
-    id: 4,
-    title: "노트북 공구",
-    writer: "변진호",
-    deadline: "2025.11.20",
-    date: "2025.11.13",
-    status: "companion",
-  },
-];
-
 const statusOptions = [
   { value: "all", label: "전체" },
   { value: "waiting", label: "대기" },

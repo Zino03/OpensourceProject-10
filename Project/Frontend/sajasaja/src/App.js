@@ -9,7 +9,6 @@ import ProductsPage from './pages/ProductsPage';
 import GroupPurchaseDetail from './pages/GroupPurchaseDetail';
 import GroupPurchaseRegister from './pages/GroupPurchaseRegister';
 import NearbyGroupPurchase from "./pages/NearbyGroupPurchase";
-import GroupPurchaseDetail2 from './pages/GroupPurchaseDetail2';
 
 import LoginPage from './pages/LoginPage';
 import FindPassword from './pages/FindPassword';
@@ -43,7 +42,7 @@ import UserPage from './pages/UserPage.jsx';
 import NewDeliveryInfo from './pages/NewDeliveryInfo.jsx';
 import MyDeliveryInfo from './pages/MyDeliveryInfo.jsx';
 import EditMyDelivery from './pages/EditMyDelivery.jsx';
-import MyGroupPurchase from './pages/MyGroupPurchase.jsx';
+import MyGroupPerchase from './pages/MyGroupPerchase.jsx';
 
 import UserReport from './pages/UserReport.jsx';
 import NotificationReport from './pages/NotificationReport.jsx';
@@ -71,7 +70,6 @@ function App() {
           <Route path="/order" element={<OrderPage/>} />
           <Route path="/payment" element={<PaymentPage/>} />
           <Route path="/order-complete" element={<OrderCompletePage/>} />
-          <Route path="/purchase/:id" element={<GroupPurchaseDetail2 />} />
 
           <Route path="/order-detail" element={<OrderDetailOrderReceived />} />
           <Route path="/received" element={<OrderDetailPaymentReceived />} />
@@ -87,7 +85,7 @@ function App() {
           <Route path="/newdelivery" element={<NewDeliveryInfo />} />
           <Route path="/mydelivery" element={<MyDeliveryInfo />} />
           <Route path="/editdelivery" element={<EditMyDelivery/>} />
-          <Route path="/mygrouppurchase" element={<MyGroupPurchase/>} />
+          <Route path="/mygrouppurchase" element={<MyGroupPerchase/>} />
 
           <Route path="/userreport" element={<UserReport/>} />
           <Route path="/notificationreport" element={<NotificationReport />} />

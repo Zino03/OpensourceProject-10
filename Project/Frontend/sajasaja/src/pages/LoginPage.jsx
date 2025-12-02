@@ -133,6 +133,7 @@ const LoginPage = () => {
       // response.data.accessToken
       const token = response.data.token.accessToken;
       const nickname = response.data.userNickname;
+      const role = response.data.role;
 
       if (token) {
         // 토큰을 로컬 스토리지에 저장 (자동 로그인을 위함)
@@ -142,8 +143,17 @@ const LoginPage = () => {
             localStorage.setItem("userNickname", nickname);
         }
 
-        // 로그인 성공 시 메인 페이지로 이동
-        window.location.href = "/";
+        if (role) {
+           localStorage.setItem("role", role);
+        }
+
+        // ✅ [수정] Role에 따른 페이지 이동 분기 처리
+        if (role === "ADMIN") {
+            alert("관리자 계정으로 로그인되었습니다.");
+            window.location.href = "/admin"; // 관리자 페이지로 이동
+        } else {
+            window.location.href = "/"; // 일반 메인 페이지로 이동
+        }
       } else {
         // 토큰이 없는 경우에도 이동이 필요하다면
         window.location.href = "/";
