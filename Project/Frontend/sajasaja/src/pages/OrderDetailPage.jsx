@@ -1,4 +1,4 @@
-// 파일명: OrderDetailPage.jsx
+// 파일명: OrderDetailPage.jsx 
 import React from "react";
 
 /* ==========================================
@@ -132,7 +132,7 @@ const styles = {
   },
   infoRow: {
     display: "flex",
-    marginBottom: "4px",
+    marginBottom: "10px",
   },
   infoLabel: {
     width: "80px",
@@ -155,7 +155,7 @@ const styles = {
   },
   productImageBox: {
     width: "140px",
-    height: "180px",
+    height: "140px",
     border: "1px solid #eeeeee",
     display: "flex",
     alignItems: "center",
@@ -270,13 +270,17 @@ const OrderDetailPage = () => {
                   <div style={styles.infoValue}>{order.addressPhone}</div>
                 </div>
                 <div style={styles.infoRow}>
-                  <div style={styles.infoLabel}>공동현관\n출입방법</div>
+                  <div style={styles.infoLabel}>
+                    공동현관<br />출입방법
+                  </div>
                   <div style={styles.infoValue}>
                     {mapEntranceAccess(order.entranceAccess)}
                   </div>
                 </div>
                 <div style={styles.infoRow}>
-                  <div style={styles.infoLabel}>공동현관\n비밀번호</div>
+                  <div style={styles.infoLabel}>
+                    공동현관<br />비밀번호
+                  </div>
                   <div style={styles.infoValue}>
                     {order.entranceDetail || "-"}
                   </div>
@@ -445,14 +449,14 @@ const OrderDetailPage = () => {
           <p style={styles.noticeText}>
             공동구매 진행 및 입금사항은 공지사항을 통해 안내되며,
             공지 미확인으로 인한 불이익에 대해서는 책임지지 않습니다.
-            {"\n\n"}
+{"\n\n"}
             목표 수량이 충족되지 않을 경우 공동구매는 자동 취소되며, 결제 금액은 전액 환불됩니다.
             목표 수량이 빠르게 충족될 경우, 공동구매는 예정 기간과 관계없이 조기 마감될 수 있습니다.
-            {"\n\n"}
+{"\n\n"}
             입금 기한 내 미입금 시 주문은 자동 취소됩니다.
             상품 준비가 시작된 이후에는 주문 취소가 불가능합니다.
             상품 특성에 따라 개봉 이후에는 주문 취소 및 반품이 제한될 수 있습니다.
-            {"\n\n"}
+{"\n\n"}
             직접 수령을 선택한 경우 판매자와 직접 소통하여 수령 일정을 조율해야 합니다.
             배송을 선택한 경우 배송 과정에서 발생하는 분실·파손 등과 관련된 문제는 구매자 책임으로 처리됩니다.
           </p>

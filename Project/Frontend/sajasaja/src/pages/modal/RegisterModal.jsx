@@ -28,6 +28,7 @@ const MessageSection = styled.div`
   text-align: center;
   font-size: 14px;
   font-weight: 500;
+  line-height: 1.5;
 `;
 
 const RedText = styled.span`
@@ -56,13 +57,13 @@ const ModalButton = styled.button`
     opacity: 0.9;
   }
 
-  ${({ $isConfirm }) => 
-    $isConfirm 
+  ${({ $isConfirm }) =>
+    $isConfirm
       ? `
         background-color: #000;
         color: #fff;
         border: none;
-      ` 
+      `
       : `
         background-color: #fff;
         color: #000;
@@ -89,7 +90,8 @@ const RegisterModal = ({ isOpen, onClose, onConfirm }) => {
           <ModalButton onClick={onClose}>
             돌아가기
           </ModalButton>
-          <ModalButton isConfirm onClick={onConfirm}>
+          {/* 🔥 여기만 `$isConfirm` 으로 넘기기 */}
+          <ModalButton $isConfirm onClick={onConfirm}>
             등록하기
           </ModalButton>
         </ButtonSection>

@@ -4,7 +4,6 @@ import ProductCard from '../components/ProductCard';
 import CustomSelectProduct from '../components/CustomSelectProduct';
 import { api, setInterceptor } from "../assets/setIntercepter";
 
-// --- 스타일 컴포넌트 ---
 const FilterSection = styled.section`
   padding: 36px 200px;
   border-bottom: 1px solid #eee;
@@ -115,7 +114,7 @@ const STATUS_MAP = {
   'all': null,
   'prog': 1,  
   'deadIm': 2,  
-  'dead': 3       
+  'dead': 3 
 };
 
 const ProductsPage = () => {
@@ -127,7 +126,7 @@ const ProductsPage = () => {
   const [selectedStatus, setSelectedStatus] = useState("all"); 
   const [selectedCategory, setSelectedCategory] = useState("전체");
 
-useEffect(() => {
+  useEffect(() => {
     const fetchProducts = async () => {
       // 1. 토큰 체크 및 인터셉터 설정
       const token = localStorage.getItem('accessToken');
@@ -141,11 +140,11 @@ useEffect(() => {
         // 2. 쿼리 파라미터 구성
         const params = {
           page: 0,
-          size: 20, 
+          size: 50, 
         };
 
         if (confirmedSearchTerm) {
-          params.keyword = confirmedSearchTerm;
+          params.query = confirmedSearchTerm;
         }
         
         if (CATEGORY_MAP[selectedCategory]) {
@@ -153,11 +152,11 @@ useEffect(() => {
         }
         
         if (STATUS_MAP[selectedStatus]) {
-          params.status = STATUS_MAP[selectedStatus];
+          params.type = STATUS_MAP[selectedStatus];
         }
 
         // 3. API 호출
-        const response = await api.get('/api/group-buying', { params });
+        const response = await api.get('/api/posts', { params });
 
         console.log("상품 목록 조회 결과:", response.data);
 

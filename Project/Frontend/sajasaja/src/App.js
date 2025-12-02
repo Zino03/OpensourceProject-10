@@ -77,7 +77,7 @@ function App() {
           <Route path="/shipping" element={<OrderDetailShipping />} />
           <Route path="/delivered" element={<OrderDetailDelivered />} />
           <Route path="/cancelled" element={<OrderDetailCancelled />} />
-          <Route path="/orderpage" element={<OrderDetailPage />} />
+          <Route path="/orderpage/:id" element={<OrderDetailPage />} />
 
           <Route path="/mypage" element={<Mypage />} />
           <Route path="/myprofile" element={<MyProfile />} />
@@ -85,7 +85,7 @@ function App() {
           <Route path="/newdelivery" element={<NewDeliveryInfo />} />
           <Route path="/mydelivery" element={<MyDeliveryInfo />} />
           <Route path="/editdelivery" element={<EditMyDelivery/>} />
-          <Route path="/mygroupperchase" element={<MyGroupPerchase/>} />
+          <Route path="/mygrouppurchase" element={<MyGroupPerchase/>} />
 
           <Route path="/userreport" element={<UserReport/>} />
           <Route path="/notificationreport" element={<NotificationReport />} />
@@ -106,7 +106,7 @@ function App() {
             <Route index element={<AdminUserReport/>} />
 
             <Route path="report-user" element={<AdminUserReport/>} />
-            <Route path="report-review" element={<AdminReviewReport/>} /> 
+            <Route path="report-review" element={<AdminReviewReport/>} />
             <Route path="report-notice" element={<AdminNoticeReport/>} />
             <Route path="payment" element={<AdminPaymentManage/>} />
             <Route path="posts" element={<AdminPostManage/>} />
