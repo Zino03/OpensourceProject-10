@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import { api } from "../assets/setIntercepter";
+import BasicModal from "./modal/BasicModal";
 
 // 비밀번호 찾기 전체 폼
 const PageWrapper = styled.div`
@@ -109,6 +110,25 @@ const FindPassword = () => {
   // 에러 메시지 표시
   const [showError, setShowError] = useState(false);
 
+  // ✅ 모달 상태 관리
+  const [alertModal, setAlertModal] = useState({
+    isOpen: false,
+    message: "",
+    onClose: null, // 닫힐 때 실행할 함수
+  });
+
+  // ✅ 모달 띄우는 함수
+  const showAlert = (message, callback = null) => {
+    setAlertModal({
+      isOpen: true,
+      message: message,
+      onClose: () => {
+        setAlertModal((prev) => ({ ...prev, isOpen: false }));
+        if (callback) callback(); // 콜백이 있으면 실행 (페이지 이동 등)
+      },
+    });
+  };
+
   const handleFind = async () => {
     // 1. 유효성 검사
     console.log(name, email);
@@ -131,7 +151,9 @@ const FindPassword = () => {
       // 백엔드 AuthService.java에서 data.put("tempPassword", tempPassword)로 반환함
       if (response.data && response.data.tempPassword) {
         setShowError(false);
-        navigate("/login"); // 로그인 페이지로 이동
+        showAlert(`회원님의 임시 비밀번호는\n[ ${response.data.tempPassword} ] 입니다.\n\n로그인 후 비밀번호를 변경해주세요.`,
+          () => navigate("/login")
+        );
       } else {
         // 성공 응답이지만 비밀번호가 없는 경우 (예: 검증 오류가 200으로 온 경우)
         setShowError(true);
@@ -194,6 +216,12 @@ const FindPassword = () => {
           </ButtonGroup>
         </FindPwWrapper>
       </PageWrapper>
+
+      <BasicModal
+        isOpen={alertModal.isOpen}
+        message={alertModal.message}
+        onClose={alertModal.onClose}
+      />
     </>
   );
 };
