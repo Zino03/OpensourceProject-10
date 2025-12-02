@@ -8,7 +8,7 @@ import styled from 'styled-components';
   - 상하/좌우 여백만 담당하고, 선(border-top)은 여기서 제거!
 */
 const FooterContainer = styled.footer`
-  padding: 0 200px;   /* 위아래 20px, 좌우 여백 */
+  padding: 0 150px; 
   margin-top: auto;      /* flex 레이아웃에서 푸터를 맨 아래로 밀어내는 용도 */
 `;
 

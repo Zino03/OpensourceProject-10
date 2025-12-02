@@ -364,8 +364,8 @@ const TabItem = styled.div`
   padding: 16px 0;
   font-size: 14px;
   font-weight: 500;
-  color: ${props => props.$active ? '#FF7E00' : '#555'};
-  border-bottom: 1px solid ${props => props.$active ? '#FF7E00' : 'transparent'};
+  color: ${props => props.$active ? '#000000ff' : '#555'};
+  border-bottom: 1px solid ${props => props.$active ? '#000000ff' : 'transparent'};
   cursor: pointer;
   
   &:hover {
@@ -565,6 +565,13 @@ const FilterButton = styled.button`
 `;
 
 const GroupPurchaseDetail = () => {
+
+    const handleCancelClick = () => {
+    const confirmed = window.confirm('공동구매를 취소하시겠습니까?');
+    if (confirmed) {
+      navigate("/mygrouppurchase");
+    }
+  };
   
   const navigate = useNavigate();
   const product = {
@@ -792,7 +799,7 @@ const [currentCount, setCurrentCount] = useState(product.currentCount);
           <ProductTitleRow>
           <ProductTitle>{product.title}</ProductTitle>
 
-          <CancelButton onClick={() => navigate("/mygrouppurchase")}>
+          <CancelButton onClick={handleCancelClick}>
             공구취소
           </CancelButton>
         </ProductTitleRow>
@@ -833,7 +840,7 @@ const [currentCount, setCurrentCount] = useState(product.currentCount);
                   alt="profile"
                 />
                 <OrganizerName>{product.organizer}</OrganizerName>
-                <MannerLabel>매너점수 3.2점</MannerLabel>
+                <MannerLabel>3.2점</MannerLabel>
               </OrganizerLeft>
               <ContactButton>문의하기</ContactButton>
             </OrganizerBadge>

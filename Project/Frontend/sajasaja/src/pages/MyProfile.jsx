@@ -1,8 +1,7 @@
 // 파일 위치: src/pages/MyProfile.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect} from "react";
 import { useNavigate } from "react-router-dom";
-
-// 중복 닉네임, 빨간색, 글자수 제한
+import { api, setInterceptor } from "../assets/setIntercepter"; // api 인스턴스 import
 
 // 🔥 은행 리스트 (파일은 public/images/banklogo/*.svg 기준)
 const bankOptions = [
@@ -219,54 +218,101 @@ const styles = {
 function MyProfile() {
   const navigate = useNavigate();
 
+  // 사용자 닉네임 가져오기
+  const userNickname = localStorage.getItem("user_nickname");
+
   const [form, setForm] = useState({
-    name: "최지우",
-    nickname: "간장게장",
-    phone: "01012345678",
-    email: "example@example.com",
-    password: "********",
-    passwordConfirm: "********",
+    name: "",
+    nickname: "",
+    phone: "",
+    email: "",
+    password: "",
     bank: "shinhan",
-    accountNumber: "110-123-123456",
+    accountNumber: "",
   });
 
-  // 🔹 최초에 가지고 있던 닉네임 / 이메일
-  const [originalNickname] = useState("간장게장");
-  const [originalEmail] = useState("example@example.com");
+  // 초기값 저장 (중복체크 비교용)
+  const [originalNickname, setOriginalNickname] = useState("");
+  const [originalEmail, setOriginalEmail] = useState("");
 
-  const [profileImage, setProfileImage] = useState(null);
+  const [profileImage, setProfileImage] = useState(null); // 미리보기용 URL
+  const [imgFile, setImgFile] = useState(null); // 실제 전송할 파일 객체
 
-  const [emailError, setEmailError] = useState(""); // 형식 오류용
+  const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [passwordMatchMessage, setPasswordMatchMessage] = useState("");
   const [bankOpen, setBankOpen] = useState(false);
 
   const [nicknameMessage, setNicknameMessage] = useState("");
-  const [isNicknameValid, setIsNicknameValid] = useState(true); // 닉네임 중복확인 상태
+  const [isNicknameValid, setIsNicknameValid] = useState(true);
 
   const [emailMessage, setEmailMessage] = useState("");
-  const [isEmailValid, setIsEmailValid] = useState(true); // 이메일 중복확인 상태
+  const [isEmailValid, setIsEmailValid] = useState(true);
 
-  const selectedBank =
-    bankOptions.find((b) => b.id === form.bank) || bankOptions[0];
+  const selectedBank = bankOptions.find((b) => b.id === form.bank) || bankOptions[0];
+  const defaultProfile = "/images/profile.png";
+
+  // ✅ 1. 초기 데이터 로드 (API 연동)
+  useEffect(() => {
+    const fetchUserData = async () => {
+        const token = localStorage.getItem('accessToken');
+        if (!token || !userNickname || !setInterceptor(token)) {
+            // 인증 정보가 없으면 로그인 페이지로
+            navigate('/login');
+            return;
+        }
+
+        try {
+            // 현재 백엔드에는 내 전체 정보(이메일, 계좌 포함)를 불러오는 전용 API가 명확하지 않습니다.
+            // 우선 프로필 조회 API를 사용하되, 상세 정보가 없다면 빈 값으로 처리합니다.
+            const response = await api.put(`/api/mypage/user`);
+            
+            // ProfileResponseDto 혹은 UserResponseDto 구조에 따라 데이터 접근
+            // (백엔드에서 보내주는 구조 확인 필요: response.data.profile 인지 response.data 인지)
+            const data = response.data.profile || response.data; 
+
+            setForm(prev => ({
+                ...prev,
+                email: data.email || "", 
+                nickname: data.nickname || "",
+                // 아래 정보들은 ProfileResponseDto에 없을 수 있음 -> 백엔드 추가 구현 권장
+                password: data.password,
+                phone: data.phone || undefined, 
+                accountBank: data.accountBank || "shinhan",
+                account: data.account || ""
+            }));
+
+            // 변경 감지를 위한 초기값 저장
+            setOriginalNickname(data.nickname || "");
+            setOriginalEmail(data.email || "");
+            setProfileImage(data.profileImg); // 이미지 URL
+
+        } catch (error) {
+            console.error("유저 정보 로드 실패:", error);
+            // 에러 시 처리 로직 (예: 로그인 만료 등)
+        }
+    };
+    fetchUserData();
+  }, [userNickname, navigate]);
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
 
-    // 🔥 닉네임 입력 변경 시
+    // 닉네임 변경 감지
     if (name === "nickname") {
       const trimmed = value.trim();
       if (trimmed === originalNickname) {
         setIsNicknameValid(true);
         setNicknameMessage("");
       } else {
-        setIsNicknameValid(null);
+        setIsNicknameValid(null); // 중복확인 필요 상태
         setNicknameMessage("");
       }
     }
 
-    // 🔥 이메일 입력 변경 시
+    // 이메일 변경 감지
     if (name === "email") {
       const trimmed = value.trim();
       setEmailError("");
@@ -279,20 +325,23 @@ function MyProfile() {
     }
   };
 
-  // 🔥 프로필 이미지 변경
+  // ✅ 2. 이미지 파일 선택 핸들러
   const handleImageChange = (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
 
+    setImgFile(file); // 전송할 파일 상태 저장
+
+    // 미리보기 생성
     const reader = new FileReader();
     reader.onloadend = () => {
-      setProfileImage(reader.result);
+      setProfileImage(reader.result); 
     };
     reader.readAsDataURL(file);
   };
 
-  // 닉네임 중복확인
-  const handleNicknameCheck = () => {
+  // ✅ 3. 닉네임 중복확인 (API 연동)
+  const handleNicknameCheck = async () => {
     const nickname = (form.nickname || "").trim();
 
     if (!nickname) {
@@ -303,24 +352,28 @@ function MyProfile() {
 
     if (nickname === originalNickname) {
       setNicknameMessage("현재 사용 중인 닉네임입니다.");
-      setIsNicknameValid(false);
+      setIsNicknameValid(true);
       return;
     }
 
-    // 실제로는 서버에서 체크해야 함 (예시)
-    const usedNicknames = ["간장게장", "사자사자"];
-
-    if (usedNicknames.includes(nickname)) {
-      setNicknameMessage("이미 사용중인 닉네임입니다.");
-      setIsNicknameValid(false);
-    } else {
-      setNicknameMessage("사용가능한 닉네임입니다.");
-      setIsNicknameValid(true);
+    try {
+        // 백엔드: 중복이면 true, 사용가능하면 false 반환
+        const response = await api.get(`/api/check/nickname`, { params: { value: nickname } });
+        if (response.data === true) {
+            setNicknameMessage("이미 사용중인 닉네임입니다.");
+            setIsNicknameValid(false);
+        } else {
+            setNicknameMessage("사용가능한 닉네임입니다.");
+            setIsNicknameValid(true);
+        }
+    } catch (error) {
+        console.error("닉네임 중복확인 오류:", error);
+        setNicknameMessage("확인 중 오류가 발생했습니다.");
     }
   };
 
-  // 이메일 중복확인
-  const handleEmailCheck = () => {
+  // ✅ 4. 이메일 중복확인 (API 연동)
+  const handleEmailCheck = async () => {
     const email = (form.email || "").trim();
 
     if (!email) {
@@ -329,12 +382,10 @@ function MyProfile() {
       return;
     }
 
-    // 형식 체크 먼저
+    // 형식 체크
     const hasAt = email.includes("@");
-    const allowedDomains = [".com", ".net", ".co.kr"];
-    const hasValidDomain = allowedDomains.some((domain) =>
-      email.endsWith(domain)
-    );
+    const allowedDomains = [".com", ".net", ".ac.kr"];
+    const hasValidDomain = allowedDomains.some((domain) => email.endsWith(domain));
 
     if (!hasAt || !hasValidDomain) {
       setEmailError("이메일 형식이 올바르지 않습니다.");
@@ -343,7 +394,6 @@ function MyProfile() {
       return;
     }
 
-    // 원래 이메일이면 바로 통과
     if (email === originalEmail) {
       setEmailError("");
       setEmailMessage("현재 사용 중인 이메일입니다.");
@@ -351,96 +401,119 @@ function MyProfile() {
       return;
     }
 
-    // 실제로는 서버에서 체크해야 함 (예시)
-    const usedEmails = ["example@example.com", "test@test.com"];
-
-    if (usedEmails.includes(email)) {
-      setEmailError("");
-      setEmailMessage("이미 사용중인 이메일입니다.");
-      setIsEmailValid(false);
-    } else {
-      setEmailError("");
-      setEmailMessage("사용가능한 이메일입니다.");
-      setIsEmailValid(true);
+    try {
+        // 백엔드: 중복이면 true, 사용가능하면 false
+        const response = await api.get(`/api/check/email`, { params: { value: email } });
+        if (response.data === true) {
+            setEmailError("");
+            setEmailMessage("이미 사용중인 이메일입니다.");
+            setIsEmailValid(true);
+        } else {
+            setEmailError("");
+            setEmailMessage("사용가능한 이메일입니다.");
+            setIsEmailValid(true);
+        }
+    } catch (error) {
+        console.error("이메일 중복확인 오류:", error);
+        setEmailMessage("확인 중 오류가 발생했습니다.");
     }
   };
 
-  const handleSubmit = (e) => {
+  // ✅ 5. 최종 수정 요청 (API 연동)
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     let hasError = false;
 
-    // 🔥 닉네임 중복확인
+    // 닉네임 확인
     if (isNicknameValid !== true) {
-      if (!nicknameMessage) {
-        setNicknameMessage("닉네임 중복확인을 해주세요.");
-      }
+      if (!nicknameMessage) setNicknameMessage("닉네임 중복확인을 해주세요.");
       hasError = true;
     }
 
-    // 🔥 이메일 중복확인
+    // 이메일 확인
     if (isEmailValid !== true) {
-      if (!emailMessage) {
-        setEmailMessage("이메일 중복확인을 해주세요.");
-      }
+      if (!emailMessage) setEmailMessage("이메일 중복확인을 해주세요.");
       hasError = true;
     }
 
-    // 이메일 형식 최종 검사 (혹시 중복확인 안 하고 저장 눌렀을 수도 있으니까)
-    const email = (form.email || "").trim();
-    const hasAt = email.includes("@");
-    const allowedDomains = [".com", ".net", ".co.kr"];
-    const hasValidDomain = allowedDomains.some((domain) =>
-      email.endsWith(domain)
-    );
-
-    if (!hasAt || !hasValidDomain) {
-      setEmailError("이메일 형식이 올바르지 않습니다.");
-      hasError = true;
-    } else {
-      setEmailError("");
+    // 비밀번호 확인 (입력된 경우만 검사)
+    if (form.password && form.password.length < 8) {
+        setPasswordError("비밀번호는 최소 8자 이상이어야 합니다.");
+        hasError = true;
     }
-
-    // 비밀번호 길이
-    if (!form.password || form.password.length < 8) {
-      setPasswordError("비밀번호는 최소 8자 이상이어야 합니다.");
-      hasError = true;
-    } else {
-      setPasswordError("");
-    }
-
-    // 비밀번호 일치
     if (form.password !== form.passwordConfirm) {
-      setPasswordMatchMessage("비밀번호가 일치하지 않습니다.");
-      hasError = true;
-    } else {
-      setPasswordMatchMessage("비밀번호가 일치합니다.");
+        setPasswordMatchMessage("비밀번호가 일치하지 않습니다.");
+        hasError = true;
     }
 
     if (hasError) return;
 
-    alert("정보가 저장되었습니다.");
-    navigate("/mypage");
+    try {
+        // FormData 생성 (Multipart/form-data 요청)
+        const formData = new FormData();
+
+        // JSON 데이터 구성 (UserRequestDto 구조에 맞춤)
+        const requestData = {
+            nickname: form.nickname,
+            email: form.email,
+            // 비밀번호는 비어있으면 보내지 않거나, 백엔드에서 null 체크하므로 undefined로 처리
+            password: form.password || undefined, 
+            accountBank: form.bank,
+            account: form.accountNumber
+        };
+        
+        // JSON 객체를 Blob으로 변환하여 'user' 파트에 추가
+        const jsonBlob = new Blob([JSON.stringify(requestData)], { type: "application/json" });
+        formData.append("user", jsonBlob);
+
+        // 이미지 파일이 있다면 'image' 파트에 추가
+        if (imgFile) {
+            formData.append("image", imgFile);
+        }
+
+        // PUT 요청 전송
+        const response = await api.put("/api/mypage/user", formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        });
+
+        if (response.status === 200 || response.status === 201) {
+            alert("정보가 저장되었습니다.");
+            
+            // 닉네임이 변경되었다면 로컬 스토리지도 업데이트
+            if (form.nickname !== originalNickname) {
+                localStorage.setItem("user_nickname", form.nickname);
+            }
+            navigate("/mypage");
+        }
+    } catch (error) {
+        console.error("정보 수정 실패:", error);
+        alert("정보 수정 중 오류가 발생했습니다. 다시 시도해주세요.");
+    }
   };
 
   const handleCancel = () => {
     window.history.back();
   };
 
-  const defaultProfile = "/images/profile.png";
-
   return (
     <div style={styles.pageWrapper}>
       <h1 style={styles.title}>내 정보 수정</h1>
 
       <div style={styles.card}>
-        {/* 프로필 */}
+        {/* 프로필 이미지 영역 */}
         <div style={styles.profileRow}>
           <div style={styles.profileImgWrapper}>
-            <img src={profileImage || defaultProfile} style={styles.profileImg} />
+            <img 
+                src={profileImage || defaultProfile} 
+                style={styles.profileImg} 
+                alt="profile" 
+                onError={(e) => e.target.src = defaultProfile} 
+            />
           </div>
 
-          {/* 프로필 수정 버튼 */}
           <label style={styles.profileEditButton}>
             <img
               src="/images/profileedit.svg"
@@ -456,7 +529,7 @@ function MyProfile() {
           </label>
         </div>
 
-        {/* 폼 */}
+        {/* 폼 영역 */}
         <form style={styles.form} onSubmit={handleSubmit}>
           {/* 이름 (변경 불가) */}
           <div style={styles.field}>
@@ -490,7 +563,6 @@ function MyProfile() {
                 중복확인
               </button>
             </div>
-
             {nicknameMessage && (
               <span
                 style={{
@@ -511,12 +583,11 @@ function MyProfile() {
               style={{ ...styles.input, ...styles.disabledInput }}
               value={form.phone}
               readOnly
-              placeholder="예) 01012345678"
             />
             <span style={styles.smallHelper}>변경 불가한 항목입니다.</span>
           </div>
 
-          {/* 아이디(이메일) */}
+          {/* 이메일 */}
           <div style={styles.field}>
             <label style={styles.label}>아이디(이메일)</label>
             <div style={styles.inputRow}>
@@ -535,15 +606,11 @@ function MyProfile() {
                 중복확인
               </button>
             </div>
-
-            {/* 이메일 형식 오류 */}
             {emailError && (
               <span style={{ fontSize: "12px", color: "#D32F2F" }}>
                 {emailError}
               </span>
             )}
-
-            {/* 이메일 중복 여부 메시지 */}
             {emailMessage && (
               <span
                 style={{
@@ -569,24 +636,19 @@ function MyProfile() {
               onChange={(e) => {
                 handleChange(e);
                 const value = e.target.value;
-                if (!value || value.length < 8) {
+                if (value && value.length < 8) {
                   setPasswordError("비밀번호는 최소 8자 이상이어야 합니다.");
                 } else {
                   setPasswordError("");
                 }
-
-                if (form.passwordConfirm !== "") {
-                  if (value === form.passwordConfirm && value.length >= 8) {
-                    setPasswordMatchMessage("비밀번호가 일치합니다.");
-                  } else {
+                if (form.passwordConfirm) {
                     setPasswordMatchMessage(
-                      "비밀번호가 일치하지 않습니다."
+                        value === form.passwordConfirm ? "비밀번호가 일치합니다." : "비밀번호가 일치하지 않습니다."
                     );
-                  }
                 }
               }}
+              placeholder="변경할 경우에만 입력하세요"
             />
-
             {passwordError && (
               <span style={{ fontSize: "12px", color: "#D32F2F" }}>
                 {passwordError}
@@ -605,15 +667,11 @@ function MyProfile() {
               onChange={(e) => {
                 handleChange(e);
                 const value = e.target.value;
-
-                if (value === form.password && value.length >= 8) {
-                  setPasswordMatchMessage("비밀번호가 일치합니다.");
-                } else {
-                  setPasswordMatchMessage("비밀번호가 일치하지 않습니다.");
-                }
+                setPasswordMatchMessage(
+                    value === form.password ? "비밀번호가 일치합니다." : "비밀번호가 일치하지 않습니다."
+                );
               }}
             />
-
             {passwordMatchMessage && (
               <span
                 style={{
@@ -632,9 +690,7 @@ function MyProfile() {
           {/* 계좌 */}
           <div style={styles.field}>
             <label style={styles.label}>계좌</label>
-
             <div style={{ display: "flex", gap: "8px", width: "100%" }}>
-              {/* 왼쪽: 계좌주 이름 (변경 불가) */}
               <div
                 style={{
                   padding: "0 16px",
@@ -656,7 +712,6 @@ function MyProfile() {
                 {form.name}
               </div>
 
-              {/* 오른쪽: 은행 선택 + 계좌번호 */}
               <div
                 style={{
                   flex: 1,
@@ -672,7 +727,6 @@ function MyProfile() {
                   position: "relative",
                 }}
               >
-                {/* 은행 선택 */}
                 <div
                   style={styles.bankSelectBox}
                   onClick={() => setBankOpen((prev) => !prev)}
@@ -690,7 +744,6 @@ function MyProfile() {
                   />
                 </div>
 
-                {/* 계좌번호 입력 */}
                 <input
                   name="accountNumber"
                   value={form.accountNumber}
@@ -707,7 +760,6 @@ function MyProfile() {
                   placeholder="예) 110-123-123456"
                 />
 
-                {/* 드롭다운 리스트 */}
                 {bankOpen && (
                   <div style={styles.bankDropdown}>
                     {bankOptions.map((bank) => (
@@ -731,13 +783,11 @@ function MyProfile() {
                 )}
               </div>
             </div>
-
             <span style={styles.smallHelper}>
               본인 명의의 계좌만 사용할 수 있습니다.
             </span>
           </div>
 
-          {/* 버튼 */}
           <div style={styles.footerButtons}>
             <button
               type="button"
