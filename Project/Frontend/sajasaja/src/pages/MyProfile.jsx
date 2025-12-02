@@ -239,7 +239,6 @@ function MyProfile() {
   const [emailMessage, setEmailMessage] = useState("");
   const [isEmailValid, setIsEmailValid] = useState(true);
 
-
   const selectedBank =
     bankOptions.find((b) => b.id === form.bank) || bankOptions[0];
   const defaultProfile = "/images/filledprofile.svg";
@@ -255,7 +254,9 @@ function MyProfile() {
       try {
         // PUT 요청으로 데이터 조회 (빈 JSON 전송)
         const formData = new FormData();
-        const jsonBlob = new Blob([JSON.stringify({})], { type: "application/json" });
+        const jsonBlob = new Blob([JSON.stringify({})], {
+          type: "application/json",
+        });
         formData.append("user", jsonBlob);
 
         const response = await api.patch("/api/mypage/user", formData, {
@@ -265,12 +266,12 @@ function MyProfile() {
         console.log(response);
 
         // 백엔드 데이터 구조에 맞춰 추출 (응답 자체가 객체)
-        const data = response.data.user || response.data; 
+        const data = response.data.user || response.data;
 
         // null 체크를 하여 빈 문자열 할당 (에러 해결 핵심)
         setForm((prev) => ({
           ...prev,
-          name: data.name || prev.name || "사용자", 
+          name: data.name || prev.name || "사용자",
           nickname: data.nickname || "",
           email: data.email || "",
           phone: data.phone || "",
@@ -285,7 +286,6 @@ function MyProfile() {
         if (data.profileImg) {
           setProfileImage(`${data.profileImg}`);
         }
-
       } catch (error) {
         console.error("유저 정보 로드 실패:", error);
       }
@@ -420,8 +420,7 @@ function MyProfile() {
     let hasError = false;
 
     if (isNicknameValid !== true) {
-      if (!nicknameMessage)
-        setNicknameMessage("닉네임 중복확인을 해주세요.");
+      if (!nicknameMessage) setNicknameMessage("닉네임 중복확인을 해주세요.");
       hasError = true;
     }
 
@@ -469,7 +468,7 @@ function MyProfile() {
       if (response.status === 200 || response.status === 201) {
         alert("정보가 저장되었습니다.");
         if (form.nickname !== originalNickname) {
-          localStorage.setItem("user_nickname", form.nickname);
+          localStorage.setItem("userNickname", form.nickname);
         }
         navigate("/mypage");
       }
