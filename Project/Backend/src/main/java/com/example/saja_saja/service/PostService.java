@@ -69,6 +69,8 @@ public class PostService {
             HashMap<String, Object> data = new HashMap<>();
             data.put("post", post);
             return new ResponseEntity(data, HttpStatus.OK);
+        } catch (BadRequestException e) {
+            throw e;
         } catch (InternalAuthenticationServiceException e) {
             if (e.getCause() instanceof BadRequestException bre) {
                 throw bre;

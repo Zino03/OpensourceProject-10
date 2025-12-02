@@ -1,6 +1,7 @@
-import React from 'react';
-import styled from 'styled-components';
-import { useNavigate } from 'react-router-dom';
+import React from "react";
+import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
+import { api, BASE_URL } from "../assets/setIntercepter";
 
 // 카드 스타일
 const CardWrapper = styled.div`
@@ -21,7 +22,7 @@ const ImageContainer = styled.div`
   img {
     width: 100%;
     height: 100%;
-    object-fit: cover;   /* ⭐ 비율 유지하면서 꽉 채우고, 넘치는 부분은 잘림 */
+    object-fit: cover; /* ⭐ 비율 유지하면서 꽉 채우고, 넘치는 부분은 잘림 */
     display: block;
   }
 `;
@@ -32,7 +33,7 @@ const StatusTag = styled.div`
   top: 8px;
   right: 8px;
   padding: 5px 10px;
-  background-color: #D32F2F;
+  background-color: #d32f2f;
   color: white;
   font-size: 10px;
   font-weight: 500;
@@ -50,7 +51,7 @@ const Title = styled.h4`
 
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis; 
+  text-overflow: ellipsis;
 `;
 
 // 가격 + 수량 + 마감일 영역
@@ -88,10 +89,10 @@ const Deadline = styled.div`
 const ProductCard = ({ product }) => {
   const navigate = useNavigate();
 
-  const { 
-    id, 
-    title, 
-    price, 
+  const {
+    id,
+    title,
+    price,
     image,
     quantity,
     currentQuantity,
@@ -106,20 +107,15 @@ const ProductCard = ({ product }) => {
 
   // 날짜 포맷팅
   const formatDate = (dateString) => {
-    if (!dateString) return '';
-    return dateString.split('T')[0];
+    if (!dateString) return "";
+    return dateString.split("T")[0];
   };
 
   return (
     <CardWrapper onClick={handleCardClick}>
       <ImageContainer>
-        {type === 2 && (
-          <StatusTag>마감 임박</StatusTag>
-        )}
-        <img 
-          src={image || "/images/im.png"} 
-          alt={title}
-        />
+        {type === 2 && <StatusTag>마감 임박</StatusTag>}
+        <img src={`${BASE_URL}${image}` || "/images/im.png"} alt={title} />
       </ImageContainer>
 
       <InfoContainer>
@@ -127,7 +123,10 @@ const ProductCard = ({ product }) => {
         <BottomInfo>
           <DetailsContainer>
             <BottomContainer>
-              수량 <Quantity>{currentQuantity}/{quantity}</Quantity>
+              수량{" "}
+              <Quantity>
+                {currentQuantity}/{quantity}
+              </Quantity>
             </BottomContainer>
             <BottomContainer>
               기간 <Deadline>~{formatDate(endAt)}</Deadline>

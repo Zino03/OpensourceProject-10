@@ -205,8 +205,6 @@ const styles = {
   },
 };
 
-const BACKEND_URL = "http://192.168.31.28:8080";
-
 function MyProfile() {
   const navigate = useNavigate();
 
