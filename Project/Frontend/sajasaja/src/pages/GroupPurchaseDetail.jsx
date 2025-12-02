@@ -600,6 +600,15 @@ const GroupPurchaseDetail = () => {
       setReviews(postData.reviews || []);
       setCurrentCount(postData.currentQuantity || 0);
 
+      console.log(postData);
+
+      if (postData.pickupAddress) {
+        setLatitude(postData.pickupAddress.latitude);
+        setLongitude(postData.pickupAddress.longitude);
+
+        console.log(latitude, longitude);
+      }
+
       // 내 수량 초기화 (주최자라면)
       if (buyerData) {
         // 내가 이미 구매자(혹은 주최자)라면 기존 수량을 세팅
@@ -632,17 +641,8 @@ const GroupPurchaseDetail = () => {
          }));
          setParticipants(mappedBuyers);
       }
-
-      console.log(post);
-
-      if (post.pickupAddress) {
-        setLatitude(post.pickupAddress.latitude);
-        setLongitude(post.pickupAddress.longitude);
-
-        console.log(latitude, longitude);
-      }
     } catch (error) {
-      console.error("로드 실패:", error.response.data);
+      console.error("로드 실패:", error.response?.data);
       alert("정보를 불러오는데 실패했습니다.");
     } finally {
       setIsLoading(false);
@@ -806,6 +806,7 @@ const GroupPurchaseDetail = () => {
     }
   };
 
+  // ✅ 공구 참여하기 클릭 시 로그인 체크
   const handleParticipateClick = () => {
     const token = localStorage.getItem("accessToken");
 
@@ -963,7 +964,7 @@ const GroupPurchaseDetail = () => {
           {!isOrganizer && (
             <div style={{ marginTop: "20px" }}>
               <button
-                onClick={() => setIsModalOpen(true)}
+                onClick={handleParticipateClick}
                 style={{
                   width: "100%",
                   background: "#FF7E00",
@@ -1127,7 +1128,6 @@ const GroupPurchaseDetail = () => {
                       <FaRegBell /> 신고
                     </ActionButton>
                   </CommentHeader>
-                  handleReviewAction
                   <CommentContent>{review.content}</CommentContent>
                   <CommentDate>
                     {review.createdAt ? review.createdAt.substring(0, 10) : ""}

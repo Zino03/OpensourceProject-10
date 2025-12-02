@@ -94,7 +94,10 @@ const Header = () => {
           <nav>
             <a href="/">공동 구매</a>
             <a href="/nearby">내 주변 공구</a>
+            {isLoggedIn ? (
             <a href="/write">공구 등록</a>
+            ) : (
+              <a href="/login">공구 등록</a>)}
           </nav>
           <LoginSection>
             {isLoggedIn ? (
