@@ -103,7 +103,8 @@ public class PostService {
 
         if(member != null
                 && !member.getRole().equals(Role.ADMIN)
-                && !post.getHost().equals(member.getUser())) { // 주최자가 아닌 일반 사용자이면
+                && !postEntity.getHost().equals(member.getUser())) { // 주최자가 아닌 일반 사용자이면
+
             if (post.getStatus().equals(0)||post.getStatus().equals(4)) {
                 throw new BadRequestException("확인할 수 없는 공동구매 게시글입니다.", null);
             }
