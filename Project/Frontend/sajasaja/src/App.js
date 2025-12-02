@@ -85,7 +85,7 @@ function App() {
           <Route path="/newdelivery" element={<NewDeliveryInfo />} />
           <Route path="/mydelivery" element={<MyDeliveryInfo />} />
           <Route path="/editdelivery" element={<EditMyDelivery/>} />
-          <Route path="/mygroupperchase" element={<MyGroupPerchase/>} />
+          <Route path="/mygrouppurchase" element={<MyGroupPerchase/>} />
 
           <Route path="/userreport" element={<UserReport/>} />
           <Route path="/notificationreport" element={<NotificationReport />} />

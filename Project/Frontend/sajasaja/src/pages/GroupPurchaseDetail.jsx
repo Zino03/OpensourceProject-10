@@ -14,6 +14,23 @@ const Container = styled.div`
   padding: 40px 20px 100px;
 `;
 
+const CancelButton = styled.button`
+  background-color: #e0e0e0;
+  border: none;
+  color: #000000ff;
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    background-color: #D32F2F;
+    color: #fff;
+  }
+`;
+
+
 const CategoryTag = styled.div`
   font-size: 12px;
   color: #888;
@@ -211,10 +228,15 @@ const OrganizerLeft = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
+  cursor: pointer;     /* 전체 영역 클릭 가능 느낌 */
 `;
 
-const ProfileIcon = styled.div`
-  font-size: 18px;
+const ProfileIcon = styled.img`
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: cover;
+  cursor: pointer;          /* 마우스 올리면 손가락 커서 */
 `;
 
 const OrganizerName = styled.span`
@@ -223,16 +245,16 @@ const OrganizerName = styled.span`
 
 const MannerLabel = styled.span`
   font-size: 12px;
-  color: #888;
-  background-color: #f5f5f5;
+  color: #FF7E00;
+  background-color: #FFF5E0;
   padding: 2px 6px;
   border-radius: 4px;
 `;
 
 const ContactButton = styled.button`
-  background-color: #f7f7f7;
+  background-color: #ffffffff;
   color: #333;
-  border: 1px solid #ddd;
+  border: 1px solid #000000ff;
   font-size: 12px;
   padding: 6px 16px;
   border-radius: 4px;
@@ -326,6 +348,8 @@ const PurchaseButton = styled.button`
 
   &:hover { opacity: 0.9; }
 `;
+
+
 
 const TabMenu = styled.div`
   display: flex;
@@ -541,6 +565,7 @@ const FilterButton = styled.button`
 `;
 
 const GroupPurchaseDetail = () => {
+  
   const navigate = useNavigate();
   const product = {
     title: '애니 피욘크 미니 프레첼 스낵 150g',
@@ -685,10 +710,17 @@ const GroupPurchaseDetail = () => {
 
   // 수량 상태
   const [quantity, setQuantity] = useState(1);
+const [baseCount] = useState(product.currentCount);
 
+// 🔹 화면에 보여줄 현재 주문된 수량 (바뀌는 값)
+const [currentCount, setCurrentCount] = useState(product.currentCount);
   const handleDecrease = () => {
     setQuantity(prev => (prev > 1 ? prev - 1 : 1));
   };
+
+  const handleApplyQuantity = () => {
+  setCurrentCount(baseCount + (quantity-1));   // ⭐ 처음 주문 수량 + 선택한 수량
+};
 
   const handleIncrease = () => {
     setQuantity(prev => prev + 1);
@@ -733,7 +765,8 @@ const GroupPurchaseDetail = () => {
     alert('배송 정보가 저장되었습니다.');
   };
 
-  const progressPercent = Math.min((product.currentCount / product.goalCount) * 100, 100);
+  const progressPercent = Math.min((currentCount / product.goalCount) * 100, 100);
+
 
   return (
     <Container>
@@ -757,12 +790,16 @@ const GroupPurchaseDetail = () => {
 
         <InfoArea>
           <ProductTitleRow>
-            <ProductTitle>{product.title}</ProductTitle>
-          </ProductTitleRow>
+          <ProductTitle>{product.title}</ProductTitle>
+
+          <CancelButton onClick={() => navigate("/mygrouppurchase")}>
+            공구취소
+          </CancelButton>
+        </ProductTitleRow>
 
           <ProgressSection>
             <ProgressLabel>현재 주문된 수량</ProgressLabel>
-            <CurrentCount>{product.currentCount}</CurrentCount>
+            <CurrentCount>{currentCount}</CurrentCount>
             <ProgressBarContainer>
               <ProgressBarFill $percent={progressPercent} />
             </ProgressBarContainer>
@@ -790,13 +827,16 @@ const GroupPurchaseDetail = () => {
             <OrganizerRow>
               <Label>주최자</Label>
               <OrganizerBadge>
-                <OrganizerLeft>
-                  <ProfileIcon>🦁</ProfileIcon>
-                  <OrganizerName>{product.organizer}</OrganizerName>
-                  <MannerLabel> {product.mannerScore}</MannerLabel>
-                </OrganizerLeft>
-                <ContactButton>문의하기</ContactButton>
-              </OrganizerBadge>
+              <OrganizerLeft onClick={() => navigate("/userpage")}>
+                <ProfileIcon
+                  src={product.organizerProfileImage || "/images/profile.png"}
+                  alt="profile"
+                />
+                <OrganizerName>{product.organizer}</OrganizerName>
+                <MannerLabel>매너점수 3.2점</MannerLabel>
+              </OrganizerLeft>
+              <ContactButton>문의하기</ContactButton>
+            </OrganizerBadge>
             </OrganizerRow>
           </DetailList>
 
@@ -808,7 +848,10 @@ const GroupPurchaseDetail = () => {
                 <QtyValue>{quantity}</QtyValue>
                 <QtyButton onClick={handleIncrease}>+</QtyButton>
               </QuantityBox>
-              <ChangeQtyButton onClick={() => setIsModalOpen(true)}>수량변경하기</ChangeQtyButton>
+              <ChangeQtyButton onClick={handleApplyQuantity}>
+              수량변경하기
+            </ChangeQtyButton>
+
             </QuantityArea>
             <PriceArea>
               <PriceText>{(product.price * quantity).toLocaleString()} 원</PriceText>
