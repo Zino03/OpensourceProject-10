@@ -67,7 +67,8 @@ public class UserController {
 
     @GetMapping("/user/{nickname}")
     public ResponseEntity getProfile(@PathVariable String nickname) {
-        return userService.getProfile(nickname);
+        Member member = userService.getMember(SecurityUtil.getCurrentUserId());
+        return userService.getProfile(member, nickname);
     }
 
     @PutMapping(

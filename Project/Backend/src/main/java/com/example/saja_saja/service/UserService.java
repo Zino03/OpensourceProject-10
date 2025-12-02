@@ -227,12 +227,18 @@ public class UserService {
         }
     }
 
-    public ResponseEntity getProfile(String nickname) {
+    public ResponseEntity getProfile(Member member, String nickname) {
         try {
             User user = userRepository.findByNickname(nickname)
                     .orElseThrow(() -> new ResourceNotFoundException("해당 사용자를 찾을 수 없습니다."));
 
-            ProfileResponseDto profile = ProfileResponseDto.of(user);
+            ProfileResponseDto profile = null;
+            if (member != null && member.getUser().getNickname().equals(nickname)) {
+                profile = ProfileResponseDto.of(user, true);
+            } else {
+                profile = ProfileResponseDto.of(user, false);
+            }
+
             HashMap<String, Object> data = new HashMap<>();
             data.put("profile", profile);
             return new ResponseEntity(data, HttpStatus.OK);
