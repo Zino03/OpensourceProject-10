@@ -71,7 +71,7 @@ public class UserController {
         return userService.getProfile(member, nickname);
     }
 
-    @PutMapping(
+    @PatchMapping(
             value = "/mypage/user",
             consumes = { "multipart/form-data" }
     )
@@ -110,7 +110,7 @@ public class UserController {
         return userService.addAddress(userId, req);
     }
 
-    @PutMapping("/mypage/address/{addressId}")
+    @PatchMapping("/mypage/address/{addressId}")
     public ResponseEntity updateUserAddress(@PathVariable Long addressId, @RequestBody UserAddressRequestDto addressDto) {
         Long userId = userService.getMember(SecurityUtil.getCurrentUserId()).getUser().getId();
         return userService.updateUserAddress(userId, addressId, addressDto);
@@ -141,7 +141,7 @@ public class UserController {
     }
 
     // 주문 취소 (단순 변심)
-    @PutMapping("/mypage/order/{buyerId}/cancel")
+    @PatchMapping("/mypage/order/{buyerId}/cancel")
     public ResponseEntity cancelOrder(@PathVariable Long buyerId) {
         User user = userService.getMember(SecurityUtil.getCurrentUserId()).getUser();
         Long postId = buyerRepository.findById(buyerId).get().getPost().getId();
@@ -149,7 +149,7 @@ public class UserController {
     }
 
     // 구매확정
-    @PutMapping("/mypage/order/{buyerId}/confirm")
+    @PatchMapping("/mypage/order/{buyerId}/confirm")
     public ResponseEntity confirmOrder(@PathVariable Long buyerId) {
         Member member = userService.getMember(SecurityUtil.getCurrentUserId());
         return buyerService.confirmPurchase(member, buyerId);

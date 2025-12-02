@@ -15,6 +15,8 @@ import lombok.NoArgsConstructor;
 public class UserResponseDto {
     private String email;
 
+    private String name;
+
     private String nickname;
 
     private String profileImg;
@@ -28,6 +30,7 @@ public class UserResponseDto {
     public static UserResponseDto of(User user) {
         return new UserResponseDto().builder()
                 .email(user.getMember().getEmail())
+                .name(user.getName())
                 .nickname(user.getNickname())
                 .profileImg(user.getProfileImg())
                 .accountBank(user.getAccountBank())

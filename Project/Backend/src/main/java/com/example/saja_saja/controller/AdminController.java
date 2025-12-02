@@ -43,7 +43,7 @@ public class AdminController {
         return adminReportService.getReportList(member, type, status, searchType, searchQuery, pageable);
     }
 
-    @PutMapping("/report/{type}/{reportId}")
+    @PatchMapping("/report/{type}/{reportId}")
     public ResponseEntity processReport(
             @PathVariable ReportType type, @PathVariable Long reportId,
             @Valid @RequestBody ReportProcessRequestDto req,
@@ -73,7 +73,7 @@ public class AdminController {
         return adminPostService.getAdminPostList(member, process, searchQuery, pageable);
     }
 
-    @PutMapping("/post/{postId}")
+    @PatchMapping("/post/{postId}")
     public ResponseEntity processPost(
             @PathVariable Long postId,
             @RequestParam(required = true) Integer process      // 1: 승인, 2: 반려
@@ -92,7 +92,7 @@ public class AdminController {
         return adminBuyerService.getBuyerList(member, process, name, pageable);
     }
 
-    @PutMapping("/buyer/{buyerId}")
+    @PatchMapping("/buyer/{buyerId}")
     public ResponseEntity processBuyer(
             @PathVariable Long buyerId,
             @RequestParam(required = true) Integer process   // 1: 입금 완료, 2: 재입금 대기, 3: 주문취소

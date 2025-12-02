@@ -204,16 +204,16 @@ public class UserService {
                 member.setPassword(hashedPassword);
             }
 
-            if (req.getEmail() != null) {
+            if (req.getEmail() != null && !req.getEmail().isEmpty()) {
                 member.setEmail(req.getEmail());
             }
 
-            if (req.getNickname() != null) user.setNickname(req.getNickname());
+            if (req.getNickname() != null && !req.getNickname().isEmpty()) user.setNickname(req.getNickname());
             if (image != null && !image.isEmpty()) {
                 user.setProfileImg(imageService.uploadProfileImage(image));
             }
-            if (req.getAccountBank() != null) user.setAccountBank(req.getAccountBank());
-            if (req.getAccount() != null) user.setAccount(req.getAccount());
+            if (req.getAccountBank() != null && !req.getAccountBank().isEmpty()) user.setAccountBank(req.getAccountBank());
+            if (req.getAccount() != null && !req.getAccount().isEmpty()) user.setAccount(req.getAccount());
 
             HashMap<String, Object> data = new HashMap<>();
             data.put("user", UserResponseDto.of(user));
