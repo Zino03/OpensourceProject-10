@@ -119,8 +119,7 @@ const FindPassword = () => {
     }
 
     try {
-      // 2. 서버 통신 (import한 api 인스턴스 사용)
-      // 경로는 백엔드 설정에 맞춰 수정하세요. 예: /api/member/findPw
+      // 2. 서버 통신
       const response = await api.post("/auth/findpw", {
         name: name,
         email: email,
@@ -128,16 +127,26 @@ const FindPassword = () => {
 
       console.log("전송 성공:", response.data);
 
-      // 3. 성공 처리
-      setShowError(false);
-      alert(
-        "입력하신 이메일로 비밀번호 재설정 링크(혹은 임시비밀번호)를 보냈습니다."
-      );
-      navigate("/login"); // 로그인 페이지로 이동
+      // 3. 성공 처리 (임시 비밀번호 알림)
+      // 백엔드 AuthService.java에서 data.put("tempPassword", tempPassword)로 반환함
+      if (response.data && response.data.tempPassword) {
+        setShowError(false);
+        navigate("/login"); // 로그인 페이지로 이동
+      } else {
+        // 성공 응답이지만 비밀번호가 없는 경우 (예: 검증 오류가 200으로 온 경우)
+        setShowError(true);
+      }
+
     } catch (err) {
-      console.error("전송 실패:", err.response.data);
+      console.error("전송 실패:", err.response?.data);
+      
       // 4. 실패 처리
       setShowError(true); // 에러 메시지 표시
+      
+      // 백엔드 에러 메시지가 있다면 띄워주기
+      if (err.response && err.response.data && err.response.data.message) {
+        alert(err.response.data.message);
+      }
     }
   };
 
@@ -174,7 +183,7 @@ const FindPassword = () => {
           </InputGroup>
 
           {showError && (
-            <ErrorMessage>해당하는 이메일이 존재하지 않습니다!</ErrorMessage>
+            <ErrorMessage>일치하는 회원 정보를 찾을 수 없습니다.</ErrorMessage>
           )}
 
           <ButtonGroup>
