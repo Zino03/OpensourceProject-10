@@ -12,6 +12,23 @@ import { api, setInterceptor } from "../assets/setIntercepter";
 // 백엔드 서버 주소 (이미지 표시용)
 const BACKEND_URL = "http://192.168.31.28:8080";
 
+// 백엔드 enum → 한글 카테고리명 매핑
+const CATEGORY_LABELS = {
+  FOOD: "식품",
+  HOUSEHOLD: "생활용품",
+  ELECTRONICS: "가전/전자기기",
+  BEAUTY: "뷰티/케어",
+  FASHION: "패션",
+  ACCESSORY: "잡화/액세서리",
+  LIVING: "리빙/인테리어",
+  PET: "반려동물",
+  HOBBY: "문구/취미",
+  SPORTS: "스포츠",
+  KIDS: "유아/아동",
+  ETC: "기타",
+};
+
+
 // --- Styled Components ---
 const Container = styled.div`
   width: 100%;
@@ -41,11 +58,6 @@ const CategoryTag = styled.div`
   margin-bottom: 10px;
   span {
     margin-right: 5px;
-    cursor: pointer;
-    &:hover {
-      color: #333;
-    }
-  }
 `;
 
 const TopSection = styled.div`
@@ -669,6 +681,9 @@ const GroupPurchaseDetail = () => {
       <div style={{ padding: "50px", textAlign: "center" }}>로딩 중...</div>
     );
 
+    const categoryLabel = CATEGORY_LABELS[post.category] || "카테고리";
+
+
   const product = {
     title: post.title,
     currentCount: post.currentQuantity,
@@ -846,8 +861,9 @@ const GroupPurchaseDetail = () => {
   return (
     <Container>
       <CategoryTag>
-        <span>{post.category || "카테고리"}</span> &gt;
-      </CategoryTag>
+  <span>{categoryLabel}</span> &gt;
+</CategoryTag>
+
 
       <TopSection>
         <ImageArea>
