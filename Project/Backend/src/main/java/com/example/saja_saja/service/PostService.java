@@ -31,6 +31,7 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final BuyerService buyerService;
+    private final BuyerRepository buyerRepository;
     private final AddressRepository addressRepository;
     private final ImageService imageService;
     private final UserRepository userRepository;
@@ -149,7 +150,16 @@ public class PostService {
 
         List<UserPostListResponseDto> list = page
                 .stream()
-                .map(UserPostListResponseDto::of)
+                .map(post -> {
+                    Boolean isSettled = false;
+                    if (post.getQuantity().equals(post.getCurrentPaidQuantity())) {
+                        boolean hasUnsettledBuyers = buyerRepository
+                                .existsByPostAndIsCanceledAndIsPaidNot(post, false, 2);
+                        isSettled = !hasUnsettledBuyers;
+                    }
+
+                    return UserPostListResponseDto.of(post, isSettled);
+                })
                 .toList();
 
         // 본인의 주최공구를 조회하는 것이 아니라면

@@ -48,4 +48,6 @@ public interface BuyerRepository extends JpaRepository<Buyer, Long> {
 
 
     Optional<Buyer> findFirstByPostAndIsCanceledAndIsPaidOrderByIdDesc(Post post, Boolean isCanceled, Integer isPaid);
+
+    Boolean existsByPostAndIsCanceledAndIsPaidNot(Post post, Boolean isCanceled, Integer isPaid);
 }
