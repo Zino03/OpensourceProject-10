@@ -28,13 +28,19 @@ public class AdminPostListResponseDto {
     private Integer process;
 
     public static AdminPostListResponseDto of(Post post) {
+        Integer p;
+        Integer status = post.getStatus();
+        p = status;
+        if (status == 2 || status == 3)
+            p = 1;
+
         return new AdminPostListResponseDto().builder()
                 .id(post.getId())
                 .title(post.getTitle())
                 .hostNickname(post.getHost().getNickname())
                 .endAt(post.getEndAt())
                 .createdAt(post.getCreatedAt())
-                .process(post.getStatus())
+                .process(p)
                 .build();
     }
 }
