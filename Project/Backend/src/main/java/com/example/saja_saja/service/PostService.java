@@ -1,9 +1,6 @@
 package com.example.saja_saja.service;
 
-import com.example.saja_saja.dto.post.PostListResponseDto;
-import com.example.saja_saja.dto.post.PostRequestDto;
-import com.example.saja_saja.dto.post.PostResponseDto;
-import com.example.saja_saja.dto.post.UserPostListResponseDto;
+import com.example.saja_saja.dto.post.*;
 import com.example.saja_saja.entity.member.Member;
 import com.example.saja_saja.entity.member.Role;
 import com.example.saja_saja.entity.post.*;
@@ -14,7 +11,9 @@ import com.example.saja_saja.exception.ResourceNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -180,15 +179,22 @@ public class PostService {
     // post map list
     public ResponseEntity postListForMap(Pageable pageable, double lat, double lon) {
 
-        Page<Post> page = postRepository.findNearPosts(lat, lon, pageable);
+        Pageable noSortPage = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.unsorted() // 🔥 정렬 제거!
+        );
 
-        List<PostListResponseDto> postList = page
+        Page<Post> page = postRepository.findNearPosts(lat, lon, noSortPage);
+
+        List<PostListMapResponseDto> postList = page
                 .stream()
-                .map(PostListResponseDto::of)
+                .map(PostListMapResponseDto::of)
                 .toList();
 
         return new ResponseEntity(postList, HttpStatus.OK);
     }
+
 
     public ResponseEntity postList(Pageable pageable, Integer type, String searchQuery, Category category) {
         Specification<Post> spec = (root, query, cb) -> null;
@@ -301,8 +307,8 @@ public class PostService {
                         }
                     }
                 } else {
-                    // endAt 30일 전 ~ endAt 사이면 마감임박
-                    if (!now.isBefore(endAt.minusDays(30)) && !now.isAfter(endAt)) {
+                    // endAt 3일 전 ~ endAt 사이면 마감임박
+                    if (!now.isBefore(endAt.minusDays(3)) && !now.isAfter(endAt)) {
                         p.setStatus(2);
                     }
                 }

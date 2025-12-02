@@ -156,7 +156,7 @@ public class PostController {
     }
 
     // 주최자 수량 변경
-    @PostMapping("/post/{id}/host-quantity")
+    @PostMapping("/posts/{id}/host-quantity")
     public ResponseEntity<?> updateHostQuantity(
             @PathVariable long id,
             @RequestParam(defaultValue = "1") int quantity
@@ -229,7 +229,7 @@ public class PostController {
     }
 
 
-    @PostMapping("/post/{postId}/notice")
+    @PostMapping("/posts/{postId}/notices")
     public ResponseEntity createNotice(
             @PathVariable Long postId,
             @Valid @RequestBody NoticeRequestDto req,
@@ -254,7 +254,7 @@ public class PostController {
         return noticeService.save(member, postId, req);
     }
 
-    @DeleteMapping("/post/{postId}/notice/{noticeId}")
+    @DeleteMapping("/posts/{postId}/notices/{noticeId}")
     public ResponseEntity deleteNotice(@PathVariable Long postId, @PathVariable Long noticeId) {
         Member member = userService.getMember(SecurityUtil.getCurrentUserId());
         return noticeService.delete(member, postId, noticeId);
