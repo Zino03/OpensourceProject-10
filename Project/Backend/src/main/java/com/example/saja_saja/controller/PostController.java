@@ -6,6 +6,7 @@ import com.example.saja_saja.entity.member.Member;
 import com.example.saja_saja.entity.post.Category;
 import com.example.saja_saja.entity.post.PostRepository;
 import com.example.saja_saja.service.BuyerService;
+import com.example.saja_saja.service.NoticeService;
 import com.example.saja_saja.service.PostService;
 import com.example.saja_saja.service.UserService;
 import jakarta.validation.Valid;
@@ -31,6 +32,7 @@ public class PostController {
     private final PostService postService;
     private final UserService userService;
     private final BuyerService buyerService;
+    private final NoticeService noticeService;
 
     @PostMapping(
             value = "/posts",
@@ -224,5 +226,37 @@ public class PostController {
     @PostMapping("/posts/update-status")
     public void updateType() {
         postService.postUpdateType();
+    }
+
+
+    @PostMapping("/post/{postId}/notice")
+    public ResponseEntity createNotice(
+            @PathVariable Long postId,
+            @Valid @RequestBody NoticeRequestDto req,
+            BindingResult errors
+    ) {
+
+        Map<String, Object> validatorResult = new HashMap<>();
+
+        if (errors.hasErrors()) {
+            for (FieldError error : errors.getFieldErrors()) {
+                String validKeyName = String.format("valid_%s", error.getField());
+                validatorResult.put(validKeyName, error.getDefaultMessage());
+            }
+        }
+
+        if (!validatorResult.isEmpty()) {
+            validatorResult.put("data", req);
+            return new ResponseEntity<>(validatorResult, HttpStatus.OK);
+        }
+
+        Member member = userService.getMember(SecurityUtil.getCurrentUserId());
+        return noticeService.save(member, postId, req);
+    }
+
+    @DeleteMapping("/post/{postId}/notice/{noticeId}")
+    public ResponseEntity deleteNotice(@PathVariable Long postId, @PathVariable Long noticeId) {
+        Member member = userService.getMember(SecurityUtil.getCurrentUserId());
+        return noticeService.delete(member, postId, noticeId);
     }
 }

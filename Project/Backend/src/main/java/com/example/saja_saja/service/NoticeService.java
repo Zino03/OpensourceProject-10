@@ -4,6 +4,7 @@ import com.example.saja_saja.dto.post.NoticeRequestDto;
 import com.example.saja_saja.entity.member.Member;
 import com.example.saja_saja.entity.post.*;
 import com.example.saja_saja.exception.BadRequestException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -50,6 +51,7 @@ public class NoticeService {
         return new ResponseEntity(notice, HttpStatus.OK);
     }
 
+    @Transactional
     public ResponseEntity delete(Member member, Long postId, Long noticeId) {
         Optional<Post> optionalP = postRepository.findById(postId);
 
@@ -79,7 +81,7 @@ public class NoticeService {
             throw new BadRequestException("주최자만 공지를 삭제할 수 있습니다.", null);
         }
 
-        postRepository.delete(post);
+        noticeRepository.delete(notice);
 
         return new ResponseEntity("공지가 삭제되었습니다.", HttpStatus.OK);
     }
