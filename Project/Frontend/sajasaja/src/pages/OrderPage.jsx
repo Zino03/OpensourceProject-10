@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Map, MapMarker, useKakaoLoader } from "react-kakao-maps-sdk"; // ✅ 지도 라이브러리 추가
 
 const Container = styled.div`
   width: 100%;
@@ -21,17 +22,14 @@ const SectionTitle = styled.h3`
   margin-bottom: 16px;
 `;
 
-// 지도
-const MapWrapper = styled.div`
+// 지도 컨테이너 (MapWrapper 대체)
+const MapContainer = styled.div`
   width: 100%;
   height: 200px;
   background-color: #eee;
   border-radius: 8px;
   overflow: hidden;
   position: relative;
-  background-image: url('https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/preview_map.png'); /* 예시 지도 */
-  background-size: cover;
-  background-position: center;
   border: 1px solid #ddd;
 `;
 
@@ -47,6 +45,7 @@ const MapOverlayButton = styled.button`
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
+  z-index: 10; /* 지도 위에 뜨도록 z-index 추가 */
 `;
 
 const WarningText = styled.p`
@@ -210,7 +209,7 @@ const ProductTable = styled.div`
   border-bottom: 1px solid #ddd;
 `;
 
-const TableHeader = styled.div`
+const TableHeaderComponent = styled.div`
   display: flex;
   background-color: #fff;
   padding: 16px 0;
@@ -319,15 +318,24 @@ const OrderPage = () => {
   const navigate = useNavigate();
   const { state } = useLocation(); 
 
+  // ✅ 카카오 지도 로드 (앱 키는 본인 것으로 교체 권장)
+  const [loadingMap, errorMap] = useKakaoLoader({
+    appkey: "1182ee2a992f45fb1db2238604970e19", 
+    libraries: ["services"],
+  });
+
   // 수령 방식 확인
   const receiveMethod = state?.method || 'delivery';
   const isDelivery = receiveMethod === 'delivery';
   
   const productData = state?.product || {
-    title: '애니 피완크 미니 프레첼 스낵 150g',
-    price: 890,
-    shippingCost: 3000,
-    image: 'https://via.placeholder.com/80'
+    title: '상품 정보 없음',
+    price: 0,
+    shippingCost: 0,
+    image: 'https://via.placeholder.com/80',
+    // 지도 좌표 기본값 (없으면 충북대 좌표)
+    latitude: 36.628583,
+    longitude: 127.457583
   };
   
   // 수량 (이전 페이지에서 받거나 기본값 1)
@@ -443,9 +451,33 @@ const OrderPage = () => {
       ) : (
         <Section>
           <SectionTitle>수령 장소</SectionTitle>
-          <MapWrapper>
+          <MapContainer>
+            {/* ✅ 카카오 지도 렌더링 */}
+            {loadingMap ? (
+               <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>지도 로딩 중...</div>
+            ) : errorMap ? (
+               <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', color: 'red' }}>지도 에러</div>
+            ) : (
+               <Map
+                  center={{ 
+                    lat: parseFloat(productData.latitude || 36.628583), 
+                    lng: parseFloat(productData.longitude || 127.457583) 
+                  }}
+                  style={{ width: "100%", height: "100%" }}
+                  level={3}
+               >
+                 <MapMarker 
+                    position={{ 
+                      lat: parseFloat(productData.latitude || 36.628583), 
+                      lng: parseFloat(productData.longitude || 127.457583) 
+                    }} 
+                 >
+                     <div style={{padding:"5px", color:"#000", fontSize:"12px"}}>수령 장소</div>
+                 </MapMarker>
+               </Map>
+            )}
             <MapOverlayButton>지도보기</MapOverlayButton>
-          </MapWrapper>
+          </MapContainer>
           <WarningText>수령장소를 확인해주세요!</WarningText>
         </Section>
       )}
@@ -454,14 +486,14 @@ const OrderPage = () => {
       <Section>
         <SectionTitle>주문 상품</SectionTitle>
         <ProductTable>
-          <TableHeader>
+          <TableHeaderComponent>
             <div style={{flex: 5}}>상품정보</div>
             <div style={{flex: 1}}>수량</div>
             <div style={{flex: 1}}>총가격</div>
-          </TableHeader>
+          </TableHeaderComponent>
           <TableRow>
             <ColInfo>
-              <ProductImg src={productData.image} alt="상품" />
+              <ProductImg src={productData.image} alt="상품" onError={(e)=>e.target.src="/images/sajasaja.png"} />
               <div>
                 <div style={{fontWeight: '700', fontSize: '15px', marginBottom: '6px', color: '#000'}}>{productData.title}</div>
                 <div style={{fontSize: '13px', color: '#666'}}>{productData.price.toLocaleString()} 원</div>

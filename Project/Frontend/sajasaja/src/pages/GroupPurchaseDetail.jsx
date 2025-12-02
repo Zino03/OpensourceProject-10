@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate, useParams } from "react-router-dom";
 import { FaRegBell, FaTrashAlt } from "react-icons/fa"; // 삭제 아이콘 추가
-import { Map, useKakaoLoader } from "react-kakao-maps-sdk";
+import { Map, CustomOverlayMap, useKakaoLoader } from "react-kakao-maps-sdk";
 import PurchaseModal from './modal/PurchaseModal';
 import InvoiceModal from './modal/InvoiceModal';
 import ReceiveModal from './modal/ReceiveModal';
@@ -333,17 +333,15 @@ const MapContainer = styled.div`
   background-color: #f0f0f0;
 `;
 
+// 마커 스타일 
 const MarkerPin = styled.div`
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-
-  opacity: ${props => props.$isActive ? 1 : 0.8};
-  transform: ${props => props.$isActive ? 'scale(1.2)' : 'scale(1)'};
+  opacity: 1;
+  transform: scale(1);
   transition: all 0.2s ease;
-  z-index: ${props => props.$isActive ? 999 : 1};
-  
   .img { height: 30px }
 `;
 
@@ -553,6 +551,13 @@ const GroupPurchaseDetail = () => {
   const [isDeliveryInfoModalOpen, setIsDeliveryInfoModalOpen] = useState(false);
   const [participantFilter, setParticipantFilter] = useState('delivery');
 
+  const [loading, error] = useKakaoLoader({
+    appkey: '1182ee2a992f45fb1db2238604970e19',
+    libraries: ["services"]
+  });
+
+  const [map, setMap] = useState(null);
+
   // ✅ 데이터 로드 함수
   const fetchPostDetail = async () => {
     const token = localStorage.getItem('accessToken');
@@ -751,6 +756,49 @@ const GroupPurchaseDetail = () => {
       }
   };
 
+  const handleParticipateClick = () => {
+  const token = localStorage.getItem("accessToken");
+
+  if (!token) {
+    alert("로그인이 필요한 서비스입니다.");
+    navigate("/login");
+    return;
+  }
+
+  setIsModalOpen(true);
+};
+
+const handleReportNotice = () => {
+  const token = localStorage.getItem("accessToken");
+
+  if (!token) {
+    alert("로그인이 필요한 서비스입니다.");
+    navigate("/login");
+    return;
+  }
+  else{
+    navigate("/notificationreport");
+  }
+};
+
+const handleReviewAction = () => {
+  const token = localStorage.getItem("accessToken");
+
+  if (!token) {
+    alert("로그인이 필요한 서비스입니다.");
+    navigate("/login");
+    return;
+  }
+  else{
+    navigate("/reviewreport");
+  }
+
+};
+
+
+  const latitude = post.latitude;
+  const longitude = post.longitude;
+
   return (
     <Container>
       <CategoryTag><span>{post.category || '카테고리'}</span> &gt;</CategoryTag>
@@ -842,22 +890,30 @@ const GroupPurchaseDetail = () => {
           </Section>
           <Section>
             <SectionHeader>수령장소</SectionHeader>
-            <MapContainer>
-                    { post.pickupAddress && post.pickupAddress.latitude ? (
-                        <Map
-                            center={{ lat: post.pickupAddress.latitude, lng: post.pickupAddress.longitude }}
-                            style={{ width: "100%", height: "100%" }}
-                            level={3}
-                        >
-                            <MarkerPin position={{ lat: post.pickupAddress.latitude, lng: post.pickupAddress.longitude }}>
-                                 <div style={{padding:"5px", color:"#000", fontSize:"12px"}}>수령 장소</div>
-                            </MarkerPin>
-                        </Map>
-                    ) : (
-                        <div style={{padding:'20px', textAlign:'center', color:'#999'}}>지도 정보가 없습니다.</div>
-                    )
-                  }
+            {loading ? (
+          <div>지도를 불러오는 중...</div>
+        ) : error ? (
+          <div>지도 로딩 실패</div>
+        ) : (
+          <MapContainer>
+              <Map
+                center={{ lat: latitude, lng: longitude }}
+                style={{ width: "100%", height: "100%" }}
+                level={3}
+                onCreate={setMap}
+              >
+                <CustomOverlayMap
+                  position={{ lat: latitude, lng: longitude }}
+                  yAnchor={1}
+                  zIndex={999}
+                >
+                  <MarkerPin>
+                    <img src="/images/marker.png" alt="marker" style={{ height: "30px" }} />
+                  </MarkerPin>
+                </CustomOverlayMap>
+              </Map>
             </MapContainer>
+          )}
           </Section>
         </>
       )}
@@ -894,7 +950,7 @@ const GroupPurchaseDetail = () => {
                             <FaTrashAlt /> 삭제
                         </ActionButton>
                     ) : (
-                        <ActionButton onClick={() => navigate("/notificationreport")}>
+                        <ActionButton onClick={handleReportNotice}>
                             <FaRegBell /> 신고
                         </ActionButton>
                     )}
@@ -924,8 +980,8 @@ const GroupPurchaseDetail = () => {
                         <UserName>{review.nickname || '익명'}</UserName>
                         <RatingText>별점 {review.score}점</RatingText>
                       </UserInfo>
-                      <ActionButton onClick={() => navigate("/reviewreport")}><FaRegBell /> 신고</ActionButton>
-                    </CommentHeader>
+                      <ActionButton onClick={handleReviewAction }><FaRegBell /> 신고</ActionButton>
+                    </CommentHeader>handleReviewAction 
                     <CommentContent>{review.content}</CommentContent>
                     <CommentDate>{review.createdAt ? review.createdAt.substring(0,10) : ''}</CommentDate>
                   </CommentItem>
@@ -981,7 +1037,7 @@ const GroupPurchaseDetail = () => {
       )}
 
       {/* 모달 컴포넌트들 */}
-      <PurchaseModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} product={{ ...product, quantity }} postId={id} />
+      <PurchaseModal onclick={handleParticipateClick} isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} product={{ ...product, quantity }} postId={id} />
       <InvoiceModal isOpen={isInvoiceModalOpen} onClose={() => setIsInvoiceModalOpen(false)} participants={filteredParticipants} onSave={handleInvoiceSave} />
       <ReceiveModal isOpen={isReceiveDateModalOpen} onClose={() => setIsReceiveDateModalOpen(false)} participants={filteredParticipants} onSave={handleReceiveDateSave} />
       <DeliveryInfoModal isOpen={isDeliveryInfoModalOpen} onClose={() => setIsDeliveryInfoModalOpen(false)} participants={filteredParticipants} />
