@@ -172,6 +172,7 @@ public class AuthService {
         data.clear();
         data.put("message", "로그인이 완료되었습니다");
         data.put("userNickname", optionalM.get().getUser().getNickname());
+        data.put("role", optionalM.get().getRole());
         data.put("token", tokenDto);
 
         return new ResponseEntity(data, HttpStatus.OK);
