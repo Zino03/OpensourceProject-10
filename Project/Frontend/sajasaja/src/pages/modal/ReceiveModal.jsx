@@ -128,36 +128,69 @@ const DatePickerWrapper = styled.div`
   }
 `;
 
+/* ⏰ 시간 입력 (HH, MM 두 칸) */
+const TimeInputWrapper = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+`;
+
 const TimeInput = styled.input`
-  width: 100%;
+  width: 60px;
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 12px;
   text-align: center;
   box-sizing: border-box;
-  
+
   &:focus {
     outline: none;
+    border-color: #FF7E36;
   }
+`;
+
+const TimeColon = styled.span`
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1;
 `;
 
 const ReceiveModal = ({ isOpen, onClose, participants, onSave }) => {
   // 로컬 상태 입력값 관리 (초기값은 부모에게서 받은 participants)
   const [RData, setRData] = useState([]);
 
+  // 문자열 / Date 모두 처리해서 Date 객체로 바꾸는 헬퍼
+  const toDateOrEmpty = (raw) => {
+    if (!raw) return '';
+    if (raw instanceof Date) return raw;
+    const d = new Date(raw);        // "2025-11-20" 같은 문자열 처리
+    return isNaN(d.getTime()) ? '' : d;
+  };
+
   // 모달이 열릴 때마다 데이터 동기화
   useEffect(() => {
     if (isOpen) {
-      // 기존 participants 데이터를 복사해서 state에 넣음
-      // pickup 정보가 없으면 빈 문자열로 초기화
-      setRData(participants.map(p => ({
-        id: p.id,
-        name: p.name,
-        nickname: p.nickname,
-        receiveDate: p.receive?.receiveDate || '',
-        receiveTime: p.receive?.receiveTime || ''
-      })));
+      setRData(
+        participants.map((p) => {
+          // 부모에서 넘겨주는 값: 우선 top-level, 없으면 p.receive 안에서 찾기
+          const receiveDateRaw = p.receiveDate || p.receive?.receiveDate || '';
+          const fullTime =
+            p.receiveTime || p.receive?.receiveTime || '';
+
+          const [hour = '', minute = ''] = fullTime.split(':');
+
+          return {
+            id: p.id,
+            name: p.name,
+            nickname: p.nickname,
+            receiveDate: toDateOrEmpty(receiveDateRaw),
+            receiveHour: hour,
+            receiveMinute: minute,
+          };
+        })
+      );
     }
   }, [isOpen, participants]);
 
@@ -165,28 +198,39 @@ const ReceiveModal = ({ isOpen, onClose, participants, onSave }) => {
 
   // 입력값 변경 핸들러
   const handleDateChange = (id, date) => {
-    setRData(prev => prev.map(item => 
-      item.id === id ? { ...item, receiveDate: date } : item
-    ));
+    setRData((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, receiveDate: date } : item
+      )
+    );
   };
 
-  const handleTimeChange = (id, e) => {
-    setRData(prev => prev.map(item => 
-      item.id === id ? { ...item, receiveTime: e.target.value } : item
-    ));
+  const handleTimeChange = (id, field, value) => {
+    // 숫자와 최대 2자리 제한
+    const onlyNum = value.replace(/[^0-9]/g, '').slice(0, 2);
+    setRData((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, [field]: onlyNum } : item
+      )
+    );
   };
 
   const handleSave = () => {
     // 저장할 때는 다시 문자열 포맷(YYYY-MM-DD, HH:mm)으로 변환하여 부모에게 전달
-    const formattedData = RData.map(item => {
-      const dateStr = item.receiveDate 
+    const formattedData = RData.map((item) => {
+      const dateStr = item.receiveDate
         ? item.receiveDate.toISOString().split('T')[0] // "2025-11-20"
         : '';
+
+      const timeStr =
+        item.receiveHour && item.receiveMinute
+          ? `${item.receiveHour}:${item.receiveMinute}`
+          : '';
 
       return {
         ...item,
         receiveDate: dateStr,
-        receiveTime: item.receiveTime
+        receiveTime: timeStr,
       };
     });
 
@@ -226,12 +270,33 @@ const ReceiveModal = ({ isOpen, onClose, participants, onSave }) => {
                     </DatePickerWrapper>
                   </td>
                   <td>
-                    <TimeInput 
-                      type="text" 
-                      value={row.receiveTime}
-                      placeholder="예) 14:00"
-                      onChange={(e) => handleTimeChange(row.id, e)}
-                    />
+                    <TimeInputWrapper>
+                      <TimeInput
+                        type="text"
+                        placeholder="HH"
+                        value={row.receiveHour}
+                        onChange={(e) =>
+                          handleTimeChange(
+                            row.id,
+                            'receiveHour',
+                            e.target.value
+                          )
+                        }
+                      />
+                      <TimeColon>:</TimeColon>
+                      <TimeInput
+                        type="text"
+                        placeholder="MM"
+                        value={row.receiveMinute}
+                        onChange={(e) =>
+                          handleTimeChange(
+                            row.id,
+                            'receiveMinute',
+                            e.target.value
+                          )
+                        }
+                      />
+                    </TimeInputWrapper>
                   </td>
                 </tr>
               ))}
@@ -243,7 +308,6 @@ const ReceiveModal = ({ isOpen, onClose, participants, onSave }) => {
           <CloseButton onClick={onClose}>닫기</CloseButton>
           <SaveButton onClick={handleSave}>저장</SaveButton>
         </ButtonGroup>
-
       </ModalContainer>
     </Overlay>
   );
