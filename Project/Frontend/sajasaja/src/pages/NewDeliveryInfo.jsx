@@ -2,11 +2,11 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import { api } from '../assets/setIntercepter'; // api 인스턴스
+import AddressFind from "./modal/AddressFind";
 
 /* ===========================
    공통 레이아웃 (기존 스타일 유지)
 =========================== */
-// ... (Container, PageTitle, Section, LabelRow 등 스타일 컴포넌트는 그대로 사용) ...
 const Container = styled.div`
   width: 100%;
   max-width: 1040px;
@@ -194,15 +194,16 @@ const NewDeliveryInfo = () => {
     p3: "",
   });
 
-  const [zipCode, setZipCode] = useState("");
-  const [roadAddr, setRoadAddr] = useState("");
-  const [detailAddr, setDetailAddr] = useState("");
+  const [zipCode, setZipCode] = useState(""); // 우편번호
+  const [roadAddr, setRoadAddr] = useState(""); // 도로명 주소
+  const [detailAddr, setDetailAddr] = useState(""); // 상세 주소
 
   // 공동현관 출입방법 (프론트엔드 키값)
-  const [entranceMethod, setEntranceMethod] = useState("password"); 
+  const [entranceMethod, setEntranceMethod] = useState("password");
   const [entranceDetail, setEntranceDetail] = useState("");
 
   const [agree, setAgree] = useState(false);
+  const [isAddressOpen, setIsAddressOpen] = useState(false);
 
   const isEmpty = (v) => !v || v.trim() === "";
 
@@ -211,6 +212,14 @@ const NewDeliveryInfo = () => {
     if (method === "free") {
       setEntranceDetail("");
     }
+  };
+
+  // ✅ [수정됨] 주소 검색 완료 핸들러
+  // 모달에서 전달해주는 data 객체에 zonecode(우편번호)와 address(주소)가 포함되어 있다고 가정합니다.
+  const handleAddressComplete = (data) => {
+    setZipCode(data.zonecode); // 우편번호 상태 업데이트
+    setRoadAddr(data.address); // 도로명 주소 상태 업데이트
+    setIsAddressOpen(false);   // 모달 닫기
   };
 
   // 백엔드 Enum 값 매핑 함수
@@ -242,15 +251,7 @@ const NewDeliveryInfo = () => {
     }
   };
 
-  const handleZipSearch = () => {
-    // TODO: 다음 주소 API 연동 필요
-    // 임시로 테스트용 주소 입력
-    setZipCode("12345");
-    setRoadAddr("충북 청주시 서원구 충대로 1");
-    alert("임시 주소가 입력되었습니다. (실제 주소 API 연동 필요)");
-  };
-
-  // ✅ [수정됨] 배송지 등록 API 호출
+  // 배송지 등록 API 호출
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -275,7 +276,7 @@ const NewDeliveryInfo = () => {
         street: roadAddr,         // 도로명 주소
         detail: detailAddr,       // 상세 주소
         entranceAccess: getEntranceAccessEnum(entranceMethod), // 출입방법 Enum
-        entranceDetail: entranceDetail, // 출입방법 상세
+        entranceDetail: entranceMethod === "free" ? "자유 출입" : entranceDetail,
         isDefault: isDefault      // 기본 배송지 여부
     };
 
@@ -289,10 +290,8 @@ const NewDeliveryInfo = () => {
         }
     } catch (error) {
         console.error("배송지 등록 실패:", error);
-        // 백엔드 유효성 검사 에러 메시지 처리
         if (error.response && error.response.data) {
              const errorData = error.response.data;
-             // 예: { "valid_phone": "...", "message": "..." }
              if(errorData.message) {
                  alert(errorData.message);
              } else {
@@ -383,11 +382,10 @@ const NewDeliveryInfo = () => {
             <ZipRow>
               <ZipInput
                 placeholder="우편번호"
-                value={zipCode}
-                onChange={(e) => setZipCode(e.target.value)}
-                readOnly // 우편번호는 검색 버튼으로만 입력
+                value={zipCode} // 상태값 연결
+                readOnly
               />
-              <ZipButton type="button" onClick={handleZipSearch}>
+              <ZipButton type="button" onClick={() => setIsAddressOpen(true)}>
                 우편번호
               </ZipButton>
             </ZipRow>
@@ -395,7 +393,7 @@ const NewDeliveryInfo = () => {
             <AddressBox>
               <AddressText>
                 <strong>도로명</strong>{" "}
-                {roadAddr || "도로명 주소를 입력해주세요."}
+                {roadAddr || "도로명 주소를 입력해주세요."} {/* 상태값 연결 */}
               </AddressText>
             </AddressBox>
 
@@ -409,7 +407,6 @@ const NewDeliveryInfo = () => {
 
         <Section>
           <SectionTitle>배송지 요청사항</SectionTitle>
-
           <LabelRow>
             <Label>공동현관 출입방법</Label>
             <RequiredDot>*</RequiredDot>
@@ -493,6 +490,13 @@ const NewDeliveryInfo = () => {
           <SubmitButton type="submit">확인</SubmitButton>
         </ButtonRow>
       </form>
+
+      {/* 모달 연동 */}
+      <AddressFind
+        isOpen={isAddressOpen}
+        onClose={() => setIsAddressOpen(false)}
+        onComplete={handleAddressComplete}
+      />
     </Container>
   );
 };
