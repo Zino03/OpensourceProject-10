@@ -32,6 +32,7 @@ public class UserResponseDto {
                 .profileImg(user.getProfileImg())
                 .accountBank(user.getAccountBank())
                 .account(user.getAccount())
+                .phone(user.getPhone())
                 .build();
     }
 }
