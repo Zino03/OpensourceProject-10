@@ -258,11 +258,11 @@ function MyProfile() {
         const jsonBlob = new Blob([JSON.stringify({})], { type: "application/json" });
         formData.append("user", jsonBlob);
 
-        const response = await api.put("/api/mypage/user", formData, {
+        const response = await api.patch("/api/mypage/user", formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
 
-        console.log(response.data)
+        console.log(response);
 
         // 백엔드 데이터 구조에 맞춰 추출 (응답 자체가 객체)
         const data = response.data.user || response.data; 
@@ -460,7 +460,7 @@ function MyProfile() {
         formData.append("image", imgFile);
       }
 
-      const response = await api.put("/api/mypage/user", formData, {
+      const response = await api.patch("/api/mypage/user", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -482,8 +482,6 @@ function MyProfile() {
   const handleCancel = () => {
     window.history.back();
   };
-
-  console.log(`${BACKEND_URL}${profileImage}`);
 
   return (
     <div style={styles.pageWrapper}>

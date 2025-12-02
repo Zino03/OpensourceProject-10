@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+import { api } from '../assets/setIntercepter';
 
 /* ===========================
    스타일 정의
@@ -221,6 +222,8 @@ const MyDeliveryInfo = () => {
 
   const handleNew = () => navigate("/newdelivery");
 
+
+
   // 🔥 수정: addr 전체를 state 로 넘겨서 EditMyDelivery에서 꺼내 쓸 수 있게
   const handleEdit = (addr) => {
     navigate("/editdelivery", {
@@ -229,6 +232,15 @@ const MyDeliveryInfo = () => {
       },
     });
   };
+
+  // const handleFinalSubmit = async () =>{
+  //   const response = await api.get('/api/mypage/address', formData, {
+  //           headers: {
+  //             'Authorization': `Bearer ${token}`,
+  //             'Content-Type': undefined,
+  //           },
+  //         })
+  //       };
 
   const handleDelete = (id) => {
     if (window.confirm("해당 배송지를 삭제하시겠습니까?")) {
