@@ -248,8 +248,10 @@ const MyDeliveryInfo = () => {
   const handleEdit = (addr) => {
     navigate("/editdelivery", {
       state: {
-        addressId: addr.id,
-        ...addr.originalData 
+        address: {
+          addressId: addr.id,
+          ...addr.originalData 
+        }
       },
     });
   };

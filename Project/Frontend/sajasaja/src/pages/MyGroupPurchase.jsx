@@ -229,9 +229,9 @@ const MyGroupPurchase = () => {
                   src="/images/sample-product.png" // 썸네일 이미지 경로 맞게 수정
                   alt={g.title}
                   style={styles.thumbImg}
-                  onError={(e) => {
-                    e.currentTarget.src = "/images/sample-product-fallback.png";
-                  }}
+                  // onError={(e) => {
+                  //   e.currentTarget.src = "/images/sample-product-fallback.png";
+                  // }}
                 />
               </div>
 
