@@ -19,6 +19,7 @@ public interface PostRepository extends JpaRepository<Post, Long>, JpaSpecificat
         FROM post p
         JOIN address a ON p.pickup_address_id = a.id
         WHERE p.is_canceled = false
+          AND p.status IN (1, 2)
         ORDER BY
             (6371 * ACOS(
                 COS(RADIANS(:lat)) * COS(RADIANS(a.latitude)) *
@@ -31,6 +32,7 @@ public interface PostRepository extends JpaRepository<Post, Long>, JpaSpecificat
         FROM post p
         JOIN address a ON p.pickup_address_id = a.id
         WHERE p.is_canceled = false
+          AND p.status IN (1, 2)
         """,
             nativeQuery = true)
     Page<Post> findNearPosts(
@@ -38,6 +40,8 @@ public interface PostRepository extends JpaRepository<Post, Long>, JpaSpecificat
             @Param("lon") double lon,
             Pageable pageable
     );
+
+
     Optional<Post> findById(Long id);
 
     Page<Post> findByHost(User user, Pageable pageable);
