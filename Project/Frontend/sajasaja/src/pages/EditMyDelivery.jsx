@@ -270,7 +270,10 @@ const EditMyDelivery = () => {
 
   const [agree, setAgree] = useState(false); // 수정 시에도 다시 동의 받으려면 false 유지
 
-  const isEmpty = (v) => !v || v.trim() === "";
+  const isEmpty = (v) => {
+    if (typeof v !== "string") return true; // 문자열이 아니면 빈 값 취급
+    return v.trim() === "";
+  };
 
   const handleEntranceChange = (method) => {
     setEntranceMethod(method);
