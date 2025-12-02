@@ -348,6 +348,8 @@ const GroupPurchaseRegister = () => {
       });
 
       if (response.status === 200 || response.status === 201) {
+        // console.log(response.data)
+
         alert("공구 등록이 완료되었습니다!");
         setIsConfirmModalOpen(false);
 
@@ -356,8 +358,9 @@ const GroupPurchaseRegister = () => {
       }
 
     } catch (error) {
-      console.error("등록 에러:", error);
-      alert("등록 중 오류가 발생했습니다. 다시 시도해주세요.");
+      console.error("등록 에러:", error.response.data);
+      alert(error.response.data.message);
+      // alert("등록 중 오류가 발생했습니다. 다시 시도해주세요.");
       setIsConfirmModalOpen(false);
     }
   };
@@ -544,7 +547,7 @@ const GroupPurchaseRegister = () => {
             <ComplexRow>
               <StyledInput 
                 type="text" 
-                placeholder="ex)20210304"
+                placeholder="ex) 2005-01-13"
                 style={{ flex: 1 }}
                 value={deadLine}
                 onChange={(e) => setDeadLine(e.target.value)}
