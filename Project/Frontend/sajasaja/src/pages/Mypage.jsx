@@ -110,6 +110,8 @@ const styles = {
   },
 };
 
+const BACKEND_URL = "http://192.168.31.28:8080";
+
 const MyPage = () => {
   const navigate = useNavigate();
   
@@ -119,7 +121,6 @@ const MyPage = () => {
 
   // 사용되는 모든 상수를 컴포넌트 스코프 내부에 정의했습니다. (no-undef 해결)
   const userNickname = localStorage.getItem("user_nickname"); 
-  const defaultProfileCircle = "/images/profilecircle.svg";
   const defaultProfileFilled = "/images/filledprofile.svg";
 
   //  useEffect: 컴포넌트 마운트 시 사용자 정보 fetch
@@ -139,6 +140,7 @@ const MyPage = () => {
       try {
         // '/api/user/{nickname}' 엔드포인트는 ProfileResponseDto를 반환합니다.
         const response = await api.get(`/api/user/${userNickname}`);
+        console.log(response.data.profile);
 
         setMemberInfo(response.data.profile);
       } catch (error) {
@@ -182,9 +184,10 @@ const MyPage = () => {
       ? memberInfo.mannerScore.toFixed(2) : "N/A";
   
   // 프로필 이미지 (FIX: profileImage 변수를 JSX에서 사용하도록 수정하여 경고 제거)
-  const profileImage = memberInfo?.profileImg || defaultProfileCircle;
-
-
+  const profileImage = memberInfo?.profileImg 
+    ? `${BACKEND_URL}${memberInfo.profileImg}` 
+    : defaultProfileFilled;
+  console.log(profileImage);
   return (
     <div style={styles.page}>
       <div style={styles.inner}>

@@ -1,9 +1,8 @@
 // 파일 위치: src/pages/MyProfile.jsx
-import React, { useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { api, setInterceptor } from "../assets/setIntercepter"; // api 인스턴스 import
+import { api, setInterceptor } from "../assets/setIntercepter";
 
-// 🔥 은행 리스트 (파일은 public/images/banklogo/*.svg 기준)
 const bankOptions = [
   { id: "shinhan", name: "신한", logo: "/images/banklogo/shinhan.svg" },
   { id: "kb", name: "국민", logo: "/images/banklogo/kb.svg" },
@@ -78,7 +77,6 @@ const styles = {
     background: "transparent",
     cursor: "pointer",
   },
-
   form: {
     display: "flex",
     flexDirection: "column",
@@ -93,7 +91,6 @@ const styles = {
     fontSize: "13px",
     fontWeight: "600",
   },
-
   inputRow: {
     display: "flex",
     gap: "8px",
@@ -101,7 +98,6 @@ const styles = {
     width: "100%",
     position: "relative",
   },
-
   input: {
     width: "100%",
     height: "39px",
@@ -113,14 +109,12 @@ const styles = {
     fontWeight: "600",
     boxSizing: "border-box",
   },
-
   disabledInput: {
     backgroundColor: "#f5f5f5",
     borderColor: "#e0e0e0",
     color: "#999999",
     cursor: "not-allowed",
   },
-
   smallButton: {
     position: "absolute",
     top: 5,
@@ -139,12 +133,10 @@ const styles = {
     cursor: "pointer",
     whiteSpace: "nowrap",
   },
-
   smallHelper: {
     fontSize: "12px",
     color: "#979797",
   },
-
   footerButtons: {
     marginTop: "34px",
     display: "flex",
@@ -170,8 +162,6 @@ const styles = {
     fontWeight: "500",
     cursor: "pointer",
   },
-
-  // 은행 드롭다운 관련
   bankSelectBox: {
     display: "flex",
     alignItems: "center",
@@ -215,28 +205,28 @@ const styles = {
   },
 };
 
+const BACKEND_URL = "http://192.168.31.28:8080";
+
 function MyProfile() {
   const navigate = useNavigate();
 
-  // 사용자 닉네임 가져오기
-  const userNickname = localStorage.getItem("user_nickname");
-
+  // 초기 상태를 모두 빈 문자열로 설정하여 uncontrolled -> controlled 에러 방지
   const [form, setForm] = useState({
     name: "",
     nickname: "",
     phone: "",
     email: "",
     password: "",
+    passwordConfirm: "",
     bank: "shinhan",
     accountNumber: "",
   });
 
-  // 초기값 저장 (중복체크 비교용)
   const [originalNickname, setOriginalNickname] = useState("");
   const [originalEmail, setOriginalEmail] = useState("");
 
-  const [profileImage, setProfileImage] = useState(null); // 미리보기용 URL
-  const [imgFile, setImgFile] = useState(null); // 실제 전송할 파일 객체
+  const [profileImage, setProfileImage] = useState(null);
+  const [imgFile, setImgFile] = useState(null);
 
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
@@ -249,70 +239,73 @@ function MyProfile() {
   const [emailMessage, setEmailMessage] = useState("");
   const [isEmailValid, setIsEmailValid] = useState(true);
 
-  const selectedBank = bankOptions.find((b) => b.id === form.bank) || bankOptions[0];
-  const defaultProfile = "/images/profile.png";
 
-  // ✅ 1. 초기 데이터 로드 (API 연동)
+  const selectedBank =
+    bankOptions.find((b) => b.id === form.bank) || bankOptions[0];
+  const defaultProfile = "/images/filledprofile.png";
+
   useEffect(() => {
     const fetchUserData = async () => {
-        const token = localStorage.getItem('accessToken');
-        if (!token || !userNickname || !setInterceptor(token)) {
-            // 인증 정보가 없으면 로그인 페이지로
-            navigate('/login');
-            return;
-        }
+      const token = localStorage.getItem("accessToken");
+      if (!token || !setInterceptor(token)) {
+        navigate("/login");
+        return;
+      }
 
-        try {
-            // 현재 백엔드에는 내 전체 정보(이메일, 계좌 포함)를 불러오는 전용 API가 명확하지 않습니다.
-            // 우선 프로필 조회 API를 사용하되, 상세 정보가 없다면 빈 값으로 처리합니다.
-            const response = await api.put(`/api/mypage/user`);
-            
-            // ProfileResponseDto 혹은 UserResponseDto 구조에 따라 데이터 접근
-            // (백엔드에서 보내주는 구조 확인 필요: response.data.profile 인지 response.data 인지)
-            const data = response.data.profile || response.data; 
+      try {
+        // PUT 요청으로 데이터 조회 (빈 JSON 전송)
+        const formData = new FormData();
+        const jsonBlob = new Blob([JSON.stringify({})], { type: "application/json" });
+        formData.append("user", jsonBlob);
 
-            setForm(prev => ({
-                ...prev,
-                email: data.email || "", 
-                nickname: data.nickname || "",
-                // 아래 정보들은 ProfileResponseDto에 없을 수 있음 -> 백엔드 추가 구현 권장
-                password: data.password,
-                phone: data.phone || undefined, 
-                accountBank: data.accountBank || "shinhan",
-                account: data.account || ""
-            }));
+        const response = await api.put("/api/mypage/user", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
 
-            // 변경 감지를 위한 초기값 저장
-            setOriginalNickname(data.nickname || "");
-            setOriginalEmail(data.email || "");
-            setProfileImage(data.profileImg); // 이미지 URL
+        // 백엔드 데이터 구조에 맞춰 추출 (응답 자체가 객체)
+        const data = response.data.user || response.data; 
+        console.log(data)
 
-        } catch (error) {
-            console.error("유저 정보 로드 실패:", error);
-            // 에러 시 처리 로직 (예: 로그인 만료 등)
-        }
+        // null 체크를 하여 빈 문자열 할당 (에러 해결 핵심)
+        setForm((prev) => ({
+          ...prev,
+          name: data.name || prev.name || "사용자", 
+          nickname: data.nickname || "",
+          email: data.email || "",
+          phone: data.phone || "",
+          bank: data.accountBank || "shinhan",
+          accountNumber: data.account || "",
+          password: "",
+          passwordConfirm: "",
+        }));
+
+        setOriginalNickname(data.nickname || "");
+        setOriginalEmail(data.email || "");
+        setProfileImage(data.profileImg); 
+
+      } catch (error) {
+        console.error("유저 정보 로드 실패:", error);
+      }
     };
-    fetchUserData();
-  }, [userNickname, navigate]);
 
+    fetchUserData();
+  }, [navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
 
-    // 닉네임 변경 감지
     if (name === "nickname") {
       const trimmed = value.trim();
       if (trimmed === originalNickname) {
         setIsNicknameValid(true);
         setNicknameMessage("");
       } else {
-        setIsNicknameValid(null); // 중복확인 필요 상태
+        setIsNicknameValid(null);
         setNicknameMessage("");
       }
     }
 
-    // 이메일 변경 감지
     if (name === "email") {
       const trimmed = value.trim();
       setEmailError("");
@@ -325,22 +318,19 @@ function MyProfile() {
     }
   };
 
-  // ✅ 2. 이미지 파일 선택 핸들러
   const handleImageChange = (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
 
-    setImgFile(file); // 전송할 파일 상태 저장
+    setImgFile(file);
 
-    // 미리보기 생성
     const reader = new FileReader();
     reader.onloadend = () => {
-      setProfileImage(reader.result); 
+      setProfileImage(reader.result);
     };
     reader.readAsDataURL(file);
   };
 
-  // ✅ 3. 닉네임 중복확인 (API 연동)
   const handleNicknameCheck = async () => {
     const nickname = (form.nickname || "").trim();
 
@@ -357,22 +347,22 @@ function MyProfile() {
     }
 
     try {
-        // 백엔드: 중복이면 true, 사용가능하면 false 반환
-        const response = await api.get(`/api/check/nickname`, { params: { value: nickname } });
-        if (response.data === true) {
-            setNicknameMessage("이미 사용중인 닉네임입니다.");
-            setIsNicknameValid(false);
-        } else {
-            setNicknameMessage("사용가능한 닉네임입니다.");
-            setIsNicknameValid(true);
-        }
+      const response = await api.get(`/api/check/nickname`, {
+        params: { value: nickname },
+      });
+      if (response.data === true) {
+        setNicknameMessage("이미 사용중인 닉네임입니다.");
+        setIsNicknameValid(false);
+      } else {
+        setNicknameMessage("사용가능한 닉네임입니다.");
+        setIsNicknameValid(true);
+      }
     } catch (error) {
-        console.error("닉네임 중복확인 오류:", error);
-        setNicknameMessage("확인 중 오류가 발생했습니다.");
+      console.error("닉네임 중복확인 오류:", error);
+      setNicknameMessage("확인 중 오류가 발생했습니다.");
     }
   };
 
-  // ✅ 4. 이메일 중복확인 (API 연동)
   const handleEmailCheck = async () => {
     const email = (form.email || "").trim();
 
@@ -382,10 +372,11 @@ function MyProfile() {
       return;
     }
 
-    // 형식 체크
     const hasAt = email.includes("@");
-    const allowedDomains = [".com", ".net", ".ac.kr"];
-    const hasValidDomain = allowedDomains.some((domain) => email.endsWith(domain));
+    const allowedDomains = [".com", ".net", ".co.kr", ".ac.kr"];
+    const hasValidDomain = allowedDomains.some((domain) =>
+      email.endsWith(domain)
+    );
 
     if (!hasAt || !hasValidDomain) {
       setEmailError("이메일 형식이 올바르지 않습니다.");
@@ -402,95 +393,86 @@ function MyProfile() {
     }
 
     try {
-        // 백엔드: 중복이면 true, 사용가능하면 false
-        const response = await api.get(`/api/check/email`, { params: { value: email } });
-        if (response.data === true) {
-            setEmailError("");
-            setEmailMessage("이미 사용중인 이메일입니다.");
-            setIsEmailValid(true);
-        } else {
-            setEmailError("");
-            setEmailMessage("사용가능한 이메일입니다.");
-            setIsEmailValid(true);
-        }
+      const response = await api.get(`/api/check/email`, {
+        params: { value: email },
+      });
+      if (response.data === true) {
+        setEmailError("");
+        setEmailMessage("이미 사용중인 이메일입니다.");
+        setIsEmailValid(false);
+      } else {
+        setEmailError("");
+        setEmailMessage("사용가능한 이메일입니다.");
+        setIsEmailValid(true);
+      }
     } catch (error) {
-        console.error("이메일 중복확인 오류:", error);
-        setEmailMessage("확인 중 오류가 발생했습니다.");
+      console.error("이메일 중복확인 오류:", error);
+      setEmailMessage("확인 중 오류가 발생했습니다.");
     }
   };
 
-  // ✅ 5. 최종 수정 요청 (API 연동)
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     let hasError = false;
 
-    // 닉네임 확인
     if (isNicknameValid !== true) {
-      if (!nicknameMessage) setNicknameMessage("닉네임 중복확인을 해주세요.");
+      if (!nicknameMessage)
+        setNicknameMessage("닉네임 중복확인을 해주세요.");
       hasError = true;
     }
 
-    // 이메일 확인
     if (isEmailValid !== true) {
       if (!emailMessage) setEmailMessage("이메일 중복확인을 해주세요.");
       hasError = true;
     }
 
-    // 비밀번호 확인 (입력된 경우만 검사)
     if (form.password && form.password.length < 8) {
-        setPasswordError("비밀번호는 최소 8자 이상이어야 합니다.");
-        hasError = true;
+      setPasswordError("비밀번호는 최소 8자 이상이어야 합니다.");
+      hasError = true;
     }
     if (form.password !== form.passwordConfirm) {
-        setPasswordMatchMessage("비밀번호가 일치하지 않습니다.");
-        hasError = true;
+      setPasswordMatchMessage("비밀번호가 일치하지 않습니다.");
+      hasError = true;
     }
 
     if (hasError) return;
 
     try {
-        // FormData 생성 (Multipart/form-data 요청)
-        const formData = new FormData();
+      const formData = new FormData();
+      const requestData = {
+        nickname: form.nickname,
+        email: form.email,
+        password: form.password || undefined,
+        accountBank: form.bank,
+        account: form.accountNumber,
+      };
 
-        // JSON 데이터 구성 (UserRequestDto 구조에 맞춤)
-        const requestData = {
-            nickname: form.nickname,
-            email: form.email,
-            // 비밀번호는 비어있으면 보내지 않거나, 백엔드에서 null 체크하므로 undefined로 처리
-            password: form.password || undefined, 
-            accountBank: form.bank,
-            account: form.accountNumber
-        };
-        
-        // JSON 객체를 Blob으로 변환하여 'user' 파트에 추가
-        const jsonBlob = new Blob([JSON.stringify(requestData)], { type: "application/json" });
-        formData.append("user", jsonBlob);
+      const jsonBlob = new Blob([JSON.stringify(requestData)], {
+        type: "application/json",
+      });
+      formData.append("user", jsonBlob);
 
-        // 이미지 파일이 있다면 'image' 파트에 추가
-        if (imgFile) {
-            formData.append("image", imgFile);
+      if (imgFile) {
+        formData.append("image", imgFile);
+      }
+
+      const response = await api.put("/api/mypage/user", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (response.status === 200 || response.status === 201) {
+        alert("정보가 저장되었습니다.");
+        if (form.nickname !== originalNickname) {
+          localStorage.setItem("user_nickname", form.nickname);
         }
-
-        // PUT 요청 전송
-        const response = await api.put("/api/mypage/user", formData, {
-            headers: {
-                "Content-Type": "multipart/form-data",
-            },
-        });
-
-        if (response.status === 200 || response.status === 201) {
-            alert("정보가 저장되었습니다.");
-            
-            // 닉네임이 변경되었다면 로컬 스토리지도 업데이트
-            if (form.nickname !== originalNickname) {
-                localStorage.setItem("user_nickname", form.nickname);
-            }
-            navigate("/mypage");
-        }
+        navigate("/mypage");
+      }
     } catch (error) {
-        console.error("정보 수정 실패:", error);
-        alert("정보 수정 중 오류가 발생했습니다. 다시 시도해주세요.");
+      console.error("정보 수정 실패:", error);
+      alert("정보 수정 중 오류가 발생했습니다. 다시 시도해주세요.");
     }
   };
 
@@ -498,19 +480,20 @@ function MyProfile() {
     window.history.back();
   };
 
+  console.log(`${BACKEND_URL}${profileImage}`);
+
   return (
     <div style={styles.pageWrapper}>
       <h1 style={styles.title}>내 정보 수정</h1>
 
       <div style={styles.card}>
-        {/* 프로필 이미지 영역 */}
         <div style={styles.profileRow}>
           <div style={styles.profileImgWrapper}>
-            <img 
-                src={profileImage || defaultProfile} 
-                style={styles.profileImg} 
-                alt="profile" 
-                onError={(e) => e.target.src = defaultProfile} 
+            <img
+              src={`${BACKEND_URL}${profileImage}` || defaultProfile}
+              style={styles.profileImg}
+              alt="profile"
+              onError={(e) => (e.target.src = defaultProfile)}
             />
           </div>
 
@@ -529,9 +512,7 @@ function MyProfile() {
           </label>
         </div>
 
-        {/* 폼 영역 */}
         <form style={styles.form} onSubmit={handleSubmit}>
-          {/* 이름 (변경 불가) */}
           <div style={styles.field}>
             <label style={styles.label}>이름</label>
             <input
@@ -543,7 +524,6 @@ function MyProfile() {
             <span style={styles.smallHelper}>변경 불가한 항목입니다.</span>
           </div>
 
-          {/* 닉네임 */}
           <div style={styles.field}>
             <label style={styles.label}>닉네임</label>
             <div style={styles.inputRow}>
@@ -575,7 +555,6 @@ function MyProfile() {
             )}
           </div>
 
-          {/* 전화번호 (변경 불가) */}
           <div style={styles.field}>
             <label style={styles.label}>전화번호</label>
             <input
@@ -583,11 +562,11 @@ function MyProfile() {
               style={{ ...styles.input, ...styles.disabledInput }}
               value={form.phone}
               readOnly
+              placeholder="예) 01012345678"
             />
             <span style={styles.smallHelper}>변경 불가한 항목입니다.</span>
           </div>
 
-          {/* 이메일 */}
           <div style={styles.field}>
             <label style={styles.label}>아이디(이메일)</label>
             <div style={styles.inputRow}>
@@ -625,7 +604,6 @@ function MyProfile() {
             )}
           </div>
 
-          {/* 비밀번호 */}
           <div style={styles.field}>
             <label style={styles.label}>비밀번호</label>
             <input
@@ -642,9 +620,11 @@ function MyProfile() {
                   setPasswordError("");
                 }
                 if (form.passwordConfirm) {
-                    setPasswordMatchMessage(
-                        value === form.passwordConfirm ? "비밀번호가 일치합니다." : "비밀번호가 일치하지 않습니다."
-                    );
+                  setPasswordMatchMessage(
+                    value === form.passwordConfirm
+                      ? "비밀번호가 일치합니다."
+                      : "비밀번호가 일치하지 않습니다."
+                  );
                 }
               }}
               placeholder="변경할 경우에만 입력하세요"
@@ -656,7 +636,6 @@ function MyProfile() {
             )}
           </div>
 
-          {/* 비밀번호 확인 */}
           <div style={styles.field}>
             <label style={styles.label}>비밀번호 확인</label>
             <input
@@ -668,7 +647,9 @@ function MyProfile() {
                 handleChange(e);
                 const value = e.target.value;
                 setPasswordMatchMessage(
-                    value === form.password ? "비밀번호가 일치합니다." : "비밀번호가 일치하지 않습니다."
+                  value === form.password
+                    ? "비밀번호가 일치합니다."
+                    : "비밀번호가 일치하지 않습니다."
                 );
               }}
             />
@@ -687,7 +668,6 @@ function MyProfile() {
             )}
           </div>
 
-          {/* 계좌 */}
           <div style={styles.field}>
             <label style={styles.label}>계좌</label>
             <div style={{ display: "flex", gap: "8px", width: "100%" }}>
@@ -740,7 +720,11 @@ function MyProfile() {
                   <img
                     src="/images/undertriangle.svg"
                     alt="arrow"
-                    style={{ width: "7px", height: "7px", marginLeft: "3px" }}
+                    style={{
+                      width: "7px",
+                      height: "7px",
+                      marginLeft: "3px",
+                    }}
                   />
                 </div>
 
