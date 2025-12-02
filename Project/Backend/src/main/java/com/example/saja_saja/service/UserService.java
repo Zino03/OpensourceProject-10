@@ -84,7 +84,9 @@ public class UserService {
             UserAddress newAddress = req.toUserAddress(user);
 
             if (!newAddress.getEntranceAccess().equals(EntranceAccess.FREE)) {
-                throw new BadRequestException("공동현관 출입방법 상세내용을 입력하세요.", null);
+                if (newAddress.getEntranceDetail() == null || newAddress.getEntranceDetail().isEmpty()) {
+                    throw new BadRequestException("공동현관 출입방법 상세내용을 입력하세요.", null);
+                }
             }
 
             if (newAddress.getIsDefault()) {
