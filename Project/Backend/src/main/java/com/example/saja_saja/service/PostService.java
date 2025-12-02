@@ -31,6 +31,7 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final BuyerService buyerService;
+    private final BuyerRepository buyerRepository;
     private final AddressRepository addressRepository;
     private final ImageService imageService;
     private final UserRepository userRepository;
@@ -103,7 +104,8 @@ public class PostService {
 
         if(member != null
                 && !member.getRole().equals(Role.ADMIN)
-                && !post.getHost().equals(member.getUser())) { // 주최자가 아닌 일반 사용자이면
+                && !postEntity.getHost().equals(member.getUser())) { // 주최자가 아닌 일반 사용자이면
+
             if (post.getStatus().equals(0)||post.getStatus().equals(4)) {
                 throw new BadRequestException("확인할 수 없는 공동구매 게시글입니다.", null);
             }
@@ -151,7 +153,16 @@ public class PostService {
 
         List<UserPostListResponseDto> list = page
                 .stream()
-                .map(UserPostListResponseDto::of)
+                .map(post -> {
+                    Boolean isSettled = false;
+                    if (post.getQuantity().equals(post.getCurrentPaidQuantity())) {
+                        boolean hasUnsettledBuyers = buyerRepository
+                                .existsByPostAndIsCanceledAndIsPaidNot(post, false, 2);
+                        isSettled = !hasUnsettledBuyers;
+                    }
+
+                    return UserPostListResponseDto.of(post, isSettled);
+                })
                 .toList();
 
         // 본인의 주최공구를 조회하는 것이 아니라면
