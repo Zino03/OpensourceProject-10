@@ -140,8 +140,6 @@ const MyPage = () => {
       try {
         // '/api/user/{nickname}' 엔드포인트는 ProfileResponseDto를 반환합니다.
         const response = await api.get(`/api/user/${userNickname}`);
-        console.log(response.data.profile);
-
         setMemberInfo(response.data.profile);
       } catch (error) {
         console.error("프로필 정보 조회 실패:", error);
@@ -187,7 +185,6 @@ const MyPage = () => {
   const profileImage = memberInfo?.profileImg 
     ? `${BACKEND_URL}${memberInfo.profileImg}` 
     : defaultProfileFilled;
-  console.log(profileImage);
   return (
     <div style={styles.page}>
       <div style={styles.inner}>

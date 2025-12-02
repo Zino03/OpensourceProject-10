@@ -242,7 +242,7 @@ function MyProfile() {
 
   const selectedBank =
     bankOptions.find((b) => b.id === form.bank) || bankOptions[0];
-  const defaultProfile = "/images/filledprofile.png";
+  const defaultProfile = "/images/filledprofile.svg";
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -262,9 +262,10 @@ function MyProfile() {
           headers: { "Content-Type": "multipart/form-data" },
         });
 
+        console.log(response.data)
+
         // 백엔드 데이터 구조에 맞춰 추출 (응답 자체가 객체)
         const data = response.data.user || response.data; 
-        console.log(data)
 
         // null 체크를 하여 빈 문자열 할당 (에러 해결 핵심)
         setForm((prev) => ({
@@ -281,7 +282,9 @@ function MyProfile() {
 
         setOriginalNickname(data.nickname || "");
         setOriginalEmail(data.email || "");
-        setProfileImage(data.profileImg); 
+        if (data.profileImg) {
+          setProfileImage(`${data.profileImg}`);
+        }
 
       } catch (error) {
         console.error("유저 정보 로드 실패:", error);
@@ -490,7 +493,7 @@ function MyProfile() {
         <div style={styles.profileRow}>
           <div style={styles.profileImgWrapper}>
             <img
-              src={`${BACKEND_URL}${profileImage}` || defaultProfile}
+              src={`${profileImage}` || defaultProfile}
               style={styles.profileImg}
               alt="profile"
               onError={(e) => (e.target.src = defaultProfile)}

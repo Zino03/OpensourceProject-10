@@ -319,7 +319,6 @@ const GroupPurchaseRegister = () => {
           endAt: formattedDate,
           deliveryFee: isDelivery ? Number(deliveryFee) : 0,
           pickupAddress: {
-            id: 0,
             street: `${address},${detailAddress}`,
             latitude: latitude, 
             longitude: longitude
