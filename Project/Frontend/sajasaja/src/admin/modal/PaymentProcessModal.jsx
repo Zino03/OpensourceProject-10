@@ -22,7 +22,7 @@ const ModalContainer = styled.div`
   padding: 20px;
   display: flex;
   flex-direction: column;
-  max-height: 80vh;
+  max-height: 85vh;
   overflow-y: auto;
 `;
 
@@ -159,7 +159,7 @@ const PaymentProcessModal = ({ isOpen, onClose, data, onSave }) => {
     setInterceptor(token);
 
     try {
-      const response = await api.put(
+      const response = await api.patch(
         `/api/admin/buyer/${data.id}?process=${process}`
       );
 

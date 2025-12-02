@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import PostManageModal from "./modal/PostManageModal";
 import CustomSelect from "../components/CustomSelect";
@@ -84,11 +84,21 @@ const Pagination = styled.div`
   margin-top: 20px;
   font-size: 11px;
 
-  span {
+  button {
     cursor: pointer;
-    padding: 0 8px;
+    padding: 4px 8px;
+    background: none;
+    border: none;
+    font-size: 11px;
+    
+    &:disabled {
+        color: #ccc;
+        cursor: default;
+    }
+
     &.active {
-      font-weight: 600;
+      font-weight: 700;
+      color: #000;
     }
   }
 `;
@@ -101,53 +111,80 @@ const NoResult = styled.div`
   font-size: 14px;
 `;
 
+// 백엔드 process 값과 매핑: -1(전체), 0(대기), 1(승인), 4(반려)
 const statusOptions = [
-  { value: "all", label: "전체" },
-  { value: "waiting", label: "대기" },
-  { value: "approve", label: "승인" },
-  { value: "companion", label: "반려" },
+  { value: -1, label: "전체" },
+  { value: 0, label: "대기" },
+  { value: 1, label: "승인" },
+  { value: 4, label: "반려" },
 ];
 
-const AdminPaymentManage = () => {
+const AdminPostManage = () => {
   const [posts, setPosts] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
+  
+  // 필터 및 검색 상태
+  const [filterStatus, setFilterStatus] = useState(-1); // 기본값 전체(-1)
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  
+  // 페이지네이션 상태
+  const [page, setPage] = useState(0); // 현재 페이지 (0부터 시작)
+  const [totalPages, setTotalPages] = useState(0);
 
+  // 데이터 로드 (페이지, 필터, 검색어 변경 시 실행)
   useEffect(() => {
     loadData();
-  }, []);
-
-  useEffect(() => {
-    if (isModalOpen === false) {
-      loadData();
-    }
-  }, [isModalOpen]);
+  }, [page, filterStatus, searchQuery]);
 
   const loadData = async () => {
     const token = localStorage.getItem("accessToken");
-
     if (!token) {
       window.location.href = "/";
+      return;
     }
 
     setInterceptor(token);
 
     try {
-      const response = await api.get("/api/admin/posts");
+      const response = await api.get("/api/admin/posts", {
+        params: {
+            page: page,
+            size: 15,
+            process: filterStatus, // -1, 0, 1, 4
+            searchQuery: searchQuery // 검색어
+        }
+      });
 
-      console.log(response.data);
-
-      setPosts(response.data.posts);
+      console.log("데이터 로드:", response.data);
+      
+      // 배열 데이터 설정
+      setPosts(response.data.posts || []);
+      setTotalPages(response.data.totalPages || 0);
+      
     } catch (err) {
-      console.log(err);
-
-      if (err.response) {
-        alert(`${err.response.data.message || "알 수 없는 오류"}`);
-      } else {
-        // 네트워크 오류 등
-        alert("서버와 연결할 수 없습니다.");
+      console.error("데이터 로드 실패:", err);
+      if (err.response && err.response.status === 403) {
+          alert("관리자 권한이 없습니다.");
       }
     }
+  };
+
+  const handleSearch = () => {
+      setSearchQuery(searchInput);
+      setPage(0); // 검색 시 1페이지로 초기화
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
+
+  const handleFilterChange = (e) => {
+      setFilterStatus(parseInt(e.target.value));
+      setPage(0); // 필터 변경 시 1페이지로 초기화
   };
 
   const handleManageClick = (post) => {
@@ -160,73 +197,78 @@ const AdminPaymentManage = () => {
     setSelectedPost(null);
   };
 
-  const handleModalAction = (actionType, postId) => {
-    console.log(`Action: ${actionType}, Post ID: ${postId}`);
+  const handleModalAction = async (actionType, postId) => {
+    let processValue = 0;
+    if (actionType === "approve") processValue = 1;
+    else if (actionType === "companion") processValue = 4; // 백엔드에서 반려 코드는 4
+    else return;
 
-    // 임시
-    let newStatus = "대기";
-    switch (actionType) {
-      case "approve":
-        newStatus = "승인";
-        break;
-      case "companion":
-        newStatus = "반려";
-        break;
-      default:
-        return;
-    }
+    try {
+      const response = await api.patch(`/api/admin/post/${postId}`, null, {
+        params: { process: processValue }
+      });
 
-    setPosts((prevPosts) =>
-      prevPosts.map((post) =>
-        post.id === postId ? { ...post, status: newStatus } : post
-      )
-    );
-  };
-
-  const [searchInputValue, setSearchInputValue] = useState("");
-  const [confirmedSearchTerm, setConfirmedSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState("all");
-
-  // 엔터 감지
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
-      setConfirmedSearchTerm(searchInputValue);
+      if (response.status === 200) {
+        alert("처리가 완료되었습니다.");
+        setIsModalOpen(false);
+        loadData(); // 목록 새로고침
+      }
+    } catch (err) {
+      console.error("처리 실패:", err);
+      alert(err.response?.data?.message || "오류가 발생했습니다.");
     }
   };
 
-  const filteredPost = useMemo(() => {
-    return posts.filter((post) => {
-      // 상태 필터링
-      const statusMatch =
-        filterStatus === "all" || post.status === filterStatus;
+  // 페이지네이션 버튼 렌더링 로직 (5개씩 끊어서 보여주기)
+  const renderPagination = () => {
+      const pageGroupSize = 5;
+      const currentGroup = Math.floor(page / pageGroupSize);
+      const startPage = currentGroup * pageGroupSize;
+      const endPage = Math.min(startPage + pageGroupSize, totalPages);
+      
+      const pages = [];
+      for (let i = startPage; i < endPage; i++) {
+          pages.push(
+              <button 
+                  key={i} 
+                  onClick={() => setPage(i)}
+                  className={page === i ? 'active' : ''}
+              >
+                  {i + 1}
+              </button>
+          );
+      }
+      return pages;
+  };
 
-      // 검색어 필터링 (모든 필드 검사)
-      // 데이터 객체의 값들(Values)만 뽑아서 배열로 만든 뒤, 하나라도 검색어를 포함하는지 확인
-      const searchMatch = Object.values(post).some((val) =>
-        String(val).toLowerCase().includes(confirmedSearchTerm.toLowerCase())
-      );
+  // 상태 표시 헬퍼 함수
+  const getStatusInfo = (status) => {
+      // status: 0(대기), 1~3(승인/진행중), 4(반려)
+      if (status === 1 || status === 2 || status === 3) return { class: "approve", text: "승인" };
+      if (status === 4) return { class: "companion", text: "반려" };
+      return { class: "waiting", text: "대기" };
+  };
 
-      return statusMatch && searchMatch; // 두 조건 모두 만족해야 함
-    });
-  }, [confirmedSearchTerm, filterStatus, posts]);
-
-  // 콘텐츠 렌더링
   return (
     <>
       <SearchBar>
         <input
           type="text"
-          placeholder="검색"
-          value={searchInputValue}
-          onChange={(e) => setSearchInputValue(e.target.value)}
+          placeholder="공구 제목 검색"
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
           onKeyDown={handleKeyDown}
         />
-        <CustomSelect
-          value={filterStatus}
-          onChange={(val) => setFilterStatus(val)}
-          options={statusOptions}
-          style={{ width: "80px" }}
-        ></CustomSelect>
+        {/* CustomSelect 대신 네이티브 select 사용 (이벤트 핸들링 간소화) */}
+        <select 
+            value={filterStatus} 
+            onChange={handleFilterChange}
+            style={{ width: "80px", padding: "8px", borderRadius: "8px", border: "1px solid #ddd", fontSize: "11px" }}
+        >
+            {statusOptions.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+        </select>
       </SearchBar>
 
       <Table>
@@ -241,31 +283,30 @@ const AdminPaymentManage = () => {
           </tr>
         </thead>
         <tbody>
-          {filteredPost.length > 0 ? (
-            filteredPost.map((post, i) => (
-              <tr key={post.id}>
-                <td>{i + 1}</td>
-                <td>{post.title}</td>
-                <td>{post.hostNickname}</td>
-                <td>{formatDate(post.endAt)}</td>
-                <td>{formatDate(post.createdAt)}</td>
-                <td>
-                  <StatusButton
-                    className={post.process}
-                    onClick={() => handleManageClick(post)}
-                  >
-                    {post.process === 1
-                      ? "승인"
-                      : post.status === 4
-                      ? "반려"
-                      : "대기"}
-                  </StatusButton>
-                </td>
-              </tr>
-            ))
+          {posts && posts.length > 0 ? (
+            posts.map((post, i) => {
+              const statusInfo = getStatusInfo(post.process); // DTO의 process 필드 사용
+              return (
+                  <tr key={post.id}>
+                    <td>{post.id}</td>
+                    <td>{post.title}</td>
+                    <td>{post.hostNickname}</td>
+                    <td>{formatDate(post.endAt)}</td>
+                    <td>{formatDate(post.createdAt)}</td>
+                    <td>
+                      <StatusButton
+                        className={statusInfo.class}
+                        onClick={() => handleManageClick(post)}
+                      >
+                        {statusInfo.text}
+                      </StatusButton>
+                    </td>
+                  </tr>
+              );
+            })
           ) : (
             <tr>
-              <td colSpan="7">
+              <td colSpan="6">
                 <NoResult>검색 결과가 없습니다.</NoResult>
               </td>
             </tr>
@@ -273,17 +314,17 @@ const AdminPaymentManage = () => {
         </tbody>
       </Table>
 
+      {/* 페이지네이션 */}
       <Pagination>
-        <span>&lt;&lt;</span>
-        <span>&lt;</span>
-        <span className="active">1</span>
-        <span>2</span>
-        <span>3</span>
-        <span>4</span>
-        <span>5</span>
-        <span>&gt;</span>
-        <span>&gt;&gt;</span>
+        <button onClick={() => setPage(0)} disabled={page === 0}>&lt;&lt;</button>
+        <button onClick={() => setPage(Math.max(0, page - 1))} disabled={page === 0}>&lt;</button>
+        
+        {renderPagination()}
+        
+        <button onClick={() => setPage(Math.min(totalPages - 1, page + 1))} disabled={page >= totalPages - 1}>&gt;</button>
+        <button onClick={() => setPage(totalPages - 1)} disabled={page >= totalPages - 1}>&gt;&gt;</button>
       </Pagination>
+
       {isModalOpen && selectedPost && (
         <PostManageModal
           post={selectedPost}
@@ -296,4 +337,4 @@ const AdminPaymentManage = () => {
   );
 };
 
-export default AdminPaymentManage;
+export default AdminPostManage;

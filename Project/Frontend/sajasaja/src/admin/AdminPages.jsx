@@ -10,7 +10,7 @@ const PageContainer = styled.div`
 // 오른쪽 컨텐츠표시
 const ContentArea = styled.main`
   flex: 1;
-  padding: 10px 40px;
+  padding: 10px 20px;
   overflow: auto;
 
   /* 기본: 오른쪽 마진을 화면 너비의 8%로 */

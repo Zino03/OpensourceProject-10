@@ -310,6 +310,8 @@ const GroupPurchaseRegister = () => {
       const localDate = new Date(dateObj.getTime() - offset);
       const formattedDate = localDate.toISOString().slice(0, 19); //
 
+      console.log(latitude, longitude)
+
       const requestData = {
         post: {
           contact: contact,
@@ -354,7 +356,7 @@ const GroupPurchaseRegister = () => {
         setIsConfirmModalOpen(false);
 
         // ✅ 여기서 MY공구 페이지로 이동
-        navigate('/');
+        // navigate('/');
       }
 
     } catch (error) {

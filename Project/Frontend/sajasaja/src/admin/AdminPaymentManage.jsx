@@ -62,14 +62,13 @@ const StatusButton = styled.button`
   font-size: 10px;
   font-weight: 600;
   cursor: pointer;
+  border-radius: 4px;
 
   &.waiting {
-    background-color: #fff;
-    color: #555;
+    background-color: #fff;  color: #555;
   }
   &.rewaiting {
-    background-color: #fff;
-    color: #555;
+    background-color: #fff;  color: #555;
   }
   &.rejected {
     background-color: #fff;
@@ -88,11 +87,22 @@ const Pagination = styled.div`
   margin-top: 20px;
   font-size: 11px;
 
-  span {
+  button {
+    background: none;
+    border: none;
     cursor: pointer;
-    padding: 0 8px;
+    padding: 4px 8px;
+    color: #888;
+
     &.active {
-      font-weight: 600;
+      font-weight: 700;
+      color: #000;
+      border-bottom: 1px solid #000;
+    }
+
+    &:disabled {
+      cursor: default;
+      color: #ccc;
     }
   }
 `;
@@ -105,60 +115,28 @@ const NoResult = styled.div`
   font-size: 14px;
 `;
 
-const mockPayments = [
-  {
-    id: 1,
-    title: "닭가슴살 공구",
-    depositor: "변진호",
-    buyer: "김서연",
-    amount: "20000",
-    deadline: "2025.12.20",
-    paymentDeadline: "2025.11.10",
-    status: "waiting",
-  },
-  {
-    id: 2,
-    title: "딸기 공구",
-    depositor: "변진호",
-    buyer: "김서연",
-    amount: "400000",
-    deadline: "2025.12.10",
-    paymentDeadline: "2025.11.13",
-    status: "rejected",
-  },
-  {
-    id: 3,
-    title: "피자 공구",
-    depositor: "변진호",
-    buyer: "김서연",
-    amount: "28900",
-    deadline: "2025.01.20",
-    paymentDeadline: "2025.11.13",
-    status: "completed",
-  },
-  {
-    id: 4,
-    title: "커피 공구",
-    depositor: "변진호",
-    buyer: "김서연",
-    amount: "28900",
-    deadline: "2025.01.20",
-    paymentDeadline: "2025.11.13",
-    status: "rewaiting",
-  },
-];
-
+// 필터 옵션 정의
 const statusOptions = [
   { value: "all", label: "전체" },
-  { value: "waiting,rewaiting", label: "대기" },
-  { value: "completed", label: "완료" },
-  { value: "rejected", label: "취소" },
+  { value: "0,2", label: "대기" }, // 0: 입금대기, 2: 재입금대기
+  { value: "1", label: "완료" }, // 1: 결제완료
+  { value: "3", label: "취소" }, // 3: 주문취소
 ];
+
+const ITEMS_PER_PAGE = 10; // 페이지당 항목 수
 
 const AdminPaymentManage = () => {
   const [payments, setPayments] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState(null);
+  
+  // 검색 및 필터 상태
+  const [searchInputValue, setSearchInputValue] = useState("");
+  const [confirmedSearchTerm, setConfirmedSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
+  
+  // 페이지네이션 상태
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     loadData();
@@ -170,28 +148,32 @@ const AdminPaymentManage = () => {
     }
   }, [isModalOpen]);
 
+  // 검색어나 필터가 변경되면 1페이지로 초기화
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [confirmedSearchTerm, filterStatus]);
+
   const loadData = async () => {
     const token = localStorage.getItem("accessToken");
 
     if (!token) {
-      window.location.href = "/";
+      // 토큰이 없으면 로그인 페이지로 리다이렉트 등의 처리 필요
+      // window.location.href = "/";
+      return; 
     }
 
     setInterceptor(token);
 
     try {
       const response = await api.get("/api/admin/buyers");
-
-      console.log(response.data);
-
-      setPayments(response.data.buyers);
+      console.log("Fetched Data:", response.data);
+      // 서버 응답 구조에 맞춰 데이터 설정 (여기서는 buyers 배열이라고 가정)
+      setPayments(response.data.buyers || []); 
     } catch (err) {
       console.log(err);
-
       if (err.response) {
         alert(`${err.response.data.message || "알 수 없는 오류"}`);
       } else {
-        // 네트워크 오류 등
         alert("서버와 연결할 수 없습니다.");
       }
     }
@@ -215,41 +197,102 @@ const AdminPaymentManage = () => {
     );
   };
 
-  const [searchInputValue, setSearchInputValue] = useState("");
-  const [confirmedSearchTerm, setConfirmedSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState("all");
-
-  // 엔터 감지
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
       setConfirmedSearchTerm(searchInputValue);
     }
   };
 
+  // 0: 입금대기, 1: 결제완료, 2: 재입금대기, 3: 주문취소
+  // CSS ClassName 반환 함수
+  const getStatusClassName = (isPaid) => {
+    switch (isPaid) {
+      case 0: return "waiting";
+      case 1: return "completed";
+      case 2: return "rewaiting";
+      case 3: return "rejected";
+      default: return "";
+    }
+  };
+
+  const getStatusText = (isPaid) => {
+    switch (isPaid) {
+      case 0: return "입금 대기";
+      case 1: return "결제 완료";
+      case 2: return "재입금 대기";
+      case 3: return "주문 취소";
+      default: return "-";
+    }
+  };
+
+  // 필터링 및 검색 로직 (useMemo)
   const filteredPayments = useMemo(() => {
     return payments.filter((payment) => {
-      // 상태 필터링
-      const statusMatch =
-        filterStatus === "all" ||
-        filterStatus.split(",").includes(payment.status);
+      // 1. 상태 필터링
+      let statusMatch = true;
+      if (filterStatus !== "all") {
+        // "0,2" 처럼 콤마로 구분된 값을 배열로 변환하여 포함 여부 확인
+        const targetStatuses = filterStatus.split(",").map(Number);
+        statusMatch = targetStatuses.includes(payment.isPaid);
+      }
 
-      // 검색어 필터링 (모든 필드 검사)
-      // 데이터 객체의 값들(Values)만 뽑아서 배열로 만든 뒤, 하나라도 검색어를 포함하는지 확인
-      const searchMatch = Object.values(payment).some((val) =>
-        String(val).toLowerCase().includes(confirmedSearchTerm.toLowerCase())
-      );
+      // 2. 검색어 필터링 (제목, 입금자, 구매자)
+      const searchTerm = confirmedSearchTerm.toLowerCase();
+      const titleMatch = payment.postTitle?.toLowerCase().includes(searchTerm);
+      const payerMatch = payment.payerName?.toLowerCase().includes(searchTerm);
+      const buyerMatch = payment.buyerNickname?.toLowerCase().includes(searchTerm);
+      
+      const searchMatch = !searchTerm || titleMatch || payerMatch || buyerMatch;
 
-      return statusMatch && searchMatch; // 두 조건 모두 만족해야 함
+      return statusMatch && searchMatch;
     });
   }, [confirmedSearchTerm, filterStatus, payments]);
 
-  // 콘텐츠 렌더링
+  // 페이지네이션 계산
+  const totalPages = Math.ceil(filteredPayments.length / ITEMS_PER_PAGE);
+  const currentItems = useMemo(() => {
+    const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredPayments.slice(startIdx, startIdx + ITEMS_PER_PAGE);
+  }, [currentPage, filteredPayments]);
+
+  // 페이지 변경 핸들러
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  // 페이지 번호 그룹 생성 (예: 1, 2, 3, 4, 5)
+  const renderPageNumbers = () => {
+    const pageNumbers = [];
+    const maxPageButtons = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxPageButtons / 2));
+    let endPage = Math.min(totalPages, startPage + maxPageButtons - 1);
+
+    if (endPage - startPage + 1 < maxPageButtons) {
+      startPage = Math.max(1, endPage - maxPageButtons + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pageNumbers.push(
+        <button
+          key={i}
+          className={currentPage === i ? "active" : ""}
+          onClick={() => handlePageChange(i)}
+        >
+          {i}
+        </button>
+      );
+    }
+    return pageNumbers;
+  };
+
   return (
     <>
       <SearchBar>
         <input
           type="text"
-          placeholder="검색"
+          placeholder="제목, 입금자명, 구매자명 검색"
           value={searchInputValue}
           onChange={(e) => setSearchInputValue(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -258,8 +301,8 @@ const AdminPaymentManage = () => {
           value={filterStatus}
           onChange={(val) => setFilterStatus(val)}
           options={statusOptions}
-          style={{ width: "80px" }}
-        ></CustomSelect>
+          style={{ width: "120px" }}
+        />
       </SearchBar>
 
       <Table>
@@ -276,10 +319,11 @@ const AdminPaymentManage = () => {
           </tr>
         </thead>
         <tbody>
-          {filteredPayments.length > 0 ? (
-            filteredPayments.map((payment, i) => (
-              <tr key={payment.id}>
-                <td>{i + 1}</td>
+          {currentItems.length > 0 ? (
+            currentItems.map((payment, i) => (
+              <tr key={payment.id || i}>
+                {/* 전체 인덱스가 아니라 현재 페이지 기준 인덱스 표시를 원하면 아래 수식 조정 */}
+                <td>{(currentPage - 1) * ITEMS_PER_PAGE + i + 1}</td>
                 <td>{payment.postTitle}</td>
                 <td>{payment.payerName}</td>
                 <td>{payment.buyerNickname}</td>
@@ -288,23 +332,17 @@ const AdminPaymentManage = () => {
                 <td>{formatDate(payment.paymentEndAt)}</td>
                 <td>
                   <StatusButton
-                    className={payment.isPaid}
+                    className={getStatusClassName(payment.isPaid)}
                     onClick={() => handleOpenModal(payment)}
                   >
-                    {payment.isPaid === 1
-                      ? "결제 완료"
-                      : payment.isPaid === 3
-                      ? "주문 취소"
-                      : payment.isPaid === 0
-                      ? "입금 대기"
-                      : "재입금 대기"}
+                    {getStatusText(payment.isPaid)}
                   </StatusButton>
                 </td>
               </tr>
             ))
           ) : (
             <tr>
-              <td colSpan="7">
+              <td colSpan="8">
                 <NoResult>검색 결과가 없습니다.</NoResult>
               </td>
             </tr>
@@ -312,17 +350,26 @@ const AdminPaymentManage = () => {
         </tbody>
       </Table>
 
-      <Pagination>
-        <span>&lt;&lt;</span>
-        <span>&lt;</span>
-        <span className="active">1</span>
-        <span>2</span>
-        <span>3</span>
-        <span>4</span>
-        <span>5</span>
-        <span>&gt;</span>
-        <span>&gt;&gt;</span>
-      </Pagination>
+      {/* 페이지네이션 UI */}
+      {filteredPayments.length > 0 && (
+        <Pagination>
+          <button onClick={() => handlePageChange(1)} disabled={currentPage === 1}>
+            &lt;&lt;
+          </button>
+          <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
+            &lt;
+          </button>
+          
+          {renderPageNumbers()}
+
+          <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
+            &gt;
+          </button>
+          <button onClick={() => handlePageChange(totalPages)} disabled={currentPage === totalPages}>
+            &gt;&gt;
+          </button>
+        </Pagination>
+      )}
 
       {isModalOpen && selectedPayment && (
         <PaymentProcessModal
