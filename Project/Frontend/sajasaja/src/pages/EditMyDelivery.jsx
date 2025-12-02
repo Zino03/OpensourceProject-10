@@ -234,14 +234,16 @@ const EditMyDelivery = () => {
   // mydelivery에서 navigate("/editdelivery", { state: { address } }) 로 넘겨준 값
   const prev = location.state?.address || {};
 
+  console.log(prev)
+
   // prev 안에 어떤 키를 쓸지는 네가 실제로 넘기는 데이터 구조에 맞춰야 해
   // 여기서는 예시로 name/label/zip/road/detail/phone/entranceMethod 등을 쓴다고 가정
-  const [labelName, setLabelName] = useState(prev.label || ""); // 배송지명
+  const [labelName, setLabelName] = useState(prev.name || ""); // 배송지명
   const [isDefault, setIsDefault] = useState(!!prev.isDefault);  // 기본배송지 여부
-  const [receiver, setReceiver] = useState(prev.name || "");     // 받는 분
+  const [receiver, setReceiver] = useState(prev.recipient || "");     // 받는 분
 
   // 연락처: 예시로 prev.phone 을 "010-1234-5678" 이런 식으로 받는다고 가정
-  const fullPhone = prev.phone || prev.phoneMasked || "";
+  const fullPhone = prev.phone || "";
   let initialP1 = "010";
   let initialP2 = "";
   let initialP3 = "";
@@ -259,12 +261,12 @@ const EditMyDelivery = () => {
     p3: initialP3,
   });
 
-  const [zipCode, setZipCode] = useState(prev.zip || "");
-  const [roadAddr, setRoadAddr] = useState(prev.road || "");
-  const [detailAddr, setDetailAddr] = useState(prev.detailAddr || "");
+  const [zipCode, setZipCode] = useState(prev.zipCode || "");
+  const [roadAddr, setRoadAddr] = useState(prev.street || "");
+  const [detailAddr, setDetailAddr] = useState(prev.detail || "");
 
-  const [entranceMethod, setEntranceMethod] = useState(prev.entranceMethod || "password");
-  const [entranceDetail, setEntranceDetail] = useState(prev.entranceDetail || "");
+  const [entranceMethod, setEntranceMethod] = useState(prev.entranceAccess || "PASSWORD");
+  const [entranceDetail, setEntranceDetail] = useState(prev.entranceDetail   || "");
 
   const [agree, setAgree] = useState(false); // 수정 시에도 다시 동의 받으려면 false 유지
 
@@ -272,18 +274,18 @@ const EditMyDelivery = () => {
 
   const handleEntranceChange = (method) => {
     setEntranceMethod(method);
-    if (method === "free") {
+    if (method === "FREE") {
       setEntranceDetail("");
     }
   };
 
   const getEntranceLabel = () => {
     switch (entranceMethod) {
-      case "password":
+      case "PASSWORD":
         return "공동현관 비밀번호";
-      case "security":
+      case "CALL":
         return "경비실 호출 방법";
-      case "etc":
+      case "OTHER":
         return "기타 상세 내용";
       default:
         return "";
@@ -292,11 +294,11 @@ const EditMyDelivery = () => {
 
   const getEntrancePlaceholder = () => {
     switch (entranceMethod) {
-      case "password":
+      case "PASSWORD":
         return "공동현관 비밀번호를 입력해주세요.";
-      case "security":
+      case "CALL":
         return "경비실 호출 방법을 입력해주세요.";
-      case "etc":
+      case "OTHER":
         return "기타 상세 내용을 입력해주세요.";
       default:
         return "";
@@ -331,7 +333,7 @@ const EditMyDelivery = () => {
       alert("상세주소를 입력해주세요.");
       return;
     }
-    if (entranceMethod !== "free" && isEmpty(entranceDetail)) {
+    if (entranceMethod !== "FREE" && isEmpty(entranceDetail)) {
       alert(`${getEntranceLabel()}를 입력해주세요.`);
       return;
     }
@@ -478,8 +480,8 @@ const EditMyDelivery = () => {
               <RadioLabel>
                 <input
                   type="radio"
-                  checked={entranceMethod === "password"}
-                  onChange={() => handleEntranceChange("password")}
+                  checked={entranceMethod === "PASSWORD"}
+                  onChange={() => handleEntranceChange("PASSWORD")}
                 />
                 비밀번호
               </RadioLabel>
@@ -487,8 +489,8 @@ const EditMyDelivery = () => {
               <RadioLabel>
                 <input
                   type="radio"
-                  checked={entranceMethod === "security"}
-                  onChange={() => handleEntranceChange("security")}
+                  checked={entranceMethod === "CALL"}
+                  onChange={() => handleEntranceChange("CALL")}
                 />
                 경비실 호출
               </RadioLabel>
@@ -496,8 +498,8 @@ const EditMyDelivery = () => {
               <RadioLabel>
                 <input
                   type="radio"
-                  checked={entranceMethod === "free"}
-                  onChange={() => handleEntranceChange("free")}
+                  checked={entranceMethod === "FREE"}
+                  onChange={() => handleEntranceChange("FREE")}
                 />
                 자유출입가능
               </RadioLabel>
@@ -505,14 +507,14 @@ const EditMyDelivery = () => {
               <RadioLabel>
                 <input
                   type="radio"
-                  checked={entranceMethod === "etc"}
-                  onChange={() => handleEntranceChange("etc")}
+                  checked={entranceMethod === "OTHER"}
+                  onChange={() => handleEntranceChange("OTHER")}
                 />
                 기타사항
               </RadioLabel>
             </RadioGroup>
 
-            {entranceMethod !== "free" && (
+            {entranceMethod !== "FREE" && (
               <>
                 <LabelRow style={{ marginTop: "10px" }}>
                   <Label>{getEntranceLabel()}</Label>

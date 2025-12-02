@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate, useParams } from "react-router-dom";
 import { FaRegBell, FaTrashAlt } from "react-icons/fa"; // 삭제 아이콘 추가
+import { Map, useKakaoLoader } from "react-kakao-maps-sdk";
 import PurchaseModal from './modal/PurchaseModal';
 import InvoiceModal from './modal/InvoiceModal';
 import ReceiveModal from './modal/ReceiveModal';
@@ -322,26 +323,28 @@ const DescriptionBox = styled.div`
   word-break: break-all;
 `;
 
-const MapPlaceholder = styled.div`
+// 지도 영역 (실제 맵 컴포넌트가 들어갈 자리)
+const MapContainer = styled.div`
   width: 100%;
   height: 400px;
-  background-color: #f0f0f0;
-  border-radius: 0;
+  border-radius: 8px;
+  overflow: hidden;
   position: relative;
+  background-color: #f0f0f0;
 `;
 
-const MapOverlayButton = styled.button`
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background-color: #FF7E00;
-  color: white;
-  border: none;
-  padding: 8px 20px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
+const MarkerPin = styled.div`
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  opacity: ${props => props.$isActive ? 1 : 0.8};
+  transform: ${props => props.$isActive ? 'scale(1.2)' : 'scale(1)'};
+  transition: all 0.2s ease;
+  z-index: ${props => props.$isActive ? 999 : 1};
+  
+  .img { height: 30px }
 `;
 
 const CommentList = styled.div`
@@ -562,6 +565,7 @@ const GroupPurchaseDetail = () => {
     try {
       setIsLoading(true);
       const response = await api.get(`/api/posts/${id}`);
+      console.log(response)
       const postData = response.data.post;
       const buyerData = response.data.buyer; // 내가 참여자라면 정보가 있음
 
@@ -576,8 +580,6 @@ const GroupPurchaseDetail = () => {
          setQuantity(buyerData.quantity || 1);
       }
 
-      console.log(myNickname);
-      
       // 주최자 여부 확인
       if (postData.host && postData.host.nickname === myNickname) {
          setIsOrganizer(true);
@@ -800,6 +802,7 @@ const GroupPurchaseDetail = () => {
           </DetailList>
 
           <BottomArea>
+            {isOrganizer && (
             <QuantityArea>
               <QuantityLabel>구매 수량</QuantityLabel>
               <QuantityBox>
@@ -809,10 +812,9 @@ const GroupPurchaseDetail = () => {
               </QuantityBox>
               
               {/* ✅ 주최자: 수량 변경 버튼 / 참여자: 아무것도 없음 (구매 모달에서 결정) */}
-              {isOrganizer && (
                  <ChangeQtyButton onClick={handleHostQuantityChange}>수량변경</ChangeQtyButton>
-              )}
             </QuantityArea>
+            )}
             <PriceArea><PriceText>{(product.price * quantity).toLocaleString()} 원</PriceText></PriceArea>
           </BottomArea>
 
@@ -840,8 +842,22 @@ const GroupPurchaseDetail = () => {
           </Section>
           <Section>
             <SectionHeader>수령장소</SectionHeader>
-            {post.pickupAddress && <div style={{padding: '20px', background: '#f9f9f9', borderRadius: '8px'}}><p><strong>주소:</strong> {post.pickupAddress.street}</p></div>}
-            <MapPlaceholder><MapOverlayButton>지도보기</MapOverlayButton></MapPlaceholder>
+            <MapContainer>
+                    { post.pickupAddress && post.pickupAddress.latitude ? (
+                        <Map
+                            center={{ lat: post.pickupAddress.latitude, lng: post.pickupAddress.longitude }}
+                            style={{ width: "100%", height: "100%" }}
+                            level={3}
+                        >
+                            <MarkerPin position={{ lat: post.pickupAddress.latitude, lng: post.pickupAddress.longitude }}>
+                                 <div style={{padding:"5px", color:"#000", fontSize:"12px"}}>수령 장소</div>
+                            </MarkerPin>
+                        </Map>
+                    ) : (
+                        <div style={{padding:'20px', textAlign:'center', color:'#999'}}>지도 정보가 없습니다.</div>
+                    )
+                  }
+            </MapContainer>
           </Section>
         </>
       )}

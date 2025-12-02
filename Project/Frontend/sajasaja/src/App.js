@@ -42,7 +42,7 @@ import UserPage from './pages/UserPage.jsx';
 import NewDeliveryInfo from './pages/NewDeliveryInfo.jsx';
 import MyDeliveryInfo from './pages/MyDeliveryInfo.jsx';
 import EditMyDelivery from './pages/EditMyDelivery.jsx';
-import MyGroupPerchase from './pages/MyGroupPerchase.jsx';
+import MyGroupPurchase from './pages/MyGroupPurchase.jsx';
 
 import UserReport from './pages/UserReport.jsx';
 import NotificationReport from './pages/NotificationReport.jsx';
@@ -85,7 +85,7 @@ function App() {
           <Route path="/newdelivery" element={<NewDeliveryInfo />} />
           <Route path="/mydelivery" element={<MyDeliveryInfo />} />
           <Route path="/editdelivery" element={<EditMyDelivery/>} />
-          <Route path="/mygrouppurchase" element={<MyGroupPerchase/>} />
+          <Route path="/mygrouppurchase" element={<MyGroupPurchase/>} />
 
           <Route path="/userreport" element={<UserReport/>} />
           <Route path="/notificationreport" element={<NotificationReport />} />

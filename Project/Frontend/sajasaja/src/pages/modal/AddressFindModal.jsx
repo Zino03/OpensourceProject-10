@@ -48,11 +48,10 @@ const AddressFindModal = ({ isOpen, onClose, onComplete }) => {
   const handleComplete = async (data) => {
     // 1. 도로명 주소만 사용
     const roadAddress = data.roadAddress; 
-    
     let latitude = 0;
     let longitude = 0;
 
-    if (roadAddress && KAKAO_REST_API_KEY !== '1182ee2a992f45fb1db2238604970e19') {
+    if (roadAddress && KAKAO_REST_API_KEY) {
         try {
             const geocodingUrl = `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(roadAddress)}`;
             
@@ -60,7 +59,7 @@ const AddressFindModal = ({ isOpen, onClose, onComplete }) => {
             const response = await api.get(geocodingUrl, {
                 headers: {
                     // 카카오 REST API 키 사용 (자바스크립트 키 아님)
-                    Authorization: `KakaoAK ${KAKAO_REST_API_KEY}`, 
+                    Authorization: `KakaoAK d23d8703f38d00cd265dd5d3442c3694`, 
                 },
             });
 
@@ -69,6 +68,7 @@ const AddressFindModal = ({ isOpen, onClose, onComplete }) => {
                 // 카카오 API 응답에서 x는 경도(longitude), y는 위도(latitude)입니다.
                 longitude = parseFloat(result.x); 
                 latitude = parseFloat(result.y); 
+                console.log(longitude, latitude);
             } else {
                 console.warn("좌표 변환 결과를 찾을 수 없습니다.");
             }
