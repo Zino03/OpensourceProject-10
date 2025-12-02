@@ -34,7 +34,6 @@ public class UserAddressRequestDto {
     @NotNull(message = "공동현관 출입방법을 선택하세요.")
     private EntranceAccess entranceAccess;
 
-    @NotBlank(message = "공동현관 출입방법 상세내용을 입력하세요.")
     private String entranceDetail;
 
     @NotNull(message = "개본배송지 설정 여부를 선택하세요.")

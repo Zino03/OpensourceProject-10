@@ -3,10 +3,7 @@ package com.example.saja_saja.service;
 import com.example.saja_saja.dto.user.*;
 import com.example.saja_saja.entity.member.Member;
 import com.example.saja_saja.entity.member.MemberRepository;
-import com.example.saja_saja.entity.user.User;
-import com.example.saja_saja.entity.user.UserAddress;
-import com.example.saja_saja.entity.user.UserAddressRepository;
-import com.example.saja_saja.entity.user.UserRepository;
+import com.example.saja_saja.entity.user.*;
 import com.example.saja_saja.exception.BadRequestException;
 import com.example.saja_saja.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -86,6 +83,10 @@ public class UserService {
 
             UserAddress newAddress = req.toUserAddress(user);
 
+            if (!newAddress.getEntranceAccess().equals(EntranceAccess.FREE)) {
+                throw new BadRequestException("공동현관 출입방법 상세내용을 입력하세요.", null);
+            }
+
             if (newAddress.getIsDefault()) {
                 Optional<UserAddress> currentDefault = userAddressRepository.findByUserAndIsDefaultTrue(user);
 
@@ -106,6 +107,8 @@ public class UserService {
             HashMap<String, Object> data = new HashMap<>();
             data.put("address", savedAddressDto);
             return new ResponseEntity(data, HttpStatus.OK);
+        } catch (BadRequestException e) {
+            throw e;
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("배송지 등록 실패하였습니다.");
