@@ -350,7 +350,7 @@ const DescriptionBox = styled.div`
   word-break: break-all;
 `;
 
-// 지도 영역
+// 지도 영역 (실제 맵 컴포넌트가 들어갈 자리)
 const MapContainer = styled.div`
   width: 100%;
   height: 400px;
@@ -578,10 +578,7 @@ const GroupPurchaseDetail = () => {
   const [activeTab, setActiveTab] = useState("info");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [quantity, setQuantity] = useState(1);
-
-  // 🔥 현재 주문된 수량/주최자 원래 수량 분리
-  const [baseCurrentCount, setBaseCurrentCount] = useState(0); // 백엔드에서 온 전체 수량
-  const [hostOriginalQuantity, setHostOriginalQuantity] = useState(0); // 주최자가 처음에 주문했던 수량
+  const [currentCount, setCurrentCount] = useState(0);
 
   const [latitude, setLatitude] = useState(0);
   const [longitude, setLongitude] = useState(0);
@@ -589,13 +586,11 @@ const GroupPurchaseDetail = () => {
   // 공지사항 입력 상태
   const [noticeContent, setNoticeContent] = useState("");
 
-  const [organizerMannerScore, setOrganizerMannerScore] = useState(0);
-
   // 모달 관리
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const [isReceiveDateModalOpen, setIsReceiveDateModalOpen] = useState(false);
   const [isDeliveryInfoModalOpen, setIsDeliveryInfoModalOpen] = useState(false);
-  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false); // ✅ [추가]
   const [participantFilter, setParticipantFilter] = useState("delivery");
 
   const [loading, error] = useKakaoLoader({
@@ -617,32 +612,29 @@ const GroupPurchaseDetail = () => {
     try {
       setIsLoading(true);
       const response = await api.get(`/api/posts/${id}`);
+      console.log(response);
       const postData = response.data.post;
       const buyerData = response.data.buyer; // 내가 참여자라면 정보가 있음
 
       setPost(postData);
       setNotices(postData.notices || []);
       setReviews(postData.reviews || []);
-      setOrganizerMannerScore(postData.host.mannerScore || 0);
+      setCurrentCount(postData.currentQuantity || 0);
 
-      // 🔥 전체 현재 수량 저장
-      setBaseCurrentCount(postData.currentQuantity || 0);
+      console.log(postData);
 
       if (postData.pickupAddress) {
         setLatitude(postData.pickupAddress.latitude);
         setLongitude(postData.pickupAddress.longitude);
+
+        console.log(latitude, longitude);
       }
 
-      console.log(postData);
-
-      // 내 수량 초기화
+      // 내 수량 초기화 (주최자라면)
       if (buyerData) {
-        const myQty = buyerData.quantity || 1;
-        setQuantity(myQty);
-        setHostOriginalQuantity(myQty); // 🔥 주최자의 원래 수량 기억
+        // 내가 이미 구매자(혹은 주최자)라면 기존 수량을 세팅
+        setQuantity(buyerData.quantity || 1);
       }
-
-      console.log(myNickname)
 
       // 주최자 여부 확인
       if (postData.host && postData.host.nickname === myNickname) {
@@ -651,31 +643,28 @@ const GroupPurchaseDetail = () => {
         if (
           postData.status === 0 ||
           postData.status === 4 ||
-          postData.isCanceled === true
+          postData.isCanceled === false
         ) {
-          // 상태에 따라 조기 리턴할 거라면 여기서 return
           return;
         }
 
         // 주최자라면 참여자 목록 조회
         const buyersResponse = await api.get(`/api/posts/${id}/buyers`);
-        const buyers = buyersResponse.data || [];
+        const buyers = buyersResponse.data.buyers || [];
 
-        console.log(buyersResponse.data)
-
-        const mappedBuyers = buyersResponse.data.map((b) => ({
+        const mappedBuyers = buyers.map((b) => ({
           id: b.buyerId,
-          name: b.userName,
-          nickname: b.userNickname,
-          amount: `${b.price?.toLocaleString()}원`,
-          address: b.userAddress
-            ? `(${b.userAddress.zipCode}) ${b.userAddress.street} ${b.userAddress.detail}`
+          name: b.name,
+          nickname: b.nickname,
+          amount: `${b.totalPrice?.toLocaleString()}원`,
+          address: b.address
+            ? `(${b.address.zipCode}) ${b.address.street} ${b.address.detail}`
             : "주소 정보 없음",
           status: b.isPaid === 1 ? "결제 완료" : "결제 대기",
           date: b.receivedAt ? b.receivedAt.substring(0, 10) : "-",
           invoice: b.trackingNumber ? { number: b.trackingNumber } : null,
           pickup: b.receivedAt ? { receiveDate: b.receivedAt } : null,
-          receive: b.isDelivery ? "delivery" : "pickup",
+          receive: b.address ? "delivery" : "pickup",
         }));
         setParticipants(mappedBuyers);
       }
@@ -691,7 +680,6 @@ const GroupPurchaseDetail = () => {
     if (id) {
       fetchPostDetail();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const getDaysLeft = (endDateStr) => {
@@ -735,12 +723,8 @@ const GroupPurchaseDetail = () => {
   const filteredParticipants = participants.filter(
     (p) => p.receive === participantFilter
   );
-
-  // 🔥 주최자일 때는 "내 주문 수량 변경"을 반영해서 보여줄 현재 수량 계산
-  const displayCurrentCount = baseCurrentCount;
-
   const progressPercent = Math.min(
-    (displayCurrentCount / product.goalCount) * 100,
+    (currentCount / product.goalCount) * 100,
     100
   );
 
@@ -754,12 +738,13 @@ const GroupPurchaseDetail = () => {
     }
 
     try {
+      // 백엔드 엔드포인트에 맞춰 POST 요청
       await api.post(`/api/posts/${id}/notices`, {
         content: noticeContent,
       });
       alert("공지가 등록되었습니다.");
       setNoticeContent("");
-      fetchPostDetail();
+      fetchPostDetail(); // 목록 갱신
     } catch (error) {
       console.error("공지 등록 실패:", error);
       alert("공지 등록 중 오류가 발생했습니다.");
@@ -773,7 +758,7 @@ const GroupPurchaseDetail = () => {
     try {
       await api.delete(`/api/posts/${id}/notices/${noticeId}`);
       alert("공지가 삭제되었습니다.");
-      fetchPostDetail();
+      fetchPostDetail(); // 목록 갱신
     } catch (error) {
       console.error("공지 삭제 실패:", error);
       alert("공지 삭제 중 오류가 발생했습니다.");
@@ -800,21 +785,14 @@ const GroupPurchaseDetail = () => {
       return;
 
     try {
-      await api.post(`/api/posts/${id}/host-quantity`, null, {
+      await api.post(`/api/post/${id}/host-quantity`, null, {
         params: { quantity: quantity },
       });
       alert("수량이 변경되었습니다.");
-      // 🔥 서버 기준 값 다시 받아오고, hostOriginalQuantity도 서버 값 기준으로 리셋
-      fetchPostDetail();
+      fetchPostDetail(); // 전체 데이터 갱신
     } catch (error) {
       console.error("수량 변경 실패:", error);
-
-      const backendMsg = error.response?.data?.message;
-      if (backendMsg) {
-        alert(backendMsg);
-      } else {
-        alert("수량 변경 실패");
-      }
+      alert("수량 변경 실패");
     }
   };
 
@@ -840,24 +818,20 @@ const GroupPurchaseDetail = () => {
   const handleReceiveDateSave = async (updatedData) => {
     try {
       for (const item of updatedData) {
-          if (!item.receiveDate || item.receiveDate.trim() === "") continue;
-
-        const dateStr = `${item.receiveDate}T${item.receiveTime || "00:00"}:00`;
-
-        console.log(item.nickname)
-        console.log(dateStr)
-
-        await api.post(`/api/posts/${id}/received-at`, {
-          userNickname: item.nickname,
-          receivedAt: dateStr,
-        });
+        if (item.receiveDate) {
+          const dateStr = `${item.receiveDate}T${
+            item.receiveTime || "00:00"
+          }:00`;
+          await api.post(`/api/posts/${id}/received-at`, {
+            buyerId: item.id,
+            receivedAt: dateStr,
+          });
+        }
       }
       alert("수령 일자가 저장되었습니다.");
       fetchPostDetail();
     } catch (err) {
-      // alert("수령 일자 등록 실패");
-      console.log(err.response.data)
-      alert(err.response.data.message);
+      alert("수령 일자 등록 실패");
     }
   };
 
@@ -874,7 +848,8 @@ const GroupPurchaseDetail = () => {
     setIsModalOpen(true);
   };
 
-  const handleReportNotice = (noticeId, noticeTitle) => {
+  const handleReportNotice = (noticeId) => {
+    // 인자 추가
     const token = localStorage.getItem("accessToken");
 
     if (!token) {
@@ -883,19 +858,15 @@ const GroupPurchaseDetail = () => {
       return;
     }
 
+    // ✅ [수정] state에 id와 title을 담아서 navigate 호출
     navigate("/notificationreport", {
       state: {
         id: noticeId,
-        title: noticeTitle
-          ? noticeTitle.length > 20
-            ? noticeTitle.substring(0, 20) + "..."
-            : noticeTitle
-          : "공지사항",
       },
     });
   };
 
-  const handleReportReview = (reviewId, reviewTitle) => {
+  const handleReportReview = (reviewId) => {
     const token = localStorage.getItem("accessToken");
 
     if (!token) {
@@ -906,11 +877,6 @@ const GroupPurchaseDetail = () => {
       navigate("/reviewreport", {
         state: {
           id: reviewId,
-          title: reviewTitle
-            ? reviewTitle.length > 20
-              ? reviewTitle.substring(0, 20) + "..."
-              : reviewTitle
-            : "후기",
         },
       });
     }
@@ -952,14 +918,14 @@ const GroupPurchaseDetail = () => {
         <InfoArea>
           <ProductTitleRow>
             <ProductTitle>{product.title}</ProductTitle>
+            {/* ✅ 주최자일 때만 공구 취소 버튼 표시 */}
             {isOrganizer && (
               <CancelButton onClick={handleCancelClick}>공구취소</CancelButton>
             )}
           </ProductTitleRow>
           <ProgressSection>
             <ProgressLabel>현재 주문된 수량</ProgressLabel>
-            {/* 🔥 여기서 화면에 보여줄 수량은 displayCurrentCount 사용 */}
-            <CurrentCount>{displayCurrentCount}</CurrentCount>
+            <CurrentCount>{currentCount}</CurrentCount>
             <ProgressBarContainer>
               <ProgressBarFill $percent={progressPercent} />
             </ProgressBarContainer>
@@ -975,7 +941,8 @@ const GroupPurchaseDetail = () => {
             <DetailRow>
               <Label>목표수량</Label>
               <Value>{product.goalCount}</Value>
-            </DetailRow><DetailRow>
+            </DetailRow>
+            <DetailRow>
               <Label>배송정보</Label>
               <Value>
                 {product.shipping}{" "}
@@ -984,48 +951,30 @@ const GroupPurchaseDetail = () => {
               </Value>
             </DetailRow>
             <OrganizerRow>
-        <Label>주최자</Label>
-        <OrganizerBadge>
-          <OrganizerLeft
-            onClick={() => navigate(`/user/${post.host.nickname}`)}
-          >
-            <ProfileIcon
-              src={product.organizerProfileImage}
-              alt="profile"
-              onError={(e) =>
-                (e.target.src = "/images/filledprofile.svg")
-              }
-            />
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-              }}
-            >
-              <OrganizerName>{product.organizer}</OrganizerName>
+              <Label>주최자</Label>
+              <OrganizerBadge>
+                <OrganizerLeft
+                  onClick={() => navigate(`/user/${post.host.nickname}`)}
+                >
+                  <ProfileIcon
+                    src={product.organizerProfileImage}
+                    alt="profile"
+                    onError={(e) =>
+                      (e.target.src = "/images/filledprofile.svg")
+                    }
+                  />
+                  <OrganizerName>{product.organizer}</OrganizerName>
+                </OrganizerLeft>
+                
 
-              {/* ✅ 매너점수 배지 (host.mannerScore 연동) */}
-              {organizerMannerScore !== undefined && (
-                <TimeBadge>
-                  {" "}
-                  {typeof organizerMannerScore === "number"
-                    ? organizerMannerScore.toFixed(1)
-                    : organizerMannerScore}
-                  점
-                </TimeBadge>
-              )}
-            </div>
-          </OrganizerLeft>
-
-          {!isOrganizer && (
-            <ContactButton onClick={() => setIsContactModalOpen(true)}>
-              문의하기
-            </ContactButton>
-          )}
-        </OrganizerBadge>
-      </OrganizerRow>
-
+                {/* ✅ [수정됨] 문의하기 버튼: 클릭 시 모달 열기 */}
+                {!isOrganizer && (
+                  <ContactButton onClick={() => setIsContactModalOpen(true)}>
+                    문의하기
+                  </ContactButton>
+                )}
+              </OrganizerBadge>
+            </OrganizerRow>
           </DetailList>
 
           <BottomArea>
@@ -1043,6 +992,8 @@ const GroupPurchaseDetail = () => {
                     +
                   </QtyButton>
                 </QuantityBox>
+
+                {/* ✅ 주최자: 수량 변경 버튼 / 참여자: 아무것도 없음 (구매 모달에서 결정) */}
                 <ChangeQtyButton onClick={handleHostQuantityChange}>
                   수량변경
                 </ChangeQtyButton>
@@ -1055,6 +1006,7 @@ const GroupPurchaseDetail = () => {
             </PriceArea>
           </BottomArea>
 
+          {/* ✅ 일반 참여자만 구매 버튼 표시 */}
           {!isOrganizer && (
             <div style={{ marginTop: "20px" }}>
               <button
@@ -1151,6 +1103,7 @@ const GroupPurchaseDetail = () => {
         <Section>
           <SectionHeader>공지</SectionHeader>
 
+          {/* ✅ 주최자 전용 공지 등록 폼 */}
           {isOrganizer && (
             <NoticeForm>
               <NoticeInput
@@ -1174,6 +1127,7 @@ const GroupPurchaseDetail = () => {
                       <UserName>공지사항 {idx + 1}</UserName>
                     </UserInfo>
 
+                    {/* ✅ 주최자: 삭제 / 일반: 신고 */}
                     {isOrganizer ? (
                       <ActionButton
                         onClick={() => handleNoticeDelete(notice.id)}
@@ -1181,10 +1135,9 @@ const GroupPurchaseDetail = () => {
                         <FaTrashAlt /> 삭제
                       </ActionButton>
                     ) : (
+                      // ✅ [수정] 신고 버튼 클릭 시 notice.id와 notice.content를 전달
                       <ActionButton
-                        onClick={() =>
-                          handleReportNotice(notice.id, notice.content)
-                        }
+                        onClick={() => handleReportNotice(notice.id)}
                       >
                         <FaRegBell /> 신고
                       </ActionButton>
@@ -1220,9 +1173,7 @@ const GroupPurchaseDetail = () => {
                       <UserName>{review.nickname || "익명"}</UserName>
                       <RatingText>별점 {review.score}점</RatingText>
                     </UserInfo>
-                    <ActionButton
-                      onClick={handleReportReview(review.id, review.content)}
-                    >
+                    <ActionButton onClick={handleReportReview(review.id)}>
                       <FaRegBell /> 신고
                     </ActionButton>
                   </CommentHeader>
@@ -1243,6 +1194,7 @@ const GroupPurchaseDetail = () => {
         </Section>
       )}
 
+      {/* ✅ 주최자 전용: 구매자 관리 탭 */}
       {isOrganizer && activeTab === "manage" && (
         <Section>
           <ManageHeader>
@@ -1300,15 +1252,7 @@ const GroupPurchaseDetail = () => {
                 )}
               </tr>
             </thead>
-            {/* <tbody onClick={() => {setIsDeliveryInfoModalOpen(true)}}> */}
-              
-            <tbody
-                onClick={() => {
-                  if (participantFilter === "delivery" && filteredParticipants.length > 0) {
-                    setIsDeliveryInfoModalOpen(true);
-                  }
-                }}
-              >
+            <tbody onClick={() => setIsDeliveryInfoModalOpen(true)}>
               {filteredParticipants.length > 0 ? (
                 filteredParticipants.map((p, idx) => (
                   <tr key={idx}>
@@ -1378,11 +1322,11 @@ const GroupPurchaseDetail = () => {
         participants={filteredParticipants}
       />
 
-      {/* 연락처 모달 */}
+      {/* ✅ [추가] 연락처 모달 */}
       <ContactModal
         isOpen={isContactModalOpen}
         onClose={() => setIsContactModalOpen(false)}
-        contact={post.contact}
+        contact={post.contact} // PostResponseDto의 contact 필드
       />
     </Container>
   );
