@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { useNavigate, useParams } from "react-router-dom";
-import { FaRegBell, FaTrashAlt } from "react-icons/fa"; // 삭제 아이콘 추가
+import { FaRegBell, FaTrashAlt } from "react-icons/fa";
 import { Map, CustomOverlayMap, useKakaoLoader } from "react-kakao-maps-sdk";
 import PurchaseModal from "./modal/PurchaseModal";
 import InvoiceModal from "./modal/InvoiceModal";
 import ReceiveModal from "./modal/ReceiveModal";
 import DeliveryInfoModal from "./modal/DeliveryInfoModal";
+import ContactModal from "./modal/ContactModal";
 import { api, setInterceptor } from "../assets/setIntercepter";
 
 // 백엔드 서버 주소 (이미지 표시용)
@@ -57,6 +58,10 @@ const CategoryTag = styled.div`
   margin-bottom: 10px;
   span {
     margin-right: 5px;
+    cursor: pointer;
+    &:hover {
+      color: #333;
+    }
   }
 `;
 
@@ -226,6 +231,9 @@ const ContactButton = styled.button`
   padding: 6px 16px;
   border-radius: 4px;
   cursor: pointer;
+  &:hover {
+    background-color: #f9f9f9;
+  }
 `;
 
 const BottomArea = styled.div`
@@ -582,6 +590,7 @@ const GroupPurchaseDetail = () => {
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const [isReceiveDateModalOpen, setIsReceiveDateModalOpen] = useState(false);
   const [isDeliveryInfoModalOpen, setIsDeliveryInfoModalOpen] = useState(false);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false); // ✅ [추가]
   const [participantFilter, setParticipantFilter] = useState("delivery");
 
   const [loading, error] = useKakaoLoader({
@@ -956,7 +965,13 @@ const GroupPurchaseDetail = () => {
                   />
                   <OrganizerName>{product.organizer}</OrganizerName>
                 </OrganizerLeft>
-                {!isOrganizer && <ContactButton>문의하기</ContactButton>}
+
+                {/* ✅ [수정됨] 문의하기 버튼: 클릭 시 모달 열기 */}
+                {!isOrganizer && (
+                  <ContactButton onClick={() => setIsContactModalOpen(true)}>
+                    문의하기
+                  </ContactButton>
+                )}
               </OrganizerBadge>
             </OrganizerRow>
           </DetailList>
@@ -1304,6 +1319,13 @@ const GroupPurchaseDetail = () => {
         isOpen={isDeliveryInfoModalOpen}
         onClose={() => setIsDeliveryInfoModalOpen(false)}
         participants={filteredParticipants}
+      />
+
+      {/* ✅ [추가] 연락처 모달 */}
+      <ContactModal
+        isOpen={isContactModalOpen}
+        onClose={() => setIsContactModalOpen(false)}
+        contact={post.contact} // PostResponseDto의 contact 필드
       />
     </Container>
   );
