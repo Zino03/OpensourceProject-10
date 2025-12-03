@@ -10,9 +10,6 @@ import DeliveryInfoModal from "./modal/DeliveryInfoModal";
 import ContactModal from "./modal/ContactModal";
 import { api, BASE_URL, setInterceptor } from "../assets/setIntercepter";
 
-// 백엔드 서버 주소 (이미지 표시용)
-const BACKEND_URL = "http://192.168.31.28:8080";
-
 // 백엔드 enum → 한글 카테고리명 매핑
 const CATEGORY_LABELS = {
   FOOD: "식품",
@@ -787,7 +784,7 @@ const GroupPurchaseDetail = () => {
       return;
 
     try {
-      await api.post(`/api/post/${id}/host-quantity`, null, {
+      await api.post(`/api/posts/${id}/host-quantity`, null, {
         params: { quantity: quantity },
       });
       alert("수량이 변경되었습니다.");

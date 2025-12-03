@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 // api, setInterceptor 임포트
-import { api, setInterceptor } from "../assets/setIntercepter";
+import { api, BASE_URL, setInterceptor } from "../assets/setIntercepter";
 
 /* 👉 오른쪽 화살표 아이콘 */
 const ChevronRight = ({ size = 18, color = "#c8c8c8" }) => (
@@ -110,8 +110,6 @@ const styles = {
   },
 };
 
-const BACKEND_URL = "http://192.168.31.28:8080";
-
 const MyPage = () => {
   const navigate = useNavigate(); // State 추가: 사용자 정보를 저장
   const [memberInfo, setMemberInfo] = useState(null);
@@ -181,7 +179,7 @@ const MyPage = () => {
       ? memberInfo.mannerScore.toFixed(2)
       : "N/A"; // 프로필 이미지 (FIX: profileImage 변수를 JSX에서 사용하도록 수정하여 경고 제거)
   const profileImage = memberInfo?.profileImg
-    ? `${BACKEND_URL}${memberInfo.profileImg}`
+    ? `${BASE_URL}${memberInfo.profileImg}`
     : defaultProfileFilled;
   return (
     <div style={styles.page}>

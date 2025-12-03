@@ -1,18 +1,18 @@
 // 파일명 예시: src/pages/GroupPurchaseRegister.jsx
 
-import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
+import React, { useState, useEffect } from "react";
+import styled from "styled-components";
 import { FaCamera } from "react-icons/fa";
-import AddressFindModal from './modal/AddressFindModal';
-import RegisterModal from './modal/RegisterModal';
+import AddressFindModal from "./modal/AddressFindModal";
+import RegisterModal from "./modal/RegisterModal";
 import { useNavigate } from "react-router-dom";
-import { api } from '../assets/setIntercepter';
+import { api } from "../assets/setIntercepter";
 
 const Container = styled.div`
   width: 100%;
   max-width: 800px;
   margin: 0 auto;
-  padding: 30px 20px 100px; 
+  padding: 30px 20px 100px;
 `;
 
 const PageTitle = styled.h2`
@@ -24,7 +24,7 @@ const PageTitle = styled.h2`
 
 const ImageSectionWrapper = styled.div`
   width: 200px;
-  margin: 0 auto 40px; 
+  margin: 0 auto 40px;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -61,7 +61,7 @@ const ImageUploadBox = styled.label`
 const FormSection = styled.div`
   display: flex;
   margin-bottom: 30px;
-  align-items: ${props => props.$alignTop ? 'flex-start' : 'center'};
+  align-items: ${(props) => (props.$alignTop ? "flex-start" : "center")};
 `;
 
 const Label = styled.div`
@@ -69,7 +69,7 @@ const Label = styled.div`
   font-weight: 500;
   font-size: 12px;
   flex-shrink: 0;
-  padding-top: ${props => props.$alignTop ? '10px' : '0'};
+  padding-top: ${(props) => (props.$alignTop ? "10px" : "0")};
 `;
 
 const InputArea = styled.div`
@@ -85,8 +85,12 @@ const StyledInput = styled.input`
   font-size: 12px;
   border: 1px solid #ddd;
   border-radius: 5px;
-  &::placeholder { color: #aaa; }
-  &:focus { outline: none; }
+  &::placeholder {
+    color: #aaa;
+  }
+  &:focus {
+    outline: none;
+  }
 
   &::-webkit-inner-spin-button,
   &::-webkit-outer-spin-button {
@@ -109,19 +113,19 @@ const CategoryButton = styled.button`
   font-size: 12px;
   cursor: pointer;
   border: none;
-  background-color: ${props => props.$active ? '#FF7E00' : 'transparent'};
-  color: ${props => props.$active ? '#fff' : '#666'};
-  font-weight: ${props => props.$active ? '500' : '400'};
+  background-color: ${(props) => (props.$active ? "#FF7E00" : "transparent")};
+  color: ${(props) => (props.$active ? "#fff" : "#666")};
+  font-weight: ${(props) => (props.$active ? "500" : "400")};
 
   &:hover {
-    background-color: ${props => props.$active ? '#FF7E00' : '#f5f5f5'};
+    background-color: ${(props) => (props.$active ? "#FF7E00" : "#f5f5f5")};
   }
 `;
 
 // 수량, 가격 등 (좌우로 나뉘는 부분)
 const SplitRow = styled.div`
   display: flex;
-  gap: 60px; 
+  gap: 60px;
   align-items: flex-start;
 `;
 
@@ -156,9 +160,13 @@ const StyledTextArea = styled.textarea`
   border: 1px solid #ddd;
   border-radius: 5px;
   resize: none;
-  
-  &::placeholder { color: #aaa; }
-  &:focus { outline: none; }
+
+  &::placeholder {
+    color: #aaa;
+  }
+  &:focus {
+    outline: none;
+  }
 `;
 
 // 주소 및 택배
@@ -210,39 +218,46 @@ const SubmitButton = styled.button`
 const GroupPurchaseRegister = () => {
   const navigate = useNavigate(); // ✅ 컴포넌트 안에서 호출
 
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
   const [imgFile, setImageFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
 
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [quantity, setQuantity] = useState('');      // 총 수량
-  const [myQuantity, setMyQuantity] = useState('');  // 내 수량
-  const [price, setPrice] = useState('');
-  
-  const [isDelivery, setIsDelivery] = useState(true);
-  const [deliveryFee, setDeliveryFee] = useState('');
-  const [latitude, setLatitude] = useState(0);
-  const [longitude, setLongitude] = useState(0); 
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [quantity, setQuantity] = useState(""); // 총 수량
+  const [myQuantity, setMyQuantity] = useState(""); // 내 수량
+  const [price, setPrice] = useState("");
 
-  const [address, setAddress] = useState('');
-  const [detailAddress, setDetailAddress] = useState(''); 
-  const [isAddressOpen, setIsAddressOpen] = useState(false); 
-  
-  const [contact, setContact] = useState('');
-  const [deadLine, setDeadLine] = useState('');
+  const [isDelivery, setIsDelivery] = useState(true);
+  const [deliveryFee, setDeliveryFee] = useState("");
+  const [latitude, setLatitude] = useState(0);
+  const [longitude, setLongitude] = useState(0);
+
+  const [address, setAddress] = useState("");
+  const [detailAddress, setDetailAddress] = useState("");
+  const [isAddressOpen, setIsAddressOpen] = useState(false);
+
+  const [contact, setContact] = useState("");
+  const [deadLine, setDeadLine] = useState("");
 
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 
   // 카테고리 매핑 (한글 -> 영어)
   const categoryMap = {
-    '식품': 'FOOD', '생활용품': 'HOUSEHOLD', '가전/전자기기': 'ELECTRONICS',
-    '뷰티/케어': 'BEAUTY', '패션': 'FASHION', '잡화/액세서리': 'ACCESSORY',
-    '리빙/인테리어': 'LIVING', '반려동물': 'PET', '문구/취미': 'HOBBY',
-    '스포츠': 'SPORTS', '유아/아동': 'KIDS', '기타': 'ETC'
+    식품: "FOOD",
+    생활용품: "HOUSEHOLD",
+    "가전/전자기기": "ELECTRONICS",
+    "뷰티/케어": "BEAUTY",
+    패션: "FASHION",
+    "잡화/액세서리": "ACCESSORY",
+    "리빙/인테리어": "LIVING",
+    반려동물: "PET",
+    "문구/취미": "HOBBY",
+    스포츠: "SPORTS",
+    "유아/아동": "KIDS",
+    기타: "ETC",
   };
   const categories = Object.keys(categoryMap);
-  const unitPrice = (quantity && price) ? Math.floor(Number(price) / Number(quantity)) : 0;
 
   // 이미지 처리 + 미리보기
   const handleImageChange = (e) => {
@@ -274,7 +289,7 @@ const GroupPurchaseRegister = () => {
   };
 
   const handleContactChange = (e) => {
-    const value = e.target.value.replace(/[^0-9]/g, ''); 
+    const value = e.target.value.replace(/[^0-9]/g, "");
     if (value.length <= 11) {
       setContact(value);
     }
@@ -282,19 +297,27 @@ const GroupPurchaseRegister = () => {
 
   // 🔹 모달에서 "등록하기" 눌렀을 때 실행될 함수
   const handleRegisterClick = () => {
-    if (!title || !selectedCategory || !quantity || !myQuantity || !price || !content || !imgFile) {
+    if (
+      !title ||
+      !selectedCategory ||
+      !quantity ||
+      !myQuantity ||
+      !price ||
+      !content ||
+      !imgFile
+    ) {
       alert("모든 필수 항목(이미지 포함)을 입력해주세요.");
       setIsConfirmModalOpen(false);
       return;
     }
     handleFinalSubmit();
   };
-    
+
   const handleFinalSubmit = async () => {
     try {
       // 1. 날짜 객체 생성 (기본값: 현재 시간)
       let dateObj = new Date();
-      
+
       // 마감일 입력값이 있을 경우 (예: 20240520)
       if (deadLine && deadLine.length === 10) {
         const y = deadLine.substring(0, 4);
@@ -312,7 +335,7 @@ const GroupPurchaseRegister = () => {
       const localDate = new Date(dateObj.getTime() - offset);
       const formattedDate = localDate.toISOString().slice(0, 19); //
 
-      console.log(latitude, longitude)
+      console.log(latitude, longitude);
 
       const requestData = {
         post: {
@@ -324,30 +347,30 @@ const GroupPurchaseRegister = () => {
           deliveryFee: isDelivery ? Number(deliveryFee) : 0,
           pickupAddress: {
             street: `${address},${detailAddress}`,
-            latitude: latitude, 
-            longitude: longitude
+            latitude: latitude,
+            longitude: longitude,
           },
           title: title,
           content: content,
-          category: categoryMap[selectedCategory] || 'ETC'
+          category: categoryMap[selectedCategory] || "ETC",
         },
-        quantity: Number(myQuantity)
+        quantity: Number(myQuantity),
       };
 
       const formData = new FormData();
-      formData.append('image', imgFile);
-      
-      const jsonBlob = new Blob([JSON.stringify(requestData)], {
-        type: 'application/json'
-      });
-      formData.append('post', jsonBlob);
+      formData.append("image", imgFile);
 
-      const token = localStorage.getItem('accessToken');
-      
-      const response = await api.post('/api/posts', formData, {
+      const jsonBlob = new Blob([JSON.stringify(requestData)], {
+        type: "application/json",
+      });
+      formData.append("post", jsonBlob);
+
+      const token = localStorage.getItem("accessToken");
+
+      const response = await api.post("/api/posts", formData, {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': undefined,
+          Authorization: `Bearer ${token}`,
+          "Content-Type": undefined,
         },
       });
 
@@ -358,9 +381,8 @@ const GroupPurchaseRegister = () => {
         setIsConfirmModalOpen(false);
 
         // ✅ 여기서 MY공구 페이지로 이동
-        navigate('/');
+        navigate("/");
       }
-
     } catch (error) {
       console.error("등록 에러:", error.response.data);
       alert(error.response.data.message);
@@ -379,7 +401,7 @@ const GroupPurchaseRegister = () => {
             <img
               src={previewUrl}
               alt="미리보기"
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
             />
           ) : (
             <>
@@ -408,8 +430,8 @@ const GroupPurchaseRegister = () => {
         <InputArea>
           <CategoryGrid>
             {categories.map((cat) => (
-              <CategoryButton 
-                key={cat} 
+              <CategoryButton
+                key={cat}
                 $active={selectedCategory === cat}
                 onClick={() => setSelectedCategory(cat)}
               >
@@ -428,7 +450,7 @@ const GroupPurchaseRegister = () => {
           <SplitRow>
             {/* 총수량 */}
             <SplitItem>
-              <SubLabel style={{ marginRight: '10px' }}>총수량</SubLabel>
+              <SubLabel style={{ width: "60px" }}>총수량</SubLabel>
               <StyledInput
                 type="number"
                 placeholder="총 수량을 입력해주세요."
@@ -438,26 +460,25 @@ const GroupPurchaseRegister = () => {
             </SplitItem>
 
             {/* 가격 */}
-            <SplitItem style={{ width: '300px', flex: '0 0 300px' }}>
-              <SubLabel style={{ width: '60px', marginRight: 0 }}>가격</SubLabel>
+            <SplitItem style={{ width: "300px", flex: "0 0 300px" }}>
+              <SubLabel style={{ width: "60px", marginRight: 0 }}>
+                가격
+              </SubLabel>
               <div style={{ flex: 1 }}>
                 <StyledInput
                   type="number"
-                  placeholder="총 금액을 입력해주세요."
+                  placeholder="개당 가격을 입력해주세요."
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
                 />
-                {unitPrice > 0 && (
-                  <PriceHint>1개당 가격: {unitPrice.toLocaleString()}원</PriceHint>
-                )}
               </div>
             </SplitItem>
           </SplitRow>
 
           {/* 내 수량 */}
-          <div style={{ marginTop: '14px', width: '290px' }}>
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <SubLabel style={{ marginRight: '10px' }}>내수량</SubLabel>
+          <div style={{ marginTop: "14px", width: "290px" }}>
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <SubLabel style={{ width: "60px" }}>내수량</SubLabel>
               <StyledInput
                 type="number"
                 placeholder="내가 구매할 수량을 입력해주세요."
@@ -473,7 +494,7 @@ const GroupPurchaseRegister = () => {
         <Label $alignTop>내용</Label>
         <InputArea>
           <StyledTextArea
-            placeholder="내용을 입력해주세요." 
+            placeholder="내용을 입력해주세요."
             value={content}
             onChange={(e) => setContent(e.target.value)}
           />
@@ -484,22 +505,31 @@ const GroupPurchaseRegister = () => {
         <Label $alignTop>수령장소</Label>
         <InputArea>
           <ComplexRow>
-            <StyledInput 
-              type="text" 
-              placeholder="주소 찾기" 
-              readOnly 
-              style={{ flex: 1, cursor: 'pointer' }}
+            <StyledInput
+              type="text"
+              placeholder="주소 찾기"
+              readOnly
+              style={{ flex: 1, cursor: "pointer" }}
               value={address}
-              onClick={() => setIsAddressOpen(true)} 
+              onClick={() => setIsAddressOpen(true)}
             />
-            
-            <div style={{ width: '300px', display: 'flex', alignItems: 'center', gap: '20px' }}>
-              <SubLabel style={{ width: '60px', marginRight: 0 }}>택배거래</SubLabel>
+
+            <div
+              style={{
+                width: "300px",
+                display: "flex",
+                alignItems: "center",
+                gap: "20px",
+              }}
+            >
+              <SubLabel style={{ width: "60px", marginRight: 0 }}>
+                택배거래
+              </SubLabel>
               <CheckboxLabel>
-                <input  
-                  type="checkbox" 
-                  checked={isDelivery} 
-                  onChange={(e) => setIsDelivery(e.target.checked)} 
+                <input
+                  type="checkbox"
+                  checked={isDelivery}
+                  onChange={(e) => setIsDelivery(e.target.checked)}
                 />
                 택배 가능
               </CheckboxLabel>
@@ -507,19 +537,28 @@ const GroupPurchaseRegister = () => {
           </ComplexRow>
 
           <ComplexRow>
-            <StyledInput 
-              type="text" 
+            <StyledInput
+              type="text"
               placeholder="상세 주소"
               style={{ flex: 1 }}
               value={detailAddress}
               onChange={(e) => setDetailAddress(e.target.value)}
             />
-            
-            <div style={{ width: '300px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <SubLabel style={{ width: '60px', marginRight: 0 }}>배송비</SubLabel>
-              <StyledInput 
-                type="text"   
-                placeholder="배송비 입력" 
+
+            <div
+              style={{
+                width: "300px",
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+              }}
+            >
+              <SubLabel style={{ width: "60px", marginRight: 0 }}>
+                배송비
+              </SubLabel>
+              <StyledInput
+                type="text"
+                placeholder="배송비 입력"
                 disabled={!isDelivery}
                 style={{ flex: 1 }}
                 value={deliveryFee}
@@ -536,21 +575,30 @@ const GroupPurchaseRegister = () => {
           <ComplexRow>
             <StyledInput
               type="text"
-              placeholder="전화번호" 
-              style={{ width: '290px' }} 
+              placeholder="전화번호"
+              style={{ width: "290px" }}
               value={contact}
               onChange={handleContactChange}
               maxLength={11}
             />
           </ComplexRow>
         </InputArea>
-          
-        <div style={{width: '300px', display: 'flex', alignItems: 'center', gap: '10px'}}>
-          <SubLabel style={{ width: '60px', marginRight: 0 }}>마감 일자</SubLabel>
+
+        <div
+          style={{
+            width: "300px",
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+          }}
+        >
+          <SubLabel style={{ width: "60px", marginRight: 0 }}>
+            마감 일자
+          </SubLabel>
           <InputArea>
             <ComplexRow>
-              <StyledInput 
-                type="text" 
+              <StyledInput
+                type="text"
                 placeholder="ex) 2005-01-13"
                 style={{ flex: 1 }}
                 value={deadLine}
@@ -567,17 +615,17 @@ const GroupPurchaseRegister = () => {
       </SubmitButton>
 
       {/* 주소 찾기 모달 */}
-      <AddressFindModal 
+      <AddressFindModal
         isOpen={isAddressOpen}
         onClose={() => setIsAddressOpen(false)}
         onComplete={handleAddressComplete}
       />
 
       {/* 안내 + 최종 등록 모달 */}
-      <RegisterModal 
+      <RegisterModal
         isOpen={isConfirmModalOpen}
-        onClose={() => setIsConfirmModalOpen(false)} 
-        onConfirm={handleRegisterClick} 
+        onClose={() => setIsConfirmModalOpen(false)}
+        onConfirm={handleRegisterClick}
       />
     </Container>
   );
