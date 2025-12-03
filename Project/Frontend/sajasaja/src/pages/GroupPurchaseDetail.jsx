@@ -630,7 +630,7 @@ const GroupPurchaseDetail = () => {
         setLongitude(postData.pickupAddress.longitude);
       }
 
-      console.log(postData)
+      console.log(postData);
 
       // 내 수량 초기화
       if (buyerData) {
@@ -863,7 +863,7 @@ const GroupPurchaseDetail = () => {
     setIsModalOpen(true);
   };
 
-  const handleReportNotice = (noticeId, noticeContent, hostNickname) => {
+  const handleReportNotice = (noticeId, noticeTitle) => {
     const token = localStorage.getItem("accessToken");
 
     if (!token) {
@@ -875,17 +875,16 @@ const GroupPurchaseDetail = () => {
     navigate("/notificationreport", {
       state: {
         id: noticeId,
-        title: noticeContent
-          ? noticeContent.length > 20
-            ? noticeContent.substring(0, 20) + "..."
-            : noticeContent
+        title: noticeTitle
+          ? noticeTitle.length > 20
+            ? noticeTitle.substring(0, 20) + "..."
+            : noticeTitle
           : "공지사항",
-        reportedNickname: hostNickname,
       },
     });
   };
 
-  const handleReviewAction = () => {
+  const handleReportReview = (reviewId, reviewTitle) => {
     const token = localStorage.getItem("accessToken");
 
     if (!token) {
@@ -893,7 +892,16 @@ const GroupPurchaseDetail = () => {
       navigate("/login");
       return;
     } else {
-      navigate("/reviewreport");
+      navigate("/reviewreport", {
+        state: {
+          id: reviewId,
+          title: reviewTitle
+            ? reviewTitle.length > 20
+              ? reviewTitle.substring(0, 20) + "..."
+              : reviewTitle
+            : "후기",
+        },
+      });
     }
   };
 
@@ -1145,11 +1153,7 @@ const GroupPurchaseDetail = () => {
                     ) : (
                       <ActionButton
                         onClick={() =>
-                          handleReportNotice(
-                            notice.id,
-                            notice.content,
-                            post.host.nickname
-                          )
+                          handleReportNotice(notice.id, notice.content)
                         }
                       >
                         <FaRegBell /> 신고
@@ -1186,7 +1190,9 @@ const GroupPurchaseDetail = () => {
                       <UserName>{review.nickname || "익명"}</UserName>
                       <RatingText>별점 {review.score}점</RatingText>
                     </UserInfo>
-                    <ActionButton onClick={handleReviewAction}>
+                    <ActionButton
+                      onClick={handleReportReview(review.id, review.content)}
+                    >
                       <FaRegBell /> 신고
                     </ActionButton>
                   </CommentHeader>

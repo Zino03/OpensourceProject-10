@@ -144,8 +144,10 @@ const NotificationReport = () => {
   const location = useLocation(); // ✅ 이전 페이지에서 데이터 받기
 
   // 이전 페이지(공지 상세보기)에서 넘어온 state 값
-  const noticeId = location.state?.id;
-  const noticeTitle = location.state?.title || "공지사항 정보 없음";
+  const noticeId = location.state ? location.state.id : "";
+  const noticeTitle = location.state
+    ? location.state.title
+    : "공지사항 정보 없음";
 
   const [title, setTitle] = useState("");
   const [reason, setReason] = useState("");
@@ -189,18 +191,9 @@ const NotificationReport = () => {
       // API Spec: POST /api/report/NOTICE
       // Body: { title, content, reportedId }
       // content에는 신고 사유(reason)와 상세 내용(detail)을 합쳐서 전송
-      
-      const reportReasonText = {
-        spam: "스팸/광고",
-        abuse: "욕설·비방/혐오 표현",
-        fraud: "사기 의심/거래 관련 문제",
-        "false-info": "허위 정보",
-        obscene: "음란물/불건전 내용",
-        copyright: "저작권 침해",
-        other: "기타",
-      };
 
       await api.post(`/api/report/NOTICE`, {
+        reportedId: noticeId,
         title: title,
         content: `${reasonMap[reason]}\n\n${detail}`,
       });

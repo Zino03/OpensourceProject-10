@@ -151,10 +151,8 @@ const ReviewReport = () => {
   const location = useLocation(); // ✅ 이전 페이지에서 데이터 받기
 
   // 이전 페이지(공지 상세보기)에서 넘어온 state 값
-  const reviewId = location.state?.id;
-
-  // ✅ 신고 대상 후기 제목 (예시)
-  const reportedReviewTitle = "프레첼 공동구매 3차 후기";
+  const reviewId = location.state ? location.state.id : "";
+  const reportedReviewTitle = location.state ? location.state.title : "";
 
   const [title, setTitle] = useState("");
   const [reason, setReason] = useState("");
