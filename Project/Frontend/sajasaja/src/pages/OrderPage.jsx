@@ -2,12 +2,7 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { useNavigate, useLocation } from "react-router-dom";
-import {
-  CustomOverlayMap,
-  Map,
-  MapMarker,
-  useKakaoLoader,
-} from "react-kakao-maps-sdk";
+import { Map, MapMarker, useKakaoLoader } from "react-kakao-maps-sdk";
 import { api, setInterceptor } from "../assets/setIntercepter";
 
 // --- Styled Components ---
@@ -35,21 +30,6 @@ const MapContainer = styled.div`
   position: relative;
   border: 1px solid #ddd;
 `;
-
-// 마커 스타일
-const MarkerPin = styled.div`
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  opacity: 1;
-  transform: scale(1);
-  transition: all 0.2s ease;
-  .img {
-    height: 30px;
-  }
-`;
-
 const MapOverlayButton = styled.button`
   position: absolute;
   top: 20px;
@@ -372,6 +352,7 @@ const OrderPage = () => {
   const isDelivery = receiveMethod === "delivery";
   const productData = state?.product || {};
 
+  console.log(productData);
   // ✅ PurchaseModal에서 넘겨준 postId를 받음
   const postId = state?.postId || productData.id;
 
@@ -391,11 +372,7 @@ const OrderPage = () => {
   const [entranceMethod, setEntranceMethod] = useState("password");
   const [entranceDetail, setEntranceDetail] = useState("");
 
-  // 지도 상태
-  const [latitude, setLatitude] = useState(0);
-  const [longitude, setLongitude] = useState(0);
-  const [map, setMap] = useState(null);
-
+  // 🔹 백엔드에서 받아온 주최자 프로필
   const [sellerProfile, setSellerProfile] = useState(null);
 
   const safePrice = Number(
@@ -407,9 +384,6 @@ const OrderPage = () => {
   const totalProductPrice = safePrice * quantity;
   const finalPrice = totalProductPrice + safeShippingCost;
 
-  // ---------------------------------------------------------
-  //                 INITIAL FETCH (SAFE VERSION)
-  // ---------------------------------------------------------
   useEffect(() => {
     const fetchInitData = async () => {
       const token = localStorage.getItem("accessToken");
@@ -420,7 +394,6 @@ const OrderPage = () => {
         navigate("/login");
         return;
       }
-
       setInterceptor(token);
 
       try {
@@ -437,39 +410,27 @@ const OrderPage = () => {
           setReceiver(nickname || "");
         }
 
-        // 3) 주최자 프로필 + 좌표 불러오기
+        // 2) 주최자 프로필 불러오기
         if (postId) {
+          // 🔥 이 부분을 실제 백엔드 URL에 맞게 수정하면 됨
           const profileRes = await api.get(`/api/posts/${postId}/profile`);
 
           // 너가 올려준 응답 구조 대응:
           // { profile: { ... } } 또는 그냥 { ... }
           const profileData = profileRes.data.profile || profileRes.data;
           setSellerProfile(profileData);
-
-          const postRes = await api.get(`/api/posts/${postId}`);
-          const postData = postRes.data.post;
-
-          if (postData.pickupAddress) {
-            setLatitude(postData.pickupAddress.latitude);
-            setLongitude(postData.pickupAddress.longitude);
-          }
         }
-      } catch (err) {
-        console.error("초기 정보 로드 실패:", err);
+      } catch (error) {
+        console.error("초기 정보 로드 실패:", error);
       }
     };
 
     fetchInitData();
   }, [navigate, postId]);
 
-  // ---------------------------------------------------------
-  //                       ADDRESS APPLY
-  // ---------------------------------------------------------
   const applyAddressToState = (addr) => {
     setSelectedAddressId(addr.id);
-
     setReceiver(addr.recipient || "");
-
     if (addr.phone) {
       const parts = addr.phone.split("-");
       setPhone({
@@ -478,32 +439,24 @@ const OrderPage = () => {
         p3: parts[2] || "",
       });
     }
-
     setAddress({
-      zipCode: addr.zipCode || "",
-      street: addr.street || "",
-      detail: addr.detail || "",
+      zipCode: addr.zipCode,
+      street: addr.street,
+      detail: addr.detail,
     });
-
     if (addr.entranceAccess) {
       const method = String(addr.entranceAccess).toLowerCase();
-
-      let mapped = "etc";
-      if (method === "password") mapped = "password";
-      else if (method === "call") mapped = "security";
-      else if (method === "free") mapped = "free";
-
-      setEntranceMethod(mapped);
+      let mappedMethod = "etc";
+      if (method === "password") mappedMethod = "password";
+      else if (method === "call") mappedMethod = "security";
+      else if (method === "free") mappedMethod = "free";
+      setEntranceMethod(mappedMethod);
       setEntranceDetail(addr.entranceDetail || "");
     }
   };
 
-  // ---------------------------------------------------------
-  //                  ADDRESS SELECT HANDLER
-  // ---------------------------------------------------------
   const handleAddressSelect = (e) => {
     const val = e.target.value;
-
     setSelectedAddressId(val);
     if (val === "new") {
       setReceiver("");
@@ -515,31 +468,17 @@ const OrderPage = () => {
       const selected = userAddresses.find((addr) => addr.id === Number(val));
       if (selected) applyAddressToState(selected);
     }
-
-    const selected = (userAddresses || []).find(
-      (addr) => addr.id === Number(val)
-    );
-
-    if (selected) applyAddressToState(selected);
   };
 
-  // ---------------------------------------------------------
-  //                      QTY CHANGE
-  // ---------------------------------------------------------
   const handleQtyChange = (val) => {
     if (val < 1) return;
-
     if (val > maxAvailable) {
       alert(`구매 가능한 최대 수량은 ${maxAvailable}개 입니다.`);
       return;
     }
-
     setQuantity(val);
   };
 
-  // ---------------------------------------------------------
-  //                      ORDER BUTTON
-  // ---------------------------------------------------------
   const handleOrder = () => {
     if (
       isDelivery &&
@@ -570,18 +509,15 @@ const OrderPage = () => {
     });
   };
 
-  // ---------------------------------------------------------
-  //                JSX RETURN (map 처리만 수정)
-  // ---------------------------------------------------------
   return (
     <Container>
-      {/* 주최자 정보 */}
+      {/* 🔹 주최자 정보 섹션 (백엔드 profile 연동) */}
       {sellerProfile && (
         <Section>
           <SectionTitle>
-            주최자 정보 <Badge>공동구매 주최자</Badge>
+            주최자 정보
+            <Badge>공동구매 주최자</Badge>
           </SectionTitle>
-
           <HostBox>
             <HostAvatar
               src={sellerProfile.profileImg || "/images/profile.png"}
@@ -605,35 +541,29 @@ const OrderPage = () => {
         </Section>
       )}
 
-      {/* 배송 정보 */}
+      {/* 배송 / 직접수령 섹션 */}
       {isDelivery ? (
         <>
           <Section>
             <SectionTitle>배송정보</SectionTitle>
             <Label>배송지 선택</Label>
-
             <FormRow>
               <InputArea>
                 <StyledSelect
                   onChange={handleAddressSelect}
                   value={selectedAddressId}
                 >
-                  {(userAddresses || []).map(
-                    (
-                      addr // ✅ FIXED
-                    ) => (
-                      <option key={addr.id} value={addr.id}>
-                        {addr.name || addr.recipient}{" "}
-                        {addr.isDefault ? "(기본)" : ""}
-                      </option>
-                    )
-                  )}
+                  {userAddresses.map((addr) => (
+                    <option key={addr.id} value={addr.id}>
+                      {addr.name || addr.recipient}{" "}
+                      {addr.isDefault ? "(기본)" : ""}
+                    </option>
+                  ))}
                   <option value="new">신규 입력</option>
                 </StyledSelect>
               </InputArea>
             </FormRow>
 
-            {/* 받는 사람 */}
             <Label>
               받는 분 <RequiredDot>•</RequiredDot>
             </Label>
@@ -648,7 +578,6 @@ const OrderPage = () => {
               </InputArea>
             </FormRow>
 
-            {/* 연락처 */}
             <Label>
               연락처 <RequiredDot>•</RequiredDot>
             </Label>
@@ -673,11 +602,9 @@ const OrderPage = () => {
               </InputArea>
             </FormRow>
 
-            {/* 주소 */}
             <Label>
               주소 <RequiredDot>•</RequiredDot>
             </Label>
-
             <FormRow>
               <InputArea>
                 <StyledInput
@@ -687,7 +614,6 @@ const OrderPage = () => {
                   placeholder="우편번호"
                   style={{ width: "100px" }}
                 />
-
                 {address.street ? (
                   <AddressDisplayBox>
                     <div>
@@ -702,7 +628,6 @@ const OrderPage = () => {
                     주소를 선택하거나 입력해주세요.
                   </div>
                 )}
-
                 <StyledInput
                   type="text"
                   placeholder="상세주소 입력"
@@ -715,13 +640,11 @@ const OrderPage = () => {
             </FormRow>
           </Section>
 
-          {/* 출입방법 */}
           <Section>
             <SectionTitle>배송 요청사항</SectionTitle>
             <Label>
               공동현관 출입방법 <RequiredDot>•</RequiredDot>
             </Label>
-
             <FormRow>
               <InputArea>
                 <RadioGroup>
@@ -743,7 +666,6 @@ const OrderPage = () => {
                     </RadioLabel>
                   ))}
                 </RadioGroup>
-
                 <StyledInput
                   type="text"
                   placeholder={
@@ -760,7 +682,6 @@ const OrderPage = () => {
           </Section>
         </>
       ) : (
-        // 직접수령 (map)
         <Section>
           <SectionTitle>수령 장소</SectionTitle>
           <MapContainer>
@@ -795,38 +716,34 @@ const OrderPage = () => {
                 }}
                 style={{ width: "100%", height: "100%" }}
                 level={3}
-                onCreate={setMap}
               >
-                <CustomOverlayMap
-                  position={{ lat: latitude, lng: longitude }}
-                  yAnchor={1}
-                  zIndex={999}
+                <MapMarker
+                  position={{
+                    lat: parseFloat(productData.latitude || 36.628583),
+                    lng: parseFloat(productData.longitude || 127.457583),
+                  }}
                 >
-                  {/* <MarkerPin>
-                    <img
-                      src="/images/marker.png"
-                      alt="marker"
-                      style={{ height: "30px" }}
-                    />
-                  </MarkerPin> */}
-                </CustomOverlayMap>
+                  <div
+                    style={{ padding: "5px", color: "#000", fontSize: "12px" }}
+                  >
+                    수령 장소
+                  </div>
+                </MapMarker>
               </Map>
             )}
           </MapContainer>
+          <WarningText>수령장소를 확인해주세요!</WarningText>
         </Section>
       )}
 
-      {/* 주문 상품 */}
       <Section>
         <SectionTitle>주문 상품</SectionTitle>
-
         <ProductTable>
           <TableHeaderComponent>
             <div style={{ flex: 5 }}>상품정보</div>
             <div style={{ flex: 1 }}>수량</div>
             <div style={{ flex: 1 }}>총가격</div>
           </TableHeaderComponent>
-
           <TableRow>
             <ColInfo>
               <ProductImg
@@ -834,7 +751,6 @@ const OrderPage = () => {
                 alt="상품"
                 onError={(e) => (e.target.src = "/images/sajasaja.png")}
               />
-
               <div>
                 <div
                   style={{
@@ -851,7 +767,6 @@ const OrderPage = () => {
                 </div>
               </div>
             </ColInfo>
-
             <ColQty>
               <MiniStepper>
                 <button
@@ -860,9 +775,7 @@ const OrderPage = () => {
                 >
                   -
                 </button>
-
                 <input type="text" value={quantity} readOnly />
-
                 <button
                   onClick={() => handleQtyChange(quantity + 1)}
                   disabled={maxAvailable > 0 ? quantity >= maxAvailable : false}
@@ -871,16 +784,13 @@ const OrderPage = () => {
                 </button>
               </MiniStepper>
             </ColQty>
-
             <ColPrice>{totalProductPrice.toLocaleString()} 원</ColPrice>
           </TableRow>
         </ProductTable>
       </Section>
 
-      {/* 결제 정보 */}
       <Section>
         <SectionTitle>결제 정보</SectionTitle>
-
         <PaymentInfoBox>
           <PaymentRow>
             <span>상품금액</span>
@@ -888,14 +798,12 @@ const OrderPage = () => {
               {totalProductPrice.toLocaleString()} 원
             </span>
           </PaymentRow>
-
           <PaymentRow>
             <span>배송비</span>
             <span className="price">
               {productData.shippingCost?.toLocaleString()}
             </span>
           </PaymentRow>
-
           <PaymentRow className="total">
             <span>최종 결제 금액</span>
             <span className="total-price">
