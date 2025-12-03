@@ -911,10 +911,10 @@ const GroupPurchaseDetail = () => {
                   position: "absolute",
                   top: 10,
                   right: 10,
-                  background: "#D32F2F",
+                  background: "red",
                   color: "white",
                   padding: "5px 10px",
-                  borderRadius: "8px",
+                  borderRadius: "15px",
                   fontSize: "12px",
                 }}
               >
