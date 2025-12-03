@@ -209,8 +209,6 @@ function MyProfile() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const nickname = location ? location.state.nickname : "";
-
   // 초기 상태를 모두 빈 문자열로 설정하여 uncontrolled -> controlled 에러 방지
   const [form, setForm] = useState({
     name: "",
