@@ -1,9 +1,9 @@
 // 파일명: OrderDetail_Delivered.jsx
-import React, { useState, useEffect } from "react"; // ✅ useEffect 추가
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ConfirmationPurchase from "./modal/ConfirmationPurchase";
 import ReviewModal from "./modal/ReviewModal";
-import { api, setInterceptor } from "../assets/setIntercepter"; // ✅ api, setInterceptor 추가
+import { api, setInterceptor } from "../assets/setIntercepter";
 
 /* ============================================
     🔥 SVG 화살표 아이콘 (색 변경 가능)
@@ -155,25 +155,25 @@ const arrowColors = ["#828282", "#828282", "#828282", "#828282", "#ffffffff"];
 
 // 백엔드 Status Code
 const STATUS_MAP = {
-    0: { label: "주문 접수", path: "/order-detail" },
-    1: { label: "결제 완료", path: "/received" },
-    2: { label: "상품 준비 중", path: "/preparing" },
-    3: { label: "배송 중", path: "/shipping" },
-    4: { label: "배송 완료", path: "/delivered" },
-    6: { label: "주문 취소", path: "/cancelled" },
+    0: { label: "주문 접수", path: "/order-received" },
+    1: { label: "결제 완료", path: "/order-payment-received" },
+    2: { label: "상품 준비 중", path: "/order-preparing" },
+    3: { label: "배송 중", path: "/order-shipping" },
+    4: { label: "배송 완료", path: "/order-delivered" }, // Status 4와 5를 이 페이지에서 보여줌
+    6: { label: "주문 취소", path: "/order-cancelled" },
 };
 
 function OrderDetail_Delivered() {
   const navigate = useNavigate();
 
-  const [orders, setOrders] = useState([]); // ✅ 초기값 수정
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
   const [counts, setCounts] = useState({ 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 });
 
   // 구매확정 모달
   const [showModal, setShowModal] = useState(false);
-  const [selectedOrderToConfirm, setSelectedOrderToConfirm] = useState(null); // ID 대신 전체 객체 저장
+  const [selectedOrderToConfirm, setSelectedOrderToConfirm] = useState(null);
 
   // 후기 모달
   const [showReviewModal, setShowReviewModal] = useState(false);
@@ -183,7 +183,6 @@ function OrderDetail_Delivered() {
 
   /* ===========================
      1. 주문 목록 및 카운트 불러오기
-     - status=4: 배송 완료 (Status 4와 5를 함께 가져옴)
   ============================ */
   const fetchOrders = async () => {
     try {
@@ -219,7 +218,7 @@ function OrderDetail_Delivered() {
           date: (o.createdAt || "").split("T")[0] || "",
           total: `${Number(o.price ?? 0).toLocaleString()} 원`,
           confirmed: o.status === 5, // Status 5면 구매확정 완료
-          // 후기 모달에 필요한 추가 정보 (order detail DTO에는 있지만, list DTO에는 없으므로 임시로 하드코딩된 필드를 유지)
+          // 후기 모달에 필요한 추가 정보 (임시 유지)
           imageUrl: "/images/products/sample.png", 
       }));
 
@@ -233,7 +232,7 @@ function OrderDetail_Delivered() {
   };
 
   useEffect(() => {
-    // 🔥 인증 오류 수정: navigate 대신 실제 토큰을 setInterceptor에 전달
+    // 인증 오류 수정: navigate 대신 실제 토큰을 setInterceptor에 전달
     const token = localStorage.getItem("accessToken");
     
     if (!token || token === 'undefined') {
