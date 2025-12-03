@@ -1,9 +1,6 @@
 package com.example.saja_saja.service;
 
-import com.example.saja_saja.dto.buyer.BuyerListResponseDto;
-import com.example.saja_saja.dto.buyer.CanceledOrderListResponseDto;
-import com.example.saja_saja.dto.buyer.OrderListResponseDto;
-import com.example.saja_saja.dto.buyer.OrderResponseDto;
+import com.example.saja_saja.dto.buyer.*;
 import com.example.saja_saja.dto.post.BuyerApplyRequestDto;
 import com.example.saja_saja.dto.post.BuyerApplyResponseDto;
 import com.example.saja_saja.dto.post.ReceivedAtRequestDto;
@@ -170,7 +167,7 @@ public class BuyerService {
             post.setStatus(2);
         }
         if (
-                (!post.getStatus().equals(1) || !post.getStatus().equals(2))
+                (post.getStatus().equals(1) || post.getStatus().equals(2))
                         && targetQuantity == post.getCurrentQuantity()
         ) {
             post.setStatus(3);
@@ -268,7 +265,9 @@ public class BuyerService {
         buyerRepository.save(buyer);
         postRepository.save(post);
 
-        return new ResponseEntity(buyer, HttpStatus.OK);
+        CanceledBuyerResponseDto data = CanceledBuyerResponseDto.of(buyer, post.getHost().getNickname());
+
+        return new ResponseEntity(data, HttpStatus.OK);
     }
 
     // 주최자가 본인거 수량변경

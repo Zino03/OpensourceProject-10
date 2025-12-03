@@ -5,6 +5,7 @@ import com.example.saja_saja.entity.member.Member;
 import com.example.saja_saja.entity.member.Role;
 import com.example.saja_saja.entity.post.Buyer;
 import com.example.saja_saja.entity.post.BuyerRepository;
+import com.example.saja_saja.entity.post.Post;
 import com.example.saja_saja.exception.BadRequestException;
 import com.example.saja_saja.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -106,6 +107,21 @@ public class AdminBuyerService {
                     break;
                 default:
                     throw new BadRequestException("처리 불가한 process값입니다.", null);
+            }
+
+            Post post = buyer.getPost();
+
+            if (post == null) throw new ResourceNotFoundException("존재하지 않는 공동 구매 주문입니다.");
+
+            if (post.getQuantity().equals(post.getCurrentPaidQuantity())) {
+                List<Buyer> buyers = post.getBuyers();
+                for (Buyer b : buyers) {
+                    if (b.getUser().equals(post.getHost())) {
+                        b.setStatus(5);
+                    } else {
+                        b.setStatus(2);
+                    }
+                }
             }
 
             AdminBuyerResponseDto buyerDto = AdminBuyerResponseDto.of(buyer);
