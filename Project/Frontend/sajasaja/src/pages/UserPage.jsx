@@ -115,7 +115,11 @@ const UserPage = () => {
 
   // ✅ 신고하기 버튼 클릭 -> UserReport 페이지로 이동 (데이터 전달)
   const handleReport = () => {
-    navigate("/userreport");
+    navigate("/userreport", {
+      state: {
+        reportedUserName: nickname
+      }
+    });
   };
 
   // 프로필 이미지 처리
