@@ -26,6 +26,8 @@ public class CanceledOrderListResponseDto {
 
     private Integer canceledReason;
 
+    private Integer status;
+
     public static CanceledOrderListResponseDto of(Buyer buyer) {
         Post post =  buyer.getPost();
 
@@ -35,7 +37,8 @@ public class CanceledOrderListResponseDto {
                 post.getTitle(),
                 buyer.getQuantity(),
                 buyer.getCanceledAt(),
-                buyer.getCanceledReason()
+                buyer.getCanceledReason(),
+                buyer.getStatus()
         );
     }
 }

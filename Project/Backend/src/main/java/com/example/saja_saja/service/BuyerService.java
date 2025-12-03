@@ -236,6 +236,7 @@ public class BuyerService {
             buyer.setCanceledAt(LocalDateTime.now());
             buyer.setCanceledReason(canceledReason);
             buyer.setIsPaid(3); // 주문 취소
+            buyer.setStatus(6);
         }
 
         post.setCurrentQuantity(post.getCurrentQuantity() - buyer.getQuantity());
