@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Map, MapMarker, useKakaoLoader } from "react-kakao-maps-sdk";
+import { Map, CustomOverlayMap, useKakaoLoader } from "react-kakao-maps-sdk";
 import { api, setInterceptor } from "../assets/setIntercepter";
 
 // --- Styled Components ---
@@ -20,6 +20,19 @@ const SectionTitle = styled.h3`
   font-size: 16px;
   font-weight: 600;
   margin-bottom: 16px;
+`;
+// 마커 스타일
+const MarkerPin = styled.div`
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  opacity: 1;
+  transform: scale(1);
+  transition: all 0.2s ease;
+  .img {
+    height: 30px;
+  }
 `;
 const MapContainer = styled.div`
   width: 100%;
@@ -352,7 +365,6 @@ const OrderPage = () => {
   const isDelivery = receiveMethod === "delivery";
   const productData = state?.product || {};
 
-  console.log(productData);
   // ✅ PurchaseModal에서 넘겨준 postId를 받음
   const postId = state?.postId || productData.id;
 
@@ -413,7 +425,7 @@ const OrderPage = () => {
         // 2) 주최자 프로필 불러오기
         if (postId) {
           // 🔥 이 부분을 실제 백엔드 URL에 맞게 수정하면 됨
-          const profileRes = await api.get(`/api/posts/${postId}/profile`);
+          const profileRes = await api.get(`/api/posts/${postId}`);
 
           // 너가 올려준 응답 구조 대응:
           // { profile: { ... } } 또는 그냥 { ... }
@@ -424,7 +436,6 @@ const OrderPage = () => {
         console.error("초기 정보 로드 실패:", error);
       }
     };
-
     fetchInitData();
   }, [navigate, postId]);
 
@@ -508,6 +519,7 @@ const OrderPage = () => {
       },
     });
   };
+  console.log(productData);
 
   return (
     <Container>
@@ -717,18 +729,23 @@ const OrderPage = () => {
                 style={{ width: "100%", height: "100%" }}
                 level={3}
               >
-                <MapMarker
-                  position={{
-                    lat: parseFloat(productData.latitude || 36.628583),
-                    lng: parseFloat(productData.longitude || 127.457583),
-                  }}
-                >
-                  <div
-                    style={{ padding: "5px", color: "#000", fontSize: "12px" }}
-                  >
-                    수령 장소
-                  </div>
-                </MapMarker>
+                <CustomOverlayMap
+                   position={{lat: parseFloat(productData.latitude || 36.628583),
+                  lng: parseFloat(productData.longitude || 127.457583)}}
+                   yAnchor={1}
+                   zIndex={999}
+                 >
+
+                <MarkerPin>
+                      <img
+                        src="/images/marker.png"
+                        alt="marker"
+                        style={{ height: "30px", zIndex: "100px"}}
+                        // 이미지 없을 경우 대비
+                        onError={(e)=>{e.target.src="https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png"}} 
+                      />
+                  </MarkerPin>
+                  </CustomOverlayMap>
               </Map>
             )}
           </MapContainer>
@@ -747,7 +764,7 @@ const OrderPage = () => {
           <TableRow>
             <ColInfo>
               <ProductImg
-                src={productData.image}
+                src={productData.imageURL}
                 alt="상품"
                 onError={(e) => (e.target.src = "/images/sajasaja.png")}
               />
