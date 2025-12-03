@@ -155,10 +155,6 @@ const STATUS_MAP = {
     6: { label: "주문 취소", path: "/cancelled" },
 };
 
-
-/* ============================================
-   🔥 메인 컴포넌트 (주문 접수 리스트)
-=============================================== */
 function OrderDetailOrderReceived() {
   const navigate = useNavigate();
 
@@ -193,9 +189,10 @@ function OrderDetailOrderReceived() {
           page: 0,
         },
       });
+      console.log(res.data);
 
       // 응답 형태: { statusCounts: {...}, orders: [...], hasMore: true }
-      const { orders: rawOrders, statusCounts } = res.data; //
+      const { orders: rawOrders, statusCounts } = res.data;
 
       if (statusCounts) {
           setCounts(statusCounts);
@@ -210,9 +207,11 @@ function OrderDetailOrderReceived() {
       const mapped = rawOrders.map((o) => {
         const orderedDate = (o.createdAt || "").split("T")[0] || "";
         const totalPrice = o.price ?? 0;
+        console.log(rawOrders);
+        
 
         return {
-          id: o.id,
+          id: o.postId,
           name: o.postTitle || "상품명 없음",
           host: o.hostNickname || "주최자",
           hostNickname: o.hostNickname,
@@ -232,16 +231,14 @@ function OrderDetailOrderReceived() {
   };
 
   useEffect(() => {
-    // 🔥 에러 수정: navigate 대신 실제 토큰을 setInterceptor에 전달
+    // 인증 오류 수정: navigate 대신 실제 토큰을 setInterceptor에 전달
     const token = localStorage.getItem("accessToken");
     
     if (!token || token === 'undefined') {
-        // 토큰이 없으면 로그인 페이지로 이동
         navigate('/login'); 
         return;
     }
     
-    // ✅ setInterceptor에 navigate 대신 실제 토큰 문자열을 전달
     setInterceptor(token);
     fetchOrders();
   }, [navigate]);
@@ -261,17 +258,33 @@ function OrderDetailOrderReceived() {
 
   /* ===========================
      3. 실제 주문 취소 API 호출
-     - PATCH /api/mypage/order/{buyerId}/cancel
   ============================ */
   const handleConfirmCancel = async () => {
     if (!selectedOrder) return;
 
     try {
-      // PATCH /api/mypage/order/{buyerId}/cancel 호출
-      await api.patch(`/api/mypage/order/${selectedOrder.id}/cancel`);
+      // API 호출
+      await api.patch(`/api/mypage/order/${selectedOrder.id}/cancel`); 
 
-      // 취소 후 주문 목록 새로고침
+      // ✅ 수정된 로직: API 성공 시 로컬 상태에서 항목을 즉시 제거합니다.
+      // 이렇게 하면 목록에서 즉시 사라지는 것을 확인할 수 있습니다.
+      setOrders((prev) => prev.filter((o) => o.id !== selectedOrder.id));
+
+      // 카운트 업데이트를 위해 다시 주문 목록을 불러옵니다.
       fetchOrders(); 
+
+
+
+
+
+
+
+
+
+
+
+
+
 
       closeCancelModal();
     } catch (err) {
@@ -280,12 +293,12 @@ function OrderDetailOrderReceived() {
     }
   };
 
-    const steps = [
-      { id: 0, label: STATUS_MAP[0].label, value: counts[0] || 0, active: false, path: STATUS_MAP[0].path },
-      { id: 1, label: STATUS_MAP[1].label, value: counts[1] || 0, active: true, path: STATUS_MAP[1].path },
+  // 동적 steps 배열 생성
+  const steps = [
+      { id: 0, label: STATUS_MAP[0].label, value: counts[0] || 0, active: true, path: STATUS_MAP[0].path },
+      { id: 1, label: STATUS_MAP[1].label, value: counts[1] || 0, active: false, path: STATUS_MAP[1].path },
       { id: 2, label: STATUS_MAP[2].label, value: counts[2] || 0, active: false, path: STATUS_MAP[2].path },
       { id: 3, label: STATUS_MAP[3].label, value: counts[3] || 0, active: false, path: STATUS_MAP[3].path },
-      // Status 4 (배송 완료) + Status 5 (구매 확정) 합산
       { id: 4, label: STATUS_MAP[4].label, value: (counts[4] || 0) + (counts[5] || 0), active: false, path: STATUS_MAP[4].path }, 
       { id: 6, label: STATUS_MAP[6].label, value: counts[6] || 0, active: false, path: STATUS_MAP[6].path },
   ];
@@ -368,9 +381,10 @@ function OrderDetailOrderReceived() {
                 </td>
               </tr>
             ) : (
+              // ✅ key prop이 제대로 할당된 orders.map 루프
               orders.map((order, idx) => (
                 <tr
-                  key={order.id}
+                  key={order.id} // ✅ key prop 할당
                   style={
                     idx === orders.length - 1
                       ? styles.lastBodyRow
