@@ -41,6 +41,11 @@ const styles = {
     overflow: "hidden",
     backgroundColor: "#f7f7f7",
   },
+  avatarSrc: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+  },
   profileInfo: { display: "flex", flexDirection: "column", gap: "8px" },
   nicknameRow: { display: "flex", alignItems: "center", gap: "10px" },
   nickname: { fontSize: "20px", fontWeight: 600 },
@@ -236,7 +241,9 @@ const UserPage = () => {
         <section style={styles.profileCard}>
           <div style={styles.profileLeft}>
             <div style={styles.avatar}>
-              {!loading && <img src={avatarSrc} alt="프로필" />}
+              {!loading && (
+                <img src={avatarSrc} style={styles.avatarSrc} alt="프로필" />
+              )}
             </div>
             <div style={styles.profileInfo}>
               <div style={styles.nicknameRow}>
