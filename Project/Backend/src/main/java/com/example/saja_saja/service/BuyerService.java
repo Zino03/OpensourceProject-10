@@ -642,7 +642,7 @@ public class BuyerService {
             throw new BadRequestException("주최 공동 구매 기록은 구매 확정할 수 없습니다.", null);
         }
 
-        if (buyer.getStatus() != 3) {
+        if (buyer.getStatus() != 4) {
             throw new BadRequestException("수령 완료된 주문만 구매 확정할 수 있습니다.", null);
         }
 
