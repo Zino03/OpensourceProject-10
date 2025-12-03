@@ -151,7 +151,6 @@ const NotificationReport = () => {
     }
   }, [noticeId, navigate]);
 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -176,21 +175,26 @@ const NotificationReport = () => {
     }
 
     try {
-      // ✅ 백엔드 API 호출
-      // 엔드포인트: POST /api/report/NOTICE
-      // RequestBody: ReportRequestDto (targetId, title, content, reason)
-      await api.post(`/api/report/NOTICE`, {
-        reportedId: noticeId,
-        title: title,
-        content: detail,
-        reportedNickname: 'nickName', // 백엔드 Enum 매핑을 위해 대문자 변환 (spam -> SPAM)
-      });
+      // ✅ 백엔드 API 연동 부분 수정
+      // API Spec: POST /api/report/NOTICE
+      // Body: { title, content, reportedId }
+      // content에는 신고 사유(reason)와 상세 내용(detail)을 합쳐서 전송
       
-      // await api.patch(`api/admin/report/NOTICE/${noticeId}`),{
-      //   reportId: noticeId,
-      //   type: NOTICE,
+      const reportReasonText = {
+        spam: "스팸/광고",
+        abuse: "욕설·비방/혐오 표현",
+        fraud: "사기 의심/거래 관련 문제",
+        "false-info": "허위 정보",
+        obscene: "음란물/불건전 내용",
+        copyright: "저작권 침해",
+        other: "기타",
+      };
 
-      // }
+      await api.post(`/api/report/NOTICE`, {
+        title: title,
+        content: `[${reportReasonText[reason] || reason}] ${detail}`, // 사유와 내용을 합쳐서 전송
+        reportedId: noticeId, // 신고 대상 공지 ID
+      });
 
       // 신고 완료 모달 열기
       setIsCompleteOpen(true);
@@ -205,7 +209,6 @@ const NotificationReport = () => {
   const handleCancel = () => {
     navigate(-1);
   };
-  
 
   return (
     <div style={styles.page}>

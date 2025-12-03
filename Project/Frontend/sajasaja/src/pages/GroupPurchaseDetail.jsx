@@ -915,7 +915,7 @@ const GroupPurchaseDetail = () => {
           <ProgressSection>
             <ProgressLabel>현재 주문된 수량</ProgressLabel>
             <CurrentCount>
-              {currentCount} / {product.goalCount}
+              {currentCount}
             </CurrentCount>
             <ProgressBarContainer>
               <ProgressBarFill $percent={progressPercent} />
