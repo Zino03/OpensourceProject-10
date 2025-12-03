@@ -6,7 +6,7 @@ import ReviewModal from "./modal/ReviewModal";
 import { api, BASE_URL, setInterceptor } from "../assets/setIntercepter";
 
 /* ============================================
-    🔥 SVG 화살표 아이콘 (색 변경 가능)
+    🔥 SVG 화살표 아이콘 (색 변경 가능)
 =============================================== */
 const ArrowIcon = ({ color = "#b0b0b0" }) => (
   <svg
@@ -16,7 +16,6 @@ const ArrowIcon = ({ color = "#b0b0b0" }) => (
     fill="none"
     style={{ marginTop: "22px" }}
   >
-       {" "}
     <path
       d="M8 4l8 8-8 8"
       stroke={color}
@@ -24,7 +23,6 @@ const ArrowIcon = ({ color = "#b0b0b0" }) => (
       strokeLinecap="round"
       strokeLinejoin="round"
     />
-     {" "}
   </svg>
 );
 
@@ -114,10 +112,6 @@ const styles = {
     overflow: "hidden",
     textOverflow: "ellipsis",
   },
-  orderActions: {
-    display: "flex",
-    gap: "8px",
-  },
   btnConfirmDefault: {
     minWidth: "90px",
     padding: "4px 14px",
@@ -151,7 +145,7 @@ const styles = {
 };
 
 /* ============================================
-    🔥 화살표 색상 배열 및 STATUS_MAP
+    🔥 화살표 색상 배열 및 STATUS_MAP
 =============================================== */
 const arrowColors = ["#000000ff", "#828282", "#ffffffff"];
 
@@ -188,7 +182,7 @@ function OrderDetail_Delivered() {
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewOrder, setReviewOrder] = useState({});
 
-  const activeStatus = 4; // 🔥 현재 페이지의 상태: 배송 완료 (Status 4와 5를 함께 조회)
+  const activeStatus = 4; // 🔥 현재 페이지의 상태: 배송 완료
 
   /* ===========================
      1. 주문 목록 및 카운트 불러오기
@@ -198,7 +192,6 @@ function OrderDetail_Delivered() {
       setLoading(true);
       setErrorMsg("");
 
-      // GET /api/mypage/orders?status=4 호출
       const res = await api.get("/api/mypage/orders", {
         params: {
           status: activeStatus,
@@ -208,7 +201,7 @@ function OrderDetail_Delivered() {
 
       console.log(res);
 
-      const { orders: rawOrders, statusCounts } = res.data; //
+      const { orders: rawOrders, statusCounts } = res.data;
 
       if (statusCounts) {
         setCounts(statusCounts);
@@ -230,6 +223,8 @@ function OrderDetail_Delivered() {
         date: (o.createdAt || "").split("T")[0] || "",
         total: `${Number(o.price ?? 0).toLocaleString()} 원`,
         confirmed: o.status === 5, // Status 5면 구매확정 완료
+        // 🔥 백엔드에서 이미 리뷰 여부를 내려주면 활용, 없으면 기본 false
+        reviewed: o.reviewed ?? o.hasReview ?? false,
       }));
 
       setOrders(mapped);
@@ -245,7 +240,6 @@ function OrderDetail_Delivered() {
   };
 
   useEffect(() => {
-    // 인증 오류 수정: navigate 대신 실제 토큰을 setInterceptor에 전달
     const token = localStorage.getItem("accessToken");
 
     if (!token || token === "undefined") {
@@ -266,8 +260,7 @@ function OrderDetail_Delivered() {
     console.log(selectedOrderToConfirm);
 
     try {
-      // PATCH /mypage/order/{buyerId}/confirm 호출
-      let res = await api.patch(
+      const res = await api.patch(
         `/api/mypage/order/${selectedOrderToConfirm.id}/confirm`
       );
 
@@ -314,14 +307,17 @@ function OrderDetail_Delivered() {
         star: rating,
       };
 
-      // POST /mypage/order/{buyerId}/review 호출
       const res = await api.post(`/api/mypage/order/${orderId}/review`, body);
 
       alert("후기가 성공적으로 등록되었습니다.");
       console.log(res.data.message);
 
-      // 후기 등록 후 상태가 변경될 수 있으므로 목록 새로고침
-      fetchOrders();
+      // 🔥 이 주문은 리뷰 완료 상태로 로컬에서 처리
+      setOrders((prev) =>
+        prev.map((o) =>
+          o.id === orderId ? { ...o, reviewed: true } : o
+        )
+      );
 
       handleCloseReviewModal();
     } catch (err) {
@@ -405,14 +401,16 @@ function OrderDetail_Delivered() {
                 }
               />
             )}
-            {index == steps.length - 2 && <ArrowIcon color={arrowColors[2]} />}
+            {index === steps.length - 2 && (
+              <ArrowIcon color={arrowColors[2]} />
+            )}
           </React.Fragment>
         ))}
       </div>
 
       {/* ============================
-          주문 내역 테이블
-      ============================ */}
+          주문 내역 테이블
+      ============================ */}
       <div style={styles.orderListWrapper}>
         <div style={styles.orderListHeader}>
           <h2 style={styles.orderListTitle}>주문 내역</h2>
@@ -490,6 +488,7 @@ function OrderDetail_Delivered() {
                   >
                     {order.host}
                   </td>
+
                   <td style={styles.td}>{order.quantity}</td>
                   <td style={styles.td}>{order.date}</td>
                   <td style={styles.td}>{order.total}</td>
@@ -517,10 +516,18 @@ function OrderDetail_Delivered() {
                   <td style={styles.td}>
                     <button
                       type="button"
-                      style={styles.btnFilled}
-                      onClick={() => handleOpenReviewModal(order)}
+                      style={
+                        order.reviewed
+                          ? styles.btnConfirmDone
+                          : styles.btnFilled
+                      }
+                      disabled={order.reviewed}
+                      onClick={() => {
+                        if (order.reviewed) return;
+                        handleOpenReviewModal(order);
+                      }}
                     >
-                      후기 작성
+                      {order.reviewed ? "작성 완료" : "후기 작성"}
                     </button>
                   </td>
                 </tr>
