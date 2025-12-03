@@ -577,8 +577,8 @@ const GroupPurchaseDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const [currentCount, setCurrentCount] = useState(0);
 
-  const [latitude, setLatitude] = useState(0);
-  const [longitude, setLongitude] = useState(0);
+  const [latitude, setLatitude] = useState(0.0);
+  const [longitude, setLongitude] = useState(0.0);
 
   // 공지사항 입력 상태
   const [noticeContent, setNoticeContent] = useState("");
@@ -623,9 +623,10 @@ const GroupPurchaseDetail = () => {
       if (postData.pickupAddress) {
         setLatitude(postData.pickupAddress.latitude);
         setLongitude(postData.pickupAddress.longitude);
-
-        console.log(latitude, longitude);
       }
+
+      console.log(latitude);
+      console.log(longitude);
 
       // 내 수량 초기화 (주최자라면)
       if (buyerData) {
@@ -884,6 +885,7 @@ const GroupPurchaseDetail = () => {
       });
     }
   };
+  console.log(product.imageUrl);
 
   return (
     <Container>
@@ -917,7 +919,7 @@ const GroupPurchaseDetail = () => {
             />
           </MainImageWrapper>
         </ImageArea>
-
+            
         <InfoArea>
           <ProductTitleRow>
             <ProductTitle>{product.title}</ProductTitle>
