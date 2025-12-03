@@ -636,6 +636,8 @@ const GroupPurchaseDetail = () => {
         setQuantity(buyerData.quantity || 1);
       }
 
+      console.log(myNickname);
+
       // 주최자 여부 확인
       if (postData.host && postData.host.nickname === myNickname) {
         setIsOrganizer(true);
@@ -652,7 +654,9 @@ const GroupPurchaseDetail = () => {
         const buyersResponse = await api.get(`/api/posts/${id}/buyers`);
         const buyers = buyersResponse.data.buyers || [];
 
-        const mappedBuyers = buyers.map((b) => ({
+        console.log(buyersResponse.data);
+
+        const mappedBuyers = buyersResponse.data.map((b) => ({
           id: b.buyerId,
           name: b.name,
           nickname: b.nickname,
@@ -707,7 +711,7 @@ const GroupPurchaseDetail = () => {
     daysLeft: getDaysLeft(post.endAt),
     shipping: post.isDeliveryAvailable ? "배송 가능" : "배송 불가",
     shippingCost: post.deliveryFee
-      ? `${post.deliveryFee.toLocaleString()}원`
+      ? `${post.deliveryFee.toLocaleString()} 원`
       : "무료",
     organizer: post.host?.nickname || "알 수 없음",
     organizerProfileImage: post.host?.profileImg
@@ -818,20 +822,24 @@ const GroupPurchaseDetail = () => {
   const handleReceiveDateSave = async (updatedData) => {
     try {
       for (const item of updatedData) {
-        if (item.receiveDate) {
-          const dateStr = `${item.receiveDate}T${
-            item.receiveTime || "00:00"
-          }:00`;
-          await api.post(`/api/posts/${id}/received-at`, {
-            buyerId: item.id,
-            receivedAt: dateStr,
-          });
-        }
+        if (!item.receiveDate || item.receiveDate.trim() === "") continue;
+
+        const dateStr = `${item.receiveDate}T${item.receiveTime || "00:00"}:00`;
+
+        console.log(item.nickname);
+        console.log(dateStr);
+
+        await api.post(`/api/posts/${id}/received-at`, {
+          userNickname: item.nickname,
+          receivedAt: dateStr,
+        });
       }
       alert("수령 일자가 저장되었습니다.");
       fetchPostDetail();
     } catch (err) {
-      alert("수령 일자 등록 실패");
+      // alert("수령 일자 등록 실패");
+      console.log(err.response.data);
+      alert(err.response.data.message);
     }
   };
 
@@ -963,11 +971,28 @@ const GroupPurchaseDetail = () => {
                       (e.target.src = "/images/filledprofile.svg")
                     }
                   />
-                  <OrganizerName>{product.organizer}</OrganizerName>
-                </OrganizerLeft>
-                
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}
+                  >
+                    <OrganizerName>{product.organizer}</OrganizerName>
 
-                {/* ✅ [수정됨] 문의하기 버튼: 클릭 시 모달 열기 */}
+                    {/* ✅ 매너점수 배지 (host.mannerScore 연동) */}
+                    {organizerMannerScore !== undefined && (
+                      <TimeBadge>
+                        {" "}
+                        {typeof organizerMannerScore === "number"
+                          ? organizerMannerScore.toFixed(1)
+                          : organizerMannerScore}
+                        점
+                      </TimeBadge>
+                    )}
+                  </div>
+                </OrganizerLeft>
+
                 {!isOrganizer && (
                   <ContactButton onClick={() => setIsContactModalOpen(true)}>
                     문의하기
@@ -1000,9 +1025,7 @@ const GroupPurchaseDetail = () => {
               </QuantityArea>
             )}
             <PriceArea>
-              <PriceText>
-                {(product.price * quantity).toLocaleString()} 원
-              </PriceText>
+              <PriceText>{product.price.toLocaleString()} 원</PriceText>
             </PriceArea>
           </BottomArea>
 
@@ -1252,7 +1275,18 @@ const GroupPurchaseDetail = () => {
                 )}
               </tr>
             </thead>
-            <tbody onClick={() => setIsDeliveryInfoModalOpen(true)}>
+            {/* <tbody onClick={() => {setIsDeliveryInfoModalOpen(true)}}> */}
+
+            <tbody
+              onClick={() => {
+                if (
+                  participantFilter === "delivery" &&
+                  filteredParticipants.length > 0
+                ) {
+                  setIsDeliveryInfoModalOpen(true);
+                }
+              }}
+            >
               {filteredParticipants.length > 0 ? (
                 filteredParticipants.map((p, idx) => (
                   <tr key={idx}>

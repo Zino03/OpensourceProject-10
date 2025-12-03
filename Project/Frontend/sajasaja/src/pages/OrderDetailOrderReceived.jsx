@@ -5,11 +5,17 @@ import CancelModal from "./modal/CancelModal";
 import { api, setInterceptor } from "../assets/setIntercepter";
 
 /* ============================================
-   🔥 SVG 화살표 아이콘 및 스타일
+    🔥 SVG 화살표 아이콘 (색 변경 가능)
 =============================================== */
-
 const ArrowIcon = ({ color = "#b0b0b0" }) => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ marginTop: "22px" }}>
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    style={{ marginTop: "22px" }}
+  >
+       {" "}
     <path
       d="M8 4l8 8-8 8"
       stroke={color}
@@ -17,11 +23,16 @@ const ArrowIcon = ({ color = "#b0b0b0" }) => (
       strokeLinecap="round"
       strokeLinejoin="round"
     />
+     {" "}
   </svg>
 );
 
 const styles = {
-  orderPage: { maxWidth: "1200px", margin: "60px auto", color: "#222" },
+  orderPage: {
+    maxWidth: "1200px",
+    margin: "60px auto",
+    color: "#222",
+  },
   orderSteps: {
     display: "flex",
     alignItems: "flex-start",
@@ -29,7 +40,10 @@ const styles = {
     marginBottom: "50px",
     justifyContent: "center",
   },
-  orderStep: { textAlign: "center", cursor: "pointer" },
+  orderStep: {
+    textAlign: "center",
+    cursor: "pointer",
+  },
   stepNumber: {
     fontSize: "60px",
     fontWeight: 401,
@@ -44,8 +58,14 @@ const styles = {
     lineHeight: 1,
     fontFamily: "Pretendard",
   },
-  stepLabel: { fontSize: "13px", marginTop: "8px", color: "#555" },
-  orderListWrapper: { marginTop: "20px" },
+  stepLabel: {
+    fontSize: "13px",
+    marginTop: "8px",
+    color: "#555",
+  },
+  orderListWrapper: {
+    marginTop: "20px",
+  },
   orderListHeader: {
     display: "flex",
     justifyContent: "space-between",
@@ -55,10 +75,23 @@ const styles = {
     borderBottom: "1px solid #000",
     paddingBottom: "8px",
   },
-  orderListTitle: { fontSize: "16px", fontWeight: 900 },
-  orderListNotice: { fontSize: "12px", color: "#D32F2F" },
-  orderTable: { width: "77%", margin: "0 auto", borderCollapse: "collapse", fontSize: "13px" },
-  tableHeadRow: { borderBottom: "1px solid #000" },
+  orderListTitle: {
+    fontSize: "16px",
+    fontWeight: 900,
+  },
+  orderListNotice: {
+    fontSize: "12px",
+    color: "#D32F2F",
+  },
+  orderTable: {
+    width: "77%",
+    margin: "0 auto",
+    borderCollapse: "collapse",
+    fontSize: "13px",
+  },
+  tableHeadRow: {
+    borderBottom: "1px solid #000",
+  },
   th: {
     padding: "20px 8px",
     textAlign: "center",
@@ -66,15 +99,27 @@ const styles = {
     color: "#555",
     fontSize: "13.5px",
   },
-  td: { padding: "10px 8px", textAlign: "center", fontSize: "11.5px" },
-  bodyRow: { borderBottom: "1px solid #f1f1f1" },
-  lastBodyRow: { borderBottom: "1px solid #e1e1e1" },
+  td: {
+    padding: "10px 8px",
+    textAlign: "center",
+    fontSize: "11.5px",
+  },
+  bodyRow: {
+    borderBottom: "1px solid #f1f1f1",
+  },
+  lastBodyRow: {
+    borderBottom: "1px solid #e1e1e1",
+  },
   productName: {
     maxWidth: "200px",
     whiteSpace: "nowrap",
     textAlign: "left",
     overflow: "hidden",
     textOverflow: "ellipsis",
+  },
+  orderActions: {
+    display: "flex",
+    gap: "8px",
   },
   btnOutline: {
     minWidth: "90px",
@@ -85,6 +130,7 @@ const styles = {
     border: "1px solid #000",
     backgroundColor: "#fff",
     color: "#444",
+    margin: "0 -8px 0 -4px",
   },
   btnFilled: {
     minWidth: "90px",
@@ -95,8 +141,11 @@ const styles = {
     border: "1px solid #FF7E00",
     backgroundColor: "#FF7E00",
     color: "#fff",
+    margin: "0 -4px 0 -8px",
   },
 };
+
+const arrowColors = ["#000000ff", "#828282", "#ffffffff"];
 
 const STATUS_MAP = {
   0: { label: "주문 접수", path: "/order-detail" },
@@ -116,7 +165,13 @@ function OrderDetailOrderReceived() {
 
   // 동적 주문 수량 상태
   const [counts, setCounts] = useState({
-    0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0
+    0: 0,
+    1: 0,
+    2: 0,
+    3: 0,
+    4: 0,
+    5: 0,
+    6: 0,
   });
 
   // 취소 모달 + 선택된 주문 상태
@@ -138,25 +193,36 @@ function OrderDetailOrderReceived() {
 
       const { orders: rawOrders, statusCounts } = res.data;
 
+      if (statusCounts) setCounts(statusCounts);
       // 상단 카운트 갱신
       if (statusCounts) setCounts(statusCounts);
 
-      // 주문 목록 필터링 및 매핑
-      const list = (rawOrders || [])
-        .filter(o => o.status === 0)
-        .map(o => ({
-          id: o.id,
+      if (!Array.isArray(rawOrders)) {
+        setOrders([]);
+        return;
+      }
+
+      // 🔥 status=0만 보이게 필터링
+      const activeOrders = rawOrders.filter((o) => o.status === 0);
+
+      // 🔥 주문 ID(o.id)로 매핑
+      const mapped = activeOrders.map((o) => {
+        const orderedDate = (o.createdAt || "").split("T")[0] || "";
+        const totalPrice = o.price ?? 0;
+
+        return {
+          id: o.id, // ✔ 반드시 주문 ID 사용
           postId: o.postId,
           name: o.postTitle,
           host: o.hostNickname,
           quantity: o.quantity,
           status: o.status,
-          date: (o.createdAt || "").split("T")[0],
-          total: `${Number(o.price ?? 0).toLocaleString()} 원`,
-        }));
+          date: orderedDate,
+          total: `${Number(totalPrice).toLocaleString()} 원`,
+        };
+      });
 
-      setOrders(list);
-
+      setOrders(mapped);
     } catch (err) {
       console.error("주문 내역 조회 실패:", err);
     } finally {
@@ -167,7 +233,7 @@ function OrderDetailOrderReceived() {
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
 
-    if (!token) {
+    if (!token || token === "undefined") {
       navigate("/login");
       return;
     }
@@ -194,6 +260,7 @@ function OrderDetailOrderReceived() {
   =================================== */
   const handleConfirmCancel = async () => {
     if (!selectedOrder) return;
+    if (!selectedOrder) return;
 
     try {
       // ✅ 서버에 status: 5 전송
@@ -213,7 +280,6 @@ function OrderDetailOrderReceived() {
 
       // ✅ 목록 새로고침 (초기화)
       fetchOrders();
-
     } catch (err) {
       console.error("주문 취소 실패:", err);
       alert("주문 취소 중 오류가 발생했습니다.");
@@ -224,31 +290,76 @@ function OrderDetailOrderReceived() {
        🔥 STEP UI 데이터
   =================================== */
   const steps = [
-    { id: 0, label: STATUS_MAP[0].label, value: counts[0] || 0, path: STATUS_MAP[0].path },
-    { id: 1, label: STATUS_MAP[1].label, value: counts[1] || 0, path: STATUS_MAP[1].path },
-    { id: 2, label: STATUS_MAP[2].label, value: counts[2] || 0, path: STATUS_MAP[2].path },
-    { id: 3, label: STATUS_MAP[3].label, value: counts[3] || 0, path: STATUS_MAP[3].path },
-    { id: 4, label: STATUS_MAP[4].label, value: (counts[4] || 0) + (counts[5] || 0), path: STATUS_MAP[4].path },
-    { id: 6, label: STATUS_MAP[6].label, value: counts[6] || 0, path: STATUS_MAP[6].path },
+    {
+      id: 0,
+      label: STATUS_MAP[0].label,
+      value: counts[0] || 0,
+      path: STATUS_MAP[0].path,
+    },
+    {
+      id: 1,
+      label: STATUS_MAP[1].label,
+      value: counts[1] || 0,
+      path: STATUS_MAP[1].path,
+    },
+    {
+      id: 2,
+      label: STATUS_MAP[2].label,
+      value: counts[2] || 0,
+      path: STATUS_MAP[2].path,
+    },
+    {
+      id: 3,
+      label: STATUS_MAP[3].label,
+      value: counts[3] || 0,
+      path: STATUS_MAP[3].path,
+    },
+    {
+      id: 4,
+      label: STATUS_MAP[4].label,
+      value: (counts[4] || 0) + (counts[5] || 0),
+      path: STATUS_MAP[4].path,
+    },
+    {
+      id: 6,
+      label: STATUS_MAP[6].label,
+      value: counts[6] || 0,
+      path: STATUS_MAP[6].path,
+    },
   ];
 
   return (
     <div style={styles.orderPage}>
-      {/* 🔥 상단 STEP 표시 */}
+      {/* 🔥 상단 주문 단계 + SVG 화살표 */}
       <div style={styles.orderSteps}>
         {steps.map((step, index) => (
           <React.Fragment key={step.id}>
             <div
               style={styles.orderStep}
-              onClick={() => navigate(step.path)}
+              onClick={() => step.path && navigate(step.path)}
             >
-              <div style={step.id === activeStatus ? styles.stepNumberActive : styles.stepNumber}>
+              <div
+                style={
+                  step.id === activeStatus
+                    ? styles.stepNumberActive
+                    : styles.stepNumber
+                }
+              >
                 {step.value}
               </div>
               <div style={styles.stepLabel}>{step.label}</div>
             </div>
 
-            {index < steps.length - 1 && <ArrowIcon />}
+            {/* 마지막 단계 전까지 화살표 출력 */}
+
+            {index < steps.length - 2 && (
+              <ArrowIcon
+                color={
+                  step.id === activeStatus ? arrowColors[0] : arrowColors[1]
+                }
+              />
+            )}
+            {index === steps.length - 2 && <ArrowIcon color={arrowColors[2]} />}
           </React.Fragment>
         ))}
       </div>
@@ -257,7 +368,9 @@ function OrderDetailOrderReceived() {
       <div style={styles.orderListWrapper}>
         <div style={styles.orderListHeader}>
           <h2 style={styles.orderListTitle}>주문 내역</h2>
-          <span style={styles.orderListNotice}>상품 준비가 시작되면 주문 취소가 어렵습니다.</span>
+          <span style={styles.orderListNotice}>
+            상품 준비가 시작되면 주문 취소가 어렵습니다.
+          </span>
         </div>
 
         <table style={styles.orderTable}>
@@ -276,20 +389,32 @@ function OrderDetailOrderReceived() {
           <tbody>
             {loading ? (
               <tr>
-                <td style={styles.td} colSpan={7}>주문 내역을 불러오는 중입니다...</td>
+                <td style={styles.td} colSpan={7}>
+                  주문 내역을 불러오는 중입니다...
+                </td>
               </tr>
             ) : orders.length === 0 ? (
               <tr>
-                <td style={styles.td} colSpan={7}>주문 접수 상태의 주문이 없습니다.</td>
+                <td style={styles.td} colSpan={7}>
+                  주문 접수 상태의 주문이 없습니다.
+                </td>
               </tr>
             ) : (
               orders.map((order, idx) => (
                 <tr
                   key={order.id}
-                  style={idx === orders.length - 1 ? styles.lastBodyRow : styles.bodyRow}
+                  style={
+                    idx === orders.length - 1
+                      ? styles.lastBodyRow
+                      : styles.bodyRow
+                  }
                 >
                   <td
-                    style={{ ...styles.td, ...styles.productName, cursor: "pointer" }}
+                    style={{
+                      ...styles.td,
+                      ...styles.productName,
+                      cursor: "pointer",
+                    }}
                     onClick={() => navigate(`/orderpage/${order.id}`)}
                   >
                     {order.name}
@@ -317,7 +442,9 @@ function OrderDetailOrderReceived() {
                   </td>
 
                   <td style={styles.td}>
-                    <button type="button" style={styles.btnFilled}>문의하기</button>
+                    <button type="button" style={styles.btnFilled}>
+                      문의하기
+                    </button>
                   </td>
                 </tr>
               ))

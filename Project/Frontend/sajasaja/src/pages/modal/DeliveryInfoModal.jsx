@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
+//배송정보 보는 모달
+import React, { useState, useEffect } from "react";
+import styled from "styled-components";
 
 const Overlay = styled.div`
   position: fixed;
@@ -78,35 +79,39 @@ const ButtonGroup = styled.div`
 
 const CloseButton = styled.button`
   padding: 12px 30px;
-  background-color: #E0E0E0;
+  background-color: #e0e0e0;
   color: #333;
   border: none;
   border-radius: 6px;
   font-weight: 500;
   font-size: 12px;
   cursor: pointer;
-  &:hover { background-color: #d5d5d5; }
+  &:hover {
+    background-color: #d5d5d5;
+  }
 `;
 
 const DeliveryInfoModal = ({ isOpen, onClose, participants, onSave }) => {
   const [deliveryData, setDeliveryData] = useState([]);
 
   useEffect(() => {
-      if (isOpen) {
-        // 기존 participants 데이터를 복사해서 state에 넣음
-        // invoice 정보가 없으면 빈 문자열로 초기화
-        setDeliveryData(participants.map(p => ({
+    if (isOpen) {
+      // 기존 participants 데이터를 복사해서 state에 넣음
+      // invoice 정보가 없으면 빈 문자열로 초기화
+      setDeliveryData(
+        participants.map((p) => ({
           id: p.id,
           name: p.name,
           nickname: p.nickname,
           address: p.address,
           req: p.req,
           tel: p.tel,
-        })));
-      }
-    }, [isOpen, participants]);
-  
-    if (!isOpen) return null;
+        }))
+      );
+    }
+  }, [isOpen, participants]);
+
+  if (!isOpen) return null;
 
   return (
     <Overlay onClick={onClose}>
@@ -115,11 +120,11 @@ const DeliveryInfoModal = ({ isOpen, onClose, participants, onSave }) => {
         <TableWrapper>
           <Table>
             <colgroup>
-              <col style={{ width: '100px' }} />
-              <col style={{ width: '100px' }} />
-              <col style={{ width: 'auto' }} />
-              <col style={{ width: '140px' }} />
-              <col style={{ width: '200px' }} /> 
+              <col style={{ width: "100px" }} />
+              <col style={{ width: "100px" }} />
+              <col style={{ width: "auto" }} />
+              <col style={{ width: "140px" }} />
+              <col style={{ width: "200px" }} />
             </colgroup>
 
             <thead>
@@ -136,7 +141,7 @@ const DeliveryInfoModal = ({ isOpen, onClose, participants, onSave }) => {
                 <tr key={row.id}>
                   <td>{row.name}</td>
                   <td>{row.nickname}</td>
-                  <td style={{ textAlign: 'left' }}>{row.address}</td>
+                  <td style={{ textAlign: "left" }}>{row.address}</td>
                   <td>{row.req}</td>
                   <td>{row.tel}</td>
                 </tr>
@@ -148,7 +153,6 @@ const DeliveryInfoModal = ({ isOpen, onClose, participants, onSave }) => {
         <ButtonGroup>
           <CloseButton onClick={onClose}>닫기</CloseButton>
         </ButtonGroup>
-
       </ModalContainer>
     </Overlay>
   );
