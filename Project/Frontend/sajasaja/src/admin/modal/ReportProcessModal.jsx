@@ -191,7 +191,7 @@ const ReportProcessModal = ({
     setInterceptor(token);
 
     try {
-      const response = await api.patch(
+      const response = await api.put(
         `/api/admin/report/${
           type === "user" ? "USER" : type === "notice" ? "NOTICE" : "REVIEW"
         }/${data.id}`,
