@@ -580,6 +580,8 @@ const GroupPurchaseDetail = () => {
   const [latitude, setLatitude] = useState(0.0);
   const [longitude, setLongitude] = useState(0.0);
 
+  const [organizerMannerScore, setOrganizerMannerScore] = useState(0.0);
+
   // 공지사항 입력 상태
   const [noticeContent, setNoticeContent] = useState("");
 
@@ -617,6 +619,7 @@ const GroupPurchaseDetail = () => {
       setNotices(postData.notices || []);
       setReviews(postData.reviews || []);
       setCurrentCount(postData.currentQuantity || 0);
+      setOrganizerMannerScore(postData.host.mannerScore);
 
       console.log(postData);
 
@@ -865,7 +868,12 @@ const GroupPurchaseDetail = () => {
     setIsModalOpen(true);
   };
 
-  const handleReportNotice = (noticeId) => {
+  const shorten = (text) => {
+    if (!text) return "";
+    return text.length > 20 ? text.substring(0, 20) + "..." : text;
+  };
+
+  const handleReportNotice = (noticeId, noticeContent) => {
     // 인자 추가
     const token = localStorage.getItem("accessToken");
 
@@ -879,11 +887,12 @@ const GroupPurchaseDetail = () => {
     navigate("/notificationreport", {
       state: {
         id: noticeId,
+        title: shorten(noticeContent),
       },
     });
   };
 
-  const handleReportReview = (reviewId) => {
+  const handleReportReview = (reviewId, reviewContent) => {
     const token = localStorage.getItem("accessToken");
 
     if (!token) {
@@ -894,6 +903,7 @@ const GroupPurchaseDetail = () => {
       navigate("/reviewreport", {
         state: {
           id: reviewId,
+          title: shorten(reviewContent),
         },
       });
     }
@@ -991,7 +1001,7 @@ const GroupPurchaseDetail = () => {
                     <OrganizerName>{product.organizer}</OrganizerName>
 
                     {/* ✅ 매너점수 배지 (host.mannerScore 연동) */}
-                    {/* {organizerMannerScore !== undefined && (
+                    {organizerMannerScore !== undefined && (
                       <TimeBadge>
                         {" "}
                         {typeof organizerMannerScore === "number"
@@ -999,7 +1009,7 @@ const GroupPurchaseDetail = () => {
                           : organizerMannerScore}
                         점
                       </TimeBadge>
-                    )} */}
+                    )}
                   </div>
                 </OrganizerLeft>
 
@@ -1170,7 +1180,9 @@ const GroupPurchaseDetail = () => {
                     ) : (
                       // ✅ [수정] 신고 버튼 클릭 시 notice.id와 notice.content를 전달
                       <ActionButton
-                        onClick={() => handleReportNotice(notice.id)}
+                        onClick={() =>
+                          handleReportNotice(notice.id, notice.content)
+                        }
                       >
                         <FaRegBell /> 신고
                       </ActionButton>
@@ -1204,9 +1216,13 @@ const GroupPurchaseDetail = () => {
                     <UserInfo>
                       <UserIcon src="/images/filledprofile.svg" alt="user" />
                       <UserName>{review.nickname || "익명"}</UserName>
-                      <RatingText>별점 {review.score}점</RatingText>
+                      <RatingText>별점 {review.star}점</RatingText>
                     </UserInfo>
-                    <ActionButton onClick={() => handleReportReview(review.id)}>
+                    <ActionButton
+                      onClick={() =>
+                        handleReportReview(review.id, review.content)
+                      }
+                    >
                       <FaRegBell /> 신고
                     </ActionButton>
                   </CommentHeader>
