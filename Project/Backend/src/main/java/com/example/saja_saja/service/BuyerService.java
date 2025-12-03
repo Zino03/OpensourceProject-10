@@ -417,7 +417,13 @@ public class BuyerService {
         Optional<Buyer> optionalB = buyerRepository.findByUserAndPostAndIsCanceled(user, post, false);
 
         if (optionalB.isEmpty()) {
-            throw new BadRequestException("해당 사용자의 구매 정보가 없습니다.", null);
+            optionalB = buyerRepository.findByUserAndPostAndIsCanceledOrderByIdDesc(user, post, true);
+
+            if(optionalB.isEmpty()) {
+                throw new BadRequestException("해당 사용자의 구매 정보가 없습니다.", null);
+            } else {
+                throw new BadRequestException("취소된 사용자입니다.", null);
+            }
         }
 
         // 배송 불가 공구는 배송정보 등록 불가
