@@ -207,7 +207,11 @@ public class BuyerService {
         Optional<Buyer> optionalB = buyerRepository.findByUserAndPostAndIsCanceled(user, post, false);
 
         if (optionalB.isEmpty()) {
-            throw new BadRequestException("구매 정보를 찾을 수 없습니다.", null);
+            optionalB = buyerRepository.findByUserAndPostAndIsCanceledOrderByIdDesc(user, post, true);
+            if (optionalB.isEmpty()) {
+                throw new BadRequestException("주문 정보를 찾을 수 없습니다.", null);
+            }
+            throw new BadRequestException("이미 취소된 주문입니다.", null);
         }
 
         Buyer buyer = optionalB.get();
