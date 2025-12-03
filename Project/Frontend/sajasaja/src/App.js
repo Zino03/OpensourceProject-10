@@ -81,7 +81,7 @@ function App() {
 
           <Route path="/mypage" element={<Mypage />} />
           <Route path="/myprofile" element={<MyProfile />} />
-          <Route path="/userpage" element={<UserPage />} />
+          <Route path="/user/:nickname" element={<UserPage />} />
           <Route path="/newdelivery" element={<NewDeliveryInfo />} />
           <Route path="/mydelivery" element={<MyDeliveryInfo />} />
           <Route path="/editdelivery" element={<EditMyDelivery/>} />

@@ -1,6 +1,7 @@
 // 파일명: UserPage.jsx
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { api, setInterceptor } from "../assets/setIntercepter";
 
 const styles = {
   page: {
@@ -16,8 +17,6 @@ const styles = {
     padding: "40px 24px 80px",
     boxSizing: "border-box",
   },
-
-  /* ===== 프로필 카드 ===== */
   profileCard: {
     backgroundColor: "#fff",
     borderRadius: "10px",
@@ -86,8 +85,6 @@ const styles = {
     marginRight: "-33px",
     marginTop: "-170px",
   },
-
-  /* ===== 최근 공구 활동 ===== */
   sectionHeader: {
     marginBottom: "16px",
   },
@@ -117,14 +114,11 @@ const styles = {
     height: "2px",
     backgroundColor: "#FF7E00",
   },
-
   list: {
     display: "flex",
     flexDirection: "column",
     gap: "12px",
   },
-
-  /* ===== 공구 카드 ===== */
   itemCard: {
     display: "flex",
     alignItems: "center",
@@ -178,15 +172,11 @@ const styles = {
     color: "#333333",
   },
   label: {
-    width: "32px", // "수량", "기간" 정렬
+    width: "32px",
     fontWeight: "800",
   },
   labelValue: {
     color: "#000000",
-  },
-  dateText: {
-    fontSize: "12px",
-    color: "#999999",
   },
   priceBox: {
     fontSize: "16px",
@@ -203,50 +193,96 @@ const styles = {
 
 const UserPage = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("ongoing"); // "ongoing" | "closed"
+  const { nickname } = useParams();
 
-  // 유저 정보 (예시)
-  const user = {
-    nickname: "양념게장맛있어",
-    rating: "4.67점",
-    name: "최지우",
-    avatar: "/images/profilecircle.svg",
-  };
+  const [activeTab, setActiveTab] = useState("ongoing");
+  const [user, setUser] = useState(null);
+  const [ongoingList, setOngoingList] = useState([]);
+  const [closedList, setClosedList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState("");
 
-  // 진행 중 공구 리스트 (예시)
-  const ongoingList = [
-    {
-      id: 1,
-      title: "[아이앤비] 섬유유연제 건조기 시트 80매",
-      quantity: "0/100",
-      period: "~25-12-06",
-      statusLabel: "마감임박",
-      price: 5400,
-      thumbnail: "/images/sample-product.png",
-    },
-    {
-      id: 2,
-      title: "[아이앤비] 섬유유연제 건조기 시트 80매",
-      quantity: "0/100",
-      period: "~25-12-06",
-      statusLabel: "마감임박",
-      price: 5400,
-      thumbnail: "/images/sample-product.png",
-    },
-  ];
+  useEffect(() => {
+    // 네가 써둔 방식 유지 (토큰 기반)
+    const token = localStorage.getItem("accessToken");
+    setInterceptor(token);
 
-  const closedList = []; // 마감 탭 예시 (비워둠)
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setErrorMsg("");
+
+        const res = await api.get(`/api/user/${nickname}`);
+        console.log("📡 /api/user 응답:", res.data);
+
+        // 응답 구조: { profile: { ... } } 라고 했으니까
+        const profile = res.data.profile || res.data;
+        console.log("🔍 profile 객체:", profile);
+
+        // 🔹 프로필 정보
+        setUser(profile);
+
+        // 🔹 공구 리스트 매핑 함수
+        const mapPost = (p) => {
+          // status가 없을 수도 있어서 안전하게 처리
+          let statusLabel = "";
+          if (p.status === 2) statusLabel = "마감임박";
+          else if (p.status === 3) statusLabel = "마감";
+
+          return {
+            id: p.id,
+            title: p.title,
+            thumbnail: p.image, // "/uploads/post/..." 형태
+            quantity:
+              p.currentQuantity != null && p.quantity != null
+                ? `${p.currentQuantity}/${p.quantity}`
+                : p.quantity != null
+                ? `${p.quantity}`
+                : "",
+            period: p.endAt ? p.endAt.split("T")[0] : "",
+            status: p.status,
+            statusLabel,
+            price: p.price,
+          };
+        };
+
+        const activePosts = profile.activePosts || [];
+        const closedPosts = profile.closedPosts || [];
+
+        setOngoingList(activePosts.map(mapPost));
+        setClosedList(closedPosts.map(mapPost));
+      } catch (err) {
+        console.error(err);
+        setErrorMsg("유저 정보를 불러오는 중 오류가 발생했습니다.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (nickname) {
+      fetchData();
+    }
+  }, [nickname, navigate]);
 
   const listToShow = activeTab === "ongoing" ? ongoingList : closedList;
 
-  // ✅ 공구 카드 클릭 시 /products 로 이동
-  const handleItemClick = () => {
-    navigate("/products/1");
+  const handleItemClick = (id) => {
+    navigate(`/products/${id}`);
   };
 
   const handleReport = () => {
     navigate("/userreport");
   };
+
+  // 🔹 프로필 이미지: profileImg 사용
+  const avatarSrc =
+    user?.profileImg && user.profileImg !== ""
+      ? user.profileImg
+      : "/images/profilecircle.svg";
+
+  // 🔹 매너점수 텍스트
+  const mannerScoreText =
+    user?.mannerScore != null ? `${user.mannerScore}점` : "-";
 
   return (
     <div style={styles.page}>
@@ -255,25 +291,42 @@ const UserPage = () => {
         <section style={styles.profileCard}>
           <div style={styles.profileLeft}>
             <div style={styles.avatar}>
-              <img
-                src={user.avatar}
-                alt="프로필"
-                style={styles.avatarImg}
-                onError={(e) => {
-                  e.currentTarget.src = "/images/filledprofile.svg";
-                }}
-              />
+              {!loading && (
+                <img
+                  src={avatarSrc}
+                  alt="프로필"
+                  style={styles.avatarImg}
+                  onError={(e) => {
+                    e.currentTarget.src = "/images/filledprofile.svg";
+                  }}
+                />
+              )}
             </div>
             <div style={styles.profileInfo}>
               <div style={styles.nicknameRow}>
-                <span style={styles.nickname}>{user.nickname}</span>
-                <span style={styles.ratingBadge}>{user.rating}</span>
+                <span style={styles.nickname}>
+                  {loading ? "프로필 불러오는 중..." : user?.nickname ?? nickname}
+                </span>
+                {!loading && user && (
+                  <span style={styles.ratingBadge}>{mannerScoreText}</span>
+                )}
               </div>
-              <span style={styles.username}>{user.name}</span>
+              <span style={styles.username}>
+                {loading ? "" : user?.name ?? ""}
+              </span>
+              {errorMsg && (
+                <span style={{ fontSize: 12, color: "#D32F2F" }}>
+                  {errorMsg}
+                </span>
+              )}
             </div>
           </div>
 
-          <button type="button" style={styles.reportButton} onClick={handleReport}>
+          <button
+            type="button"
+            style={styles.reportButton}
+            onClick={handleReport}
+          >
             신고하기
           </button>
         </section>
@@ -291,20 +344,26 @@ const UserPage = () => {
               onClick={() => setActiveTab("ongoing")}
             >
               진행 중
-              {activeTab === "ongoing" && <div style={styles.tabUnderline} />}
+              {activeTab === "ongoing" && (
+                <div style={styles.tabUnderline} />
+              )}
             </div>
             <div
               style={styles.tab(activeTab === "closed")}
               onClick={() => setActiveTab("closed")}
             >
               마감
-              {activeTab === "closed" && <div style={styles.tabUnderline} />}
+              {activeTab === "closed" && (
+                <div style={styles.tabUnderline} />
+              )}
             </div>
           </div>
 
           {/* 공구 리스트 */}
           <div style={styles.list}>
-            {listToShow.length === 0 ? (
+            {loading ? (
+              <div style={styles.emptyText}>불러오는 중입니다...</div>
+            ) : listToShow.length === 0 ? (
               <div style={styles.emptyText}>
                 {activeTab === "ongoing"
                   ? "진행 중인 공구가 없습니다."
@@ -315,7 +374,7 @@ const UserPage = () => {
                 <div
                   key={item.id}
                   style={styles.itemCard}
-                  onClick={handleItemClick}
+                  onClick={() => handleItemClick(item.id)}
                 >
                   <div style={styles.thumb}>
                     <img
@@ -323,21 +382,22 @@ const UserPage = () => {
                       alt={item.title}
                       style={styles.thumbImg}
                       onError={(e) => {
-                        e.currentTarget.src = "/images/sample-product-fallback.png";
+                        e.currentTarget.src =
+                          "/images/sample-product-fallback.png";
                       }}
                     />
                   </div>
 
                   <div style={styles.itemInfo}>
-                    {/* 제목 + 마감임박 배지 */}
                     <div style={styles.itemHeaderRow}>
                       <span style={styles.itemTitle}>{item.title}</span>
                       {item.statusLabel && (
-                        <span style={styles.dangerBadge}>{item.statusLabel}</span>
+                        <span style={styles.dangerBadge}>
+                          {item.statusLabel}
+                        </span>
                       )}
                     </div>
 
-                    {/* 수량, 기간 */}
                     <div style={styles.labelRow}>
                       <span style={styles.label}>수량</span>
                       <span style={styles.labelValue}>{item.quantity}</span>
@@ -348,9 +408,10 @@ const UserPage = () => {
                     </div>
                   </div>
 
-                  {/* 가격 */}
                   <div style={styles.priceBox}>
-                    {item.price.toLocaleString()} 원
+                    {item.price != null
+                      ? `${item.price.toLocaleString()} 원`
+                      : "-"}
                   </div>
                 </div>
               ))
