@@ -9,158 +9,159 @@ import { api, setInterceptor } from "../assets/setIntercepter";
     🔥 SVG 화살표 아이콘 (색 변경 가능)
 =============================================== */
 const ArrowIcon = ({ color = "#b0b0b0" }) => (
-  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    style={{ marginTop: "22px" }}
-  >
-    <path
-      d="M8 4l8 8-8 8"
-      stroke={color}
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    style={{ marginTop: "22px" }}
+  >
+       {" "}
+    <path
+      d="M8 4l8 8-8 8"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+     {" "}
+  </svg>
 );
 
 const styles = {
-  orderPage: {
-    maxWidth: "1200px",
-    margin: "60px auto",
-    color: "#222",
-  },
-  orderSteps: {
-    display: "flex",
-    alignItems: "flex-start",
-    gap: "52px",
-    marginBottom: "50px",
-    justifyContent: "center",
-  },
-  orderStep: {
-    textAlign: "center",
-    cursor: "pointer",
-  },
-  stepNumber: {
-    fontSize: "60px",
-    fontWeight: 401,
-    color: "#b0b0b0",
-    lineHeight: 1,
-    fontFamily: "Pretendard",
-  },
-  stepNumberActive: {
-    fontSize: "60px",
-    fontWeight: 401,
-    color: "#000",
-    lineHeight: 1,
-    fontFamily: "Pretendard",
-  },
-  stepLabel: {
-    fontSize: "13px",
-    marginTop: "8px",
-    color: "#555",
-  },
-  orderListWrapper: {
-    marginTop: "20px",
-  },
-  orderListHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-end",
-    width: "77%",
-    margin: "0 auto",
-    borderBottom: "1px solid #000",
-    paddingBottom: "8px",
-  },
-  orderListTitle: {
-    fontSize: "16px",
-    fontWeight: 900,
-  },
-  orderTable: {
-    width: "77%",
-    margin: "0 auto",
-    borderCollapse: "collapse",
-    fontSize: "13px",
-  },
-  tableHeadRow: {
-    borderBottom: "1px solid #000",
-  },
-  th: {
-    padding: "20px 8px",
-    textAlign: "center",
-    fontWeight: 500,
-    color: "#555",
-    fontSize: "13.5px",
-  },
-  td: {
-    padding: "10px 8px",
-    textAlign: "center",
-    fontSize: "11.5px",
-  },
-  bodyRow: {
-    borderBottom: "1px solid #f1f1f1",
-  },
-  lastBodyRow: {
-    borderBottom: "1px solid #e1e1e1",
-  },
-  productName: {
-    maxWidth: "200px",
-    whiteSpace: "nowrap",
-    textAlign: "left",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-  },
-  orderActions: {
-    display: "flex",
-    gap: "8px",
-  },
-  btnConfirmDefault: {
-    minWidth: "90px",
-    padding: "4px 14px",
-    fontSize: "11px",
-    borderRadius: "6px",
-    cursor: "pointer",
-    backgroundColor: "#fff",
-    border: "1px solid #000",
-    color: "#000",
-  },
-  btnConfirmDone: {
-    minWidth: "90px",
-    padding: "4px 14px",
-    fontSize: "11px",
-    borderRadius: "6px",
-    cursor: "default",
-    backgroundColor: "#e0e0e0",
-    border: "1px solid #e0e0e0",
-    color: "#000",
-  },
-  btnFilled: {
-    minWidth: "90px",
-    padding: "4px 14px",
-    fontSize: "11px",
-    borderRadius: "6px",
-    cursor: "pointer",
-    border: "1px solid #000000ff",
-    backgroundColor: "#000000ff",
-    color: "#fff",
-  },
+  orderPage: {
+    maxWidth: "1200px",
+    margin: "60px auto",
+    color: "#222",
+  },
+  orderSteps: {
+    display: "flex",
+    alignItems: "flex-start",
+    gap: "52px",
+    marginBottom: "50px",
+    justifyContent: "center",
+  },
+  orderStep: {
+    textAlign: "center",
+    cursor: "pointer",
+  },
+  stepNumber: {
+    fontSize: "60px",
+    fontWeight: 401,
+    color: "#b0b0b0",
+    lineHeight: 1,
+    fontFamily: "Pretendard",
+  },
+  stepNumberActive: {
+    fontSize: "60px",
+    fontWeight: 401,
+    color: "#000",
+    lineHeight: 1,
+    fontFamily: "Pretendard",
+  },
+  stepLabel: {
+    fontSize: "13px",
+    marginTop: "8px",
+    color: "#555",
+  },
+  orderListWrapper: {
+    marginTop: "20px",
+  },
+  orderListHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
+    width: "77%",
+    margin: "0 auto",
+    borderBottom: "1px solid #000",
+    paddingBottom: "8px",
+  },
+  orderListTitle: {
+    fontSize: "16px",
+    fontWeight: 900,
+  },
+  orderTable: {
+    width: "77%",
+    margin: "0 auto",
+    borderCollapse: "collapse",
+    fontSize: "13px",
+  },
+  tableHeadRow: {
+    borderBottom: "1px solid #000",
+  },
+  th: {
+    padding: "20px 8px",
+    textAlign: "center",
+    fontWeight: 500,
+    color: "#555",
+    fontSize: "13.5px",
+  },
+  td: {
+    padding: "10px 8px",
+    textAlign: "center",
+    fontSize: "11.5px",
+  },
+  bodyRow: {
+    borderBottom: "1px solid #f1f1f1",
+  },
+  lastBodyRow: {
+    borderBottom: "1px solid #e1e1e1",
+  },
+  productName: {
+    maxWidth: "200px",
+    whiteSpace: "nowrap",
+    textAlign: "left",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+  },
+  orderActions: {
+    display: "flex",
+    gap: "8px",
+  },
+  btnConfirmDefault: {
+    minWidth: "90px",
+    padding: "4px 14px",
+    fontSize: "11px",
+    borderRadius: "6px",
+    cursor: "pointer",
+    backgroundColor: "#fff",
+    border: "1px solid #000",
+    color: "#000",
+  },
+  btnConfirmDone: {
+    minWidth: "90px",
+    padding: "4px 14px",
+    fontSize: "11px",
+    borderRadius: "6px",
+    cursor: "default",
+    backgroundColor: "#e0e0e0",
+    border: "1px solid #e0e0e0",
+    color: "#000",
+  },
+  btnFilled: {
+    minWidth: "90px",
+    padding: "4px 14px",
+    fontSize: "11px",
+    borderRadius: "6px",
+    cursor: "pointer",
+    border: "1px solid #000000ff",
+    backgroundColor: "#000000ff",
+    color: "#fff",
+  },
 };
 
 /* ============================================
     🔥 화살표 색상 배열 및 STATUS_MAP
 =============================================== */
-const arrowColors = ["#828282", "#828282", "#828282", "#828282", "#ffffffff"];
+const arrowColors = ["#000000ff", "#828282", "#ffffffff"];
 
-// 백엔드 Status Code
 const STATUS_MAP = {
-    0: { label: "주문 접수", path: "/order-received" },
-    1: { label: "결제 완료", path: "/order-payment-received" },
-    2: { label: "상품 준비 중", path: "/order-preparing" },
-    3: { label: "배송 중", path: "/order-shipping" },
-    4: { label: "배송 완료", path: "/order-delivered" }, // Status 4와 5를 이 페이지에서 보여줌
-    6: { label: "주문 취소", path: "/order-cancelled" },
+  0: { label: "주문 접수", path: "/order-detail" },
+  1: { label: "결제 완료", path: "/received" },
+  2: { label: "상품 준비 중", path: "/preparing" },
+  3: { label: "배송 중", path: "/shipping" },
+  4: { label: "배송 완료", path: "/delivered" },
+  6: { label: "주문 취소", path: "/cancelled" },
 };
 
 function OrderDetail_Delivered() {
@@ -169,7 +170,15 @@ function OrderDetail_Delivered() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
-  const [counts, setCounts] = useState({ 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 });
+  const [counts, setCounts] = useState({
+    0: 0,
+    1: 0,
+    2: 0,
+    3: 0,
+    4: 0,
+    5: 0,
+    6: 0,
+  });
 
   // 구매확정 모달
   const [showModal, setShowModal] = useState(false);
@@ -178,7 +187,7 @@ function OrderDetail_Delivered() {
   // 후기 모달
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewOrder, setReviewOrder] = useState(null);
-  
+
   const activeStatus = 4; // 🔥 현재 페이지의 상태: 배송 완료 (Status 4와 5를 함께 조회)
 
   /* ===========================
@@ -200,9 +209,9 @@ function OrderDetail_Delivered() {
       const { orders: rawOrders, statusCounts } = res.data; //
 
       if (statusCounts) {
-          setCounts(statusCounts);
+        setCounts(statusCounts);
       }
-      
+
       if (!Array.isArray(rawOrders)) {
         setOrders([]);
         return;
@@ -210,22 +219,25 @@ function OrderDetail_Delivered() {
 
       // OrderListResponseDto 필드에 맞게 매핑
       const mapped = rawOrders.map((o) => ({
-          id: o.id,
-          name: o.postTitle || "상품명 없음",
-          host: o.hostNickname || "주최자",
-          hostNickname: o.hostNickname,
-          quantity: o.quantity ?? 0,
-          date: (o.createdAt || "").split("T")[0] || "",
-          total: `${Number(o.price ?? 0).toLocaleString()} 원`,
-          confirmed: o.status === 5, // Status 5면 구매확정 완료
-          // 후기 모달에 필요한 추가 정보 (임시 유지)
-          imageUrl: "/images/products/sample.png", 
+        id: o.id,
+        name: o.postTitle || "상품명 없음",
+        host: o.hostNickname || "주최자",
+        hostNickname: o.hostNickname,
+        quantity: o.quantity ?? 0,
+        date: (o.createdAt || "").split("T")[0] || "",
+        total: `${Number(o.price ?? 0).toLocaleString()} 원`,
+        confirmed: o.status === 5, // Status 5면 구매확정 완료
+        // 후기 모달에 필요한 추가 정보 (임시 유지)
+        imageUrl: "/images/products/sample.png",
       }));
 
       setOrders(mapped);
     } catch (err) {
       console.error("주문 내역 조회 실패:", err);
-      setErrorMsg(err.response?.data?.message || "주문 내역을 불러오는 중 오류가 발생했습니다.");
+      setErrorMsg(
+        err.response?.data?.message ||
+          "주문 내역을 불러오는 중 오류가 발생했습니다."
+      );
     } finally {
       setLoading(false);
     }
@@ -234,12 +246,12 @@ function OrderDetail_Delivered() {
   useEffect(() => {
     // 인증 오류 수정: navigate 대신 실제 토큰을 setInterceptor에 전달
     const token = localStorage.getItem("accessToken");
-    
-    if (!token || token === 'undefined') {
-        navigate('/login'); 
-        return;
+
+    if (!token || token === "undefined") {
+      navigate("/login");
+      return;
     }
-    
+
     setInterceptor(token);
     fetchOrders();
   }, [navigate]);
@@ -255,7 +267,7 @@ function OrderDetail_Delivered() {
       await api.patch(`/api/mypage/order/${selectedOrderToConfirm.id}/confirm`);
 
       // 성공 후 목록 새로고침
-      fetchOrders(); 
+      fetchOrders();
 
       setShowModal(false);
       setSelectedOrderToConfirm(null);
@@ -288,34 +300,70 @@ function OrderDetail_Delivered() {
   // 후기 등록 API 호출
   const handleSubmitReview = async (orderId, rating, reviewText) => {
     try {
-        const body = {
-            content: reviewText,
-            rating: rating,
-        };
+      const body = {
+        content: reviewText,
+        rating: rating,
+      };
 
-        // POST /mypage/order/{buyerId}/review 호출
-        await api.post(`/api/mypage/order/${orderId}/review`, body);
+      // POST /mypage/order/{buyerId}/review 호출
+      await api.post(`/api/mypage/order/${orderId}/review`, body);
 
-        alert("후기가 성공적으로 등록되었습니다.");
-        
-        // 후기 등록 후 상태가 변경될 수 있으므로 목록 새로고침
-        fetchOrders(); 
+      alert("후기가 성공적으로 등록되었습니다.");
 
-        handleCloseReviewModal();
+      // 후기 등록 후 상태가 변경될 수 있으므로 목록 새로고침
+      fetchOrders();
+
+      handleCloseReviewModal();
     } catch (err) {
-        console.error("후기 등록 실패:", err);
-        alert(err.response?.data?.message || "후기 등록 중 오류가 발생했습니다.");
+      console.error("후기 등록 실패:", err);
+      alert(err.response?.data?.message || "후기 등록 중 오류가 발생했습니다.");
     }
   };
 
   // 동적 steps 배열 생성 (Status 4와 5를 '배송 완료'로 통합하여 표시)
   const steps = [
-      { id: 0, label: STATUS_MAP[0].label, value: counts[0] || 0, active: false, path: STATUS_MAP[0].path },
-      { id: 1, label: STATUS_MAP[1].label, value: counts[1] || 0, active: false, path: STATUS_MAP[1].path },
-      { id: 2, label: STATUS_MAP[2].label, value: counts[2] || 0, active: false, path: STATUS_MAP[2].path },
-      { id: 3, label: STATUS_MAP[3].label, value: counts[3] || 0, active: false, path: STATUS_MAP[3].path },
-      { id: 4, label: STATUS_MAP[4].label, value: (counts[4] || 0) + (counts[5] || 0), active: true, path: STATUS_MAP[4].path }, 
-      { id: 6, label: STATUS_MAP[6].label, value: counts[6] || 0, active: false, path: STATUS_MAP[6].path },
+    {
+      id: 0,
+      label: STATUS_MAP[0].label,
+      value: counts[0] || 0,
+      active: false,
+      path: STATUS_MAP[0].path,
+    },
+    {
+      id: 1,
+      label: STATUS_MAP[1].label,
+      value: counts[1] || 0,
+      active: false,
+      path: STATUS_MAP[1].path,
+    },
+    {
+      id: 2,
+      label: STATUS_MAP[2].label,
+      value: counts[2] || 0,
+      active: false,
+      path: STATUS_MAP[2].path,
+    },
+    {
+      id: 3,
+      label: STATUS_MAP[3].label,
+      value: counts[3] || 0,
+      active: false,
+      path: STATUS_MAP[3].path,
+    },
+    {
+      id: 4,
+      label: STATUS_MAP[4].label,
+      value: (counts[4] || 0) + (counts[5] || 0),
+      active: true,
+      path: STATUS_MAP[4].path,
+    },
+    {
+      id: 6,
+      label: STATUS_MAP[6].label,
+      value: counts[6] || 0,
+      active: false,
+      path: STATUS_MAP[6].path,
+    },
   ];
 
   return (
@@ -329,16 +377,25 @@ function OrderDetail_Delivered() {
               onClick={() => step.path && navigate(step.path)}
             >
               <div
-                style={step.id === activeStatus ? styles.stepNumberActive : styles.stepNumber}
+                style={
+                  step.id === activeStatus
+                    ? styles.stepNumberActive
+                    : styles.stepNumber
+                }
               >
                 {step.value}
               </div>
               <div style={styles.stepLabel}>{step.label}</div>
             </div>
 
-            {index < steps.length - 1 && (
-              <ArrowIcon color={step.id === activeStatus ? arrowColors[index] : arrowColors[index + 1]} />
+            {index < steps.length - 2 && (
+              <ArrowIcon
+                color={
+                  step.id === activeStatus ? arrowColors[0] : arrowColors[1]
+                }
+              />
             )}
+            {index == steps.length - 2 && <ArrowIcon color={arrowColors[2]} />}
           </React.Fragment>
         ))}
       </div>
@@ -350,7 +407,7 @@ function OrderDetail_Delivered() {
         <div style={styles.orderListHeader}>
           <h2 style={styles.orderListTitle}>주문 내역</h2>
         </div>
-        
+
         {errorMsg && (
           <div
             style={{
@@ -417,7 +474,9 @@ function OrderDetail_Delivered() {
                       minWidth: "100px",
                       cursor: "pointer",
                     }}
-                    onClick={() => navigate(`/user/${order.hostNickname || order.host}`)}
+                    onClick={() =>
+                      navigate(`/user/${order.hostNickname || order.host}`)
+                    }
                   >
                     {order.host}
                   </td>

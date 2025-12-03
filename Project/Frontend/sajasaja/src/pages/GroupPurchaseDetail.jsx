@@ -642,7 +642,7 @@ const GroupPurchaseDetail = () => {
         setHostOriginalQuantity(myQty); // 🔥 주최자의 원래 수량 기억
       }
 
-      console.log(myNickname)
+      console.log(myNickname);
 
       // 주최자 여부 확인
       if (postData.host && postData.host.nickname === myNickname) {
@@ -661,7 +661,7 @@ const GroupPurchaseDetail = () => {
         const buyersResponse = await api.get(`/api/posts/${id}/buyers`);
         const buyers = buyersResponse.data || [];
 
-        console.log(buyersResponse.data)
+        console.log(buyersResponse.data);
 
         const mappedBuyers = buyersResponse.data.map((b) => ({
           id: b.buyerId,
@@ -719,7 +719,7 @@ const GroupPurchaseDetail = () => {
     daysLeft: getDaysLeft(post.endAt),
     shipping: post.isDeliveryAvailable ? "배송 가능" : "배송 불가",
     shippingCost: post.deliveryFee
-      ? `${post.deliveryFee.toLocaleString()}원`
+      ? `${post.deliveryFee.toLocaleString()} 원`
       : "무료",
     organizer: post.host?.nickname || "알 수 없음",
     organizerProfileImage: post.host?.profileImg
@@ -840,12 +840,12 @@ const GroupPurchaseDetail = () => {
   const handleReceiveDateSave = async (updatedData) => {
     try {
       for (const item of updatedData) {
-          if (!item.receiveDate || item.receiveDate.trim() === "") continue;
+        if (!item.receiveDate || item.receiveDate.trim() === "") continue;
 
         const dateStr = `${item.receiveDate}T${item.receiveTime || "00:00"}:00`;
 
-        console.log(item.nickname)
-        console.log(dateStr)
+        console.log(item.nickname);
+        console.log(dateStr);
 
         await api.post(`/api/posts/${id}/received-at`, {
           userNickname: item.nickname,
@@ -856,7 +856,7 @@ const GroupPurchaseDetail = () => {
       fetchPostDetail();
     } catch (err) {
       // alert("수령 일자 등록 실패");
-      console.log(err.response.data)
+      console.log(err.response.data);
       alert(err.response.data.message);
     }
   };
@@ -975,7 +975,8 @@ const GroupPurchaseDetail = () => {
             <DetailRow>
               <Label>목표수량</Label>
               <Value>{product.goalCount}</Value>
-            </DetailRow><DetailRow>
+            </DetailRow>
+            <DetailRow>
               <Label>배송정보</Label>
               <Value>
                 {product.shipping}{" "}
@@ -984,48 +985,47 @@ const GroupPurchaseDetail = () => {
               </Value>
             </DetailRow>
             <OrganizerRow>
-        <Label>주최자</Label>
-        <OrganizerBadge>
-          <OrganizerLeft
-            onClick={() => navigate(`/user/${post.host.nickname}`)}
-          >
-            <ProfileIcon
-              src={product.organizerProfileImage}
-              alt="profile"
-              onError={(e) =>
-                (e.target.src = "/images/filledprofile.svg")
-              }
-            />
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-              }}
-            >
-              <OrganizerName>{product.organizer}</OrganizerName>
+              <Label>주최자</Label>
+              <OrganizerBadge>
+                <OrganizerLeft
+                  onClick={() => navigate(`/user/${post.host.nickname}`)}
+                >
+                  <ProfileIcon
+                    src={product.organizerProfileImage}
+                    alt="profile"
+                    onError={(e) =>
+                      (e.target.src = "/images/filledprofile.svg")
+                    }
+                  />
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}
+                  >
+                    <OrganizerName>{product.organizer}</OrganizerName>
 
-              {/* ✅ 매너점수 배지 (host.mannerScore 연동) */}
-              {organizerMannerScore !== undefined && (
-                <TimeBadge>
-                  {" "}
-                  {typeof organizerMannerScore === "number"
-                    ? organizerMannerScore.toFixed(1)
-                    : organizerMannerScore}
-                  점
-                </TimeBadge>
-              )}
-            </div>
-          </OrganizerLeft>
+                    {/* ✅ 매너점수 배지 (host.mannerScore 연동) */}
+                    {organizerMannerScore !== undefined && (
+                      <TimeBadge>
+                        {" "}
+                        {typeof organizerMannerScore === "number"
+                          ? organizerMannerScore.toFixed(1)
+                          : organizerMannerScore}
+                        점
+                      </TimeBadge>
+                    )}
+                  </div>
+                </OrganizerLeft>
 
-          {!isOrganizer && (
-            <ContactButton onClick={() => setIsContactModalOpen(true)}>
-              문의하기
-            </ContactButton>
-          )}
-        </OrganizerBadge>
-      </OrganizerRow>
-
+                {!isOrganizer && (
+                  <ContactButton onClick={() => setIsContactModalOpen(true)}>
+                    문의하기
+                  </ContactButton>
+                )}
+              </OrganizerBadge>
+            </OrganizerRow>
           </DetailList>
 
           <BottomArea>
@@ -1049,9 +1049,7 @@ const GroupPurchaseDetail = () => {
               </QuantityArea>
             )}
             <PriceArea>
-              <PriceText>
-                {(product.price * quantity).toLocaleString()} 원
-              </PriceText>
+              <PriceText>{product.price.toLocaleString()} 원</PriceText>
             </PriceArea>
           </BottomArea>
 
@@ -1301,14 +1299,17 @@ const GroupPurchaseDetail = () => {
               </tr>
             </thead>
             {/* <tbody onClick={() => {setIsDeliveryInfoModalOpen(true)}}> */}
-              
+
             <tbody
-                onClick={() => {
-                  if (participantFilter === "delivery" && filteredParticipants.length > 0) {
-                    setIsDeliveryInfoModalOpen(true);
-                  }
-                }}
-              >
+              onClick={() => {
+                if (
+                  participantFilter === "delivery" &&
+                  filteredParticipants.length > 0
+                ) {
+                  setIsDeliveryInfoModalOpen(true);
+                }
+              }}
+            >
               {filteredParticipants.length > 0 ? (
                 filteredParticipants.map((p, idx) => (
                   <tr key={idx}>
