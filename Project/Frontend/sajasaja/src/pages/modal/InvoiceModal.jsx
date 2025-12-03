@@ -241,6 +241,7 @@ const InvoiceModal = ({ isOpen, onClose, participants, onSave }) => {
                   <td style={{ textAlign: "left" }}>{row.address}</td>
                   <td>
                     <StyledSelect
+                      defaultValue={deliveryData.courier}
                       value={row.courier}
                       onChange={(e) =>
                         handleChange(row.id, "courier", e.target.value)

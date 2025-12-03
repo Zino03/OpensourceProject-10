@@ -643,30 +643,33 @@ const GroupPurchaseDetail = () => {
         if (
           postData.status === 0 ||
           postData.status === 4 ||
-          postData.isCanceled === false
+          postData.isCanceled === true
         ) {
           return;
         }
 
         // 주최자라면 참여자 목록 조회
         const buyersResponse = await api.get(`/api/posts/${id}/buyers`);
-        const buyers = buyersResponse.data.buyers || [];
+        const buyers = buyersResponse.data || [];
 
-        console.log(buyersResponse.data);
+        console.log(buyers);
 
         const mappedBuyers = buyersResponse.data.map((b) => ({
           id: b.buyerId,
-          name: b.name,
-          nickname: b.nickname,
-          amount: `${b.totalPrice?.toLocaleString()}원`,
-          address: b.address
-            ? `(${b.address.zipCode}) ${b.address.street} ${b.address.detail}`
+          name: b.userName,
+          nickname: b.userNickname,
+          amount: `${b.price?.toLocaleString()}원`,
+          reception: b.userAddress.recipient,
+          phone: b.userAddress.phone,
+          address: b.userAddress
+            ? `(${b.userAddress.zipCode}) ${b.userAddress.street} ${b.userAddress.detail}`
             : "주소 정보 없음",
+            entrance: b.userAddress.entranceAccess ? {acess: b.userAddress.entranceAccess, detail: b.userAddress.entranceDetail} : null,
           status: b.isPaid === 1 ? "결제 완료" : "결제 대기",
           date: b.receivedAt ? b.receivedAt.substring(0, 10) : "-",
-          invoice: b.trackingNumber ? { number: b.trackingNumber } : null,
+          invoice: b.trackingNumber ? { number: b.trackingNumber, courier: b.courier } : null,
           pickup: b.receivedAt ? { receiveDate: b.receivedAt } : null,
-          receive: b.address ? "delivery" : "pickup",
+          receive: b.userAddress ? "delivery" : "pickup",
         }));
         setParticipants(mappedBuyers);
       }
@@ -802,9 +805,9 @@ const GroupPurchaseDetail = () => {
       for (const item of updatedData) {
         if (item.invoiceNum) {
           await api.post(`/api/posts/${id}/tracking`, {
-            buyerId: item.id,
+            userNickname: item.nickname,
+            courier: item.courier || "대한통운",
             trackingNumber: item.invoiceNum,
-            carrier: item.courier || "대한통운",
           });
         }
       }

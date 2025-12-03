@@ -104,10 +104,12 @@ const DeliveryInfoModal = ({ isOpen, onClose, participants, onSave }) => {
           name: p.name,
           nickname: p.nickname,
           address: p.address,
-          req: p.req,
-          tel: p.tel,
+          req: `${p.entrance.acess} ${p.entrance.detail}`, //TODO: FREE 자유출입 형식 변경
+          tel: p.phone,
         }))
       );
+
+      console.log(participants)
     }
   }, [isOpen, participants]);
 
