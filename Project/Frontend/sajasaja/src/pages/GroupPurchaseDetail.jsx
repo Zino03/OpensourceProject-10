@@ -784,7 +784,7 @@ const GroupPurchaseDetail = () => {
       return;
 
     try {
-      await api.post(`/api/post/${id}/host-quantity`, null, {
+      await api.post(`/api/posts/${id}/host-quantity`, null, {
         params: { quantity: quantity },
       });
       alert("수량이 변경되었습니다.");
