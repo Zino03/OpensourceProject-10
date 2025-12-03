@@ -8,7 +8,7 @@ import InvoiceModal from "./modal/InvoiceModal";
 import ReceiveModal from "./modal/ReceiveModal";
 import DeliveryInfoModal from "./modal/DeliveryInfoModal";
 import ContactModal from "./modal/ContactModal";
-import { api, setInterceptor } from "../assets/setIntercepter";
+import { api, BASE_URL, setInterceptor } from "../assets/setIntercepter";
 
 // 백엔드 서버 주소 (이미지 표시용)
 const BACKEND_URL = "http://192.168.31.28:8080";
@@ -715,12 +715,10 @@ const GroupPurchaseDetail = () => {
       : "무료",
     organizer: post.host?.nickname || "알 수 없음",
     organizerProfileImage: post.host?.profileImg
-      ? `${BACKEND_URL}${post.host.profileImg}`
+      ? `${BASE_URL}${post.host.profileImg}`
       : "/images/profile.png",
     price: post.price,
-    imageUrl: post.image
-      ? `${BACKEND_URL}${post.image}`
-      : "/images/sajasaja.png",
+    imageUrl: post.image ? `${BASE_URL}${post.image}` : "/images/sajasaja.png",
     description: post.content,
   };
 
