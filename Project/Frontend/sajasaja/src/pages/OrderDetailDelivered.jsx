@@ -206,6 +206,8 @@ function OrderDetail_Delivered() {
         },
       });
 
+      console.log(res);
+
       const { orders: rawOrders, statusCounts } = res.data; //
 
       if (statusCounts) {
@@ -262,9 +264,16 @@ function OrderDetail_Delivered() {
   const handleConfirmPurchase = async () => {
     if (!selectedOrderToConfirm) return;
 
+    console.log(selectedOrderToConfirm);
+
     try {
       // PATCH /mypage/order/{buyerId}/confirm 호출
-      await api.patch(`/api/mypage/order/${selectedOrderToConfirm.id}/confirm`);
+      let res = await api.patch(
+        `/api/mypage/order/${selectedOrderToConfirm.id}/confirm`
+      );
+
+      console.log(res);
+      alert(res.data.message);
 
       // 성공 후 목록 새로고침
       fetchOrders();
@@ -302,13 +311,14 @@ function OrderDetail_Delivered() {
     try {
       const body = {
         content: reviewText,
-        rating: rating,
+        star: rating,
       };
 
       // POST /mypage/order/{buyerId}/review 호출
-      await api.post(`/api/mypage/order/${orderId}/review`, body);
+      const res = await api.post(`/api/mypage/order/${orderId}/review`, body);
 
       alert("후기가 성공적으로 등록되었습니다.");
+      console.log(res.data.message);
 
       // 후기 등록 후 상태가 변경될 수 있으므로 목록 새로고침
       fetchOrders();

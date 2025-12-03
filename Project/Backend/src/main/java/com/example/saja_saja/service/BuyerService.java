@@ -653,7 +653,7 @@ public class BuyerService {
         }
 
         try {
-            buyer.setStatus(4);
+            buyer.setStatus(5);
 
             HashMap<String, Object> data = new HashMap<>();
             data.put("buyerId", buyerId);
