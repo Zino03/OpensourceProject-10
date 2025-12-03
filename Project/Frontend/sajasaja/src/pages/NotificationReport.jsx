@@ -1,7 +1,7 @@
-// 파일명: NotificationReport.jsx
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import ReportComplete from "./modal/ReportComplete"; // ⭐ 모달 import
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import ReportComplete from "./modal/ReportComplete";
+import { api } from "../assets/setIntercepter"; // ✅ API 연동
 
 const styles = {
   page: {
@@ -25,7 +25,6 @@ const styles = {
     maxWidth: "900px",
     margin: "0 auto 32px auto",
   },
-
   form: {
     width: "100%",
     maxWidth: "900px",
@@ -46,7 +45,6 @@ const styles = {
     fontSize: "12px",
     fontWeight: 500,
   },
-
   inputBase: {
     width: "100%",
     height: "44px",
@@ -59,8 +57,8 @@ const styles = {
   },
   readOnlyInput: {
     backgroundColor: "#f8f8f8",
+    cursor: "default",
   },
-
   inputWrapper: {
     position: "relative",
   },
@@ -74,7 +72,6 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
   },
-
   select: {
     width: "100%",
     height: "44px",
@@ -86,8 +83,8 @@ const styles = {
     outline: "none",
     appearance: "none",
     backgroundColor: "#ffffff",
+    cursor: "pointer",
   },
-
   textarea: {
     width: "100%",
     minHeight: "260px",
@@ -99,19 +96,16 @@ const styles = {
     resize: "none",
     outline: "none",
   },
-
   textareaPlaceholder: {
     fontSize: "12px",
     color: "#b0b0b0",
     lineHeight: 1.6,
   },
-
   redNotice: {
     marginTop: "-15px",
     fontSize: "12px",
     color: "#D32F2F",
   },
-
   buttonRow: {
     marginTop: "32px",
     display: "flex",
@@ -137,18 +131,28 @@ const styles = {
 
 const NotificationReport = () => {
   const navigate = useNavigate();
+  const location = useLocation(); // ✅ 이전 페이지에서 데이터 받기
 
-  // ✅ 신고 공지 제목/대상 텍스트 (예시)
-  const reportedNoticeTitle = "프레첼 공동구매 3차 공지";
+  // 이전 페이지(공지 상세보기)에서 넘어온 state 값
+  const noticeId = location.state?.id;
+  const noticeTitle = location.state?.title || "공지사항 정보 없음";
 
   const [title, setTitle] = useState("");
   const [reason, setReason] = useState("");
   const [detail, setDetail] = useState("");
 
-  // ⭐ 모달 상태
   const [isCompleteOpen, setIsCompleteOpen] = useState(false);
 
-  const handleSubmit = (e) => {
+  // 잘못된 접근 처리 (noticeId가 없는 경우)
+  useEffect(() => {
+    if (!noticeId) {
+      alert("잘못된 접근입니다. 공지사항을 통해 접속해주세요.");
+      navigate(-1);
+    }
+  }, [noticeId, navigate]);
+
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!title.trim()) {
@@ -164,19 +168,44 @@ const NotificationReport = () => {
       return;
     }
 
-    // TODO: 신고 API 호출 (공지 신고)
-    console.log("신고 공지:", reportedNoticeTitle);
-    console.log("제목:", title);
-    console.log("사유:", reason);
-    console.log("내용:", detail);
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      alert("로그인이 필요합니다.");
+      navigate("/login");
+      return;
+    }
 
-    // 신고 완료 모달 열기
-    setIsCompleteOpen(true);
+    try {
+      // ✅ 백엔드 API 호출
+      // 엔드포인트: POST /api/report/NOTICE
+      // RequestBody: ReportRequestDto (targetId, title, content, reason)
+      await api.post(`/api/report/NOTICE`, {
+        reportedId: noticeId,
+        title: title,
+        content: detail,
+        reportedNickname: 'nickName', // 백엔드 Enum 매핑을 위해 대문자 변환 (spam -> SPAM)
+      });
+      
+      // await api.patch(`api/admin/report/NOTICE/${noticeId}`),{
+      //   reportId: noticeId,
+      //   type: NOTICE,
+
+      // }
+
+      // 신고 완료 모달 열기
+      setIsCompleteOpen(true);
+    } catch (error) {
+      console.error("신고 실패:", error);
+      const errorMsg =
+        error.response?.data?.message || "신고 접수 중 오류가 발생했습니다.";
+      alert(errorMsg);
+    }
   };
 
   const handleCancel = () => {
     navigate(-1);
   };
+  
 
   return (
     <div style={styles.page}>
@@ -189,7 +218,7 @@ const NotificationReport = () => {
             <label style={styles.label}>신고 공지</label>
             <input
               type="text"
-              value={reportedNoticeTitle}
+              value={noticeTitle}
               readOnly
               style={{ ...styles.inputBase, ...styles.readOnlyInput }}
             />
@@ -293,10 +322,13 @@ const NotificationReport = () => {
         </form>
       </div>
 
-      {/* ⭐ 신고 완료 모달 */}
+      {/* 신고 완료 모달 */}
       <ReportComplete
         isOpen={isCompleteOpen}
-        onClose={() => setIsCompleteOpen(false)}
+        onClose={() => {
+          setIsCompleteOpen(false);
+          navigate(-1); // 모달 닫으면 이전 페이지로 이동
+        }}
       />
     </div>
   );

@@ -834,16 +834,23 @@ const GroupPurchaseDetail = () => {
     setIsModalOpen(true);
   };
 
-  const handleReportNotice = () => {
+  const handleReportNotice = (noticeId, noticeContent, hostNickname) => { // 인자 추가
     const token = localStorage.getItem("accessToken");
 
     if (!token) {
       alert("로그인이 필요한 서비스입니다.");
       navigate("/login");
       return;
-    } else {
-      navigate("/notificationreport");
-    }
+    } 
+    
+    // ✅ [수정] state에 id와 title을 담아서 navigate 호출
+    navigate("/notificationreport", {
+        state: {
+            id: noticeId,
+            title: noticeContent ? (noticeContent.length > 20 ? noticeContent.substring(0, 20) + "..." : noticeContent) : "공지사항",
+            reportedNickname: hostNickname // 👈 닉네임 전달
+        }
+    });
   };
 
   const handleReviewAction = () => {
@@ -1105,7 +1112,8 @@ const GroupPurchaseDetail = () => {
                         <FaTrashAlt /> 삭제
                       </ActionButton>
                     ) : (
-                      <ActionButton onClick={handleReportNotice}>
+                      // ✅ [수정] 신고 버튼 클릭 시 notice.id와 notice.content를 전달
+                      <ActionButton onClick={() => handleReportNotice(notice.id, notice.conten, post.host.nickname)}>
                         <FaRegBell /> 신고
                       </ActionButton>
                     )}

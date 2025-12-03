@@ -13,6 +13,7 @@ const Overlay = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 1000;
 `;
 
 const ModalContainer = styled.div`
@@ -118,7 +119,7 @@ const StepInput = styled.input`
   border: none;
   border-left: 1px solid #ddd;
   border-right: 1px solid #ddd;
-  font-size: 12x;
+  font-size: 12px;
   font-weight: 500; 
   text-align: center;
 
@@ -178,7 +179,6 @@ const RadioLabel = styled.label`
   }
 `;
 
-// 하단 버튼
 const SubmitButton = styled.button`
   width: 100%;
   background-color: #FF7E36;
@@ -196,7 +196,8 @@ const SubmitButton = styled.button`
   }
 `;
 
-const PurchaseModal = ({ isOpen, onClose, product }) => {
+// ✅ postId 추가 (GroupPurchaseDetail에서 넘겨준 값)
+const PurchaseModal = ({ isOpen, onClose, product, postId }) => {
   const navigate = useNavigate(); 
   const [quantity, setQuantity] = useState(1);
   const [receiveMethod, setReceiveMethod] = useState('pickup');
@@ -233,10 +234,8 @@ const PurchaseModal = ({ isOpen, onClose, product }) => {
 
     const numVal = Number(val);
     
-    // 숫자가 아니거나 1 미만인 경우 무시
     if (isNaN(numVal) || numVal < 1) return;
 
-    // 최대 수량 체크
     if (numVal > maxQuantity) {
       alert(`최대 ${maxQuantity}개까지만 구매 가능합니다.`);
       setQuantity(maxQuantity);
@@ -252,11 +251,13 @@ const PurchaseModal = ({ isOpen, onClose, product }) => {
   };
 
   const handleSubmit = () => {
+    // ✅ OrderPage로 넘어갈 때 postId를 state에 담아서 보냅니다.
     navigate('/order', { 
       state: { 
         product: product, 
         quantity: quantity, 
-        method: receiveMethod 
+        method: receiveMethod,
+        postId: postId 
       } 
     });
     
@@ -271,9 +272,7 @@ const PurchaseModal = ({ isOpen, onClose, product }) => {
         </CloseButton>
 
         <Title>주문</Title>
-
         <Divider /> 
-
         <SectionHeader>상품 정보</SectionHeader>
         
         <InfoRow>
@@ -334,8 +333,7 @@ const PurchaseModal = ({ isOpen, onClose, product }) => {
           </RadioGroup>
         </ControlRow>
 
-        <SubmitButton onClick={() => handleSubmit()}>공동구매 시작하기</SubmitButton>
-
+        <SubmitButton onClick={handleSubmit}>공동구매 시작하기</SubmitButton>
       </ModalContainer>
     </Overlay>
   );

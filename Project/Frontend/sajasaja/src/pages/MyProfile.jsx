@@ -264,7 +264,8 @@ function MyProfile() {
         console.log(response);
 
         // 백엔드 데이터 구조에 맞춰 추출 (응답 자체가 객체)
-        const data = response.data.user || response.data;
+        const data = response.data;
+        console.log(data);
 
         // null 체크를 하여 빈 문자열 할당 (에러 해결 핵심)
         setForm((prev) => ({
