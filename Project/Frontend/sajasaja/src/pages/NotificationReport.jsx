@@ -129,6 +129,16 @@ const styles = {
   },
 };
 
+const reasonMap = {
+  spam: "스팸/광고",
+  abuse: "욕설·비방/혐오 표현",
+  fraud: "사기 의심/거래 문제",
+  "false-info": "허위 정보",
+  obscene: "음란물/불건전 내용",
+  copyright: "저작권 침해",
+  other: "기타",
+};
+
 const NotificationReport = () => {
   const navigate = useNavigate();
   const location = useLocation(); // ✅ 이전 페이지에서 데이터 받기
@@ -192,9 +202,14 @@ const NotificationReport = () => {
 
       await api.post(`/api/report/NOTICE`, {
         title: title,
-        content: `[${reportReasonText[reason] || reason}] ${detail}`, // 사유와 내용을 합쳐서 전송
-        reportedId: noticeId, // 신고 대상 공지 ID
+        content: `${reasonMap[reason]}\n\n${detail}`,
       });
+
+      // await api.patch(`api/admin/report/NOTICE/${noticeId}`),{
+      //   reportId: noticeId,
+      //   type: NOTICE,
+
+      // }
 
       // 신고 완료 모달 열기
       setIsCompleteOpen(true);

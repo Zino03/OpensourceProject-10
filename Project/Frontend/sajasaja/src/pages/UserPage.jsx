@@ -115,20 +115,7 @@ const UserPage = () => {
 
   // ✅ 신고하기 버튼 클릭 -> UserReport 페이지로 이동 (데이터 전달)
   const handleReport = () => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) {
-        alert("로그인이 필요합니다.");
-        navigate("/login");
-        return;
-    }
-    
-    navigate("/userreport", {
-        state: {
-            reportedId: user.id || null, // 유저 ID가 있다면 전달
-            reportedNickname: user.nickname,
-            reportedName: user.name
-        }
-    });
+    navigate("/userreport");
   };
 
   // 프로필 이미지 처리
@@ -142,11 +129,18 @@ const UserPage = () => {
         <section style={styles.profileCard}>
           <div style={styles.profileLeft}>
             <div style={styles.avatar}>
-              {!loading && <img src={avatarSrc} alt="프로필" style={{ width: "100%", height: "100%", objectFit: "cover" }} />}
+              {!loading && (
+                <img
+                  src={avatarSrc}
+                  alt="프로필"
+                />
+              )}
             </div>
             <div style={styles.profileInfo}>
               <div style={styles.nicknameRow}>
-                <span style={styles.nickname}>{user?.nickname}</span>
+                <span style={styles.nickname}>
+                  {loading ? "프로필 불러오는 중..." : user?.nickname ?? nickname}
+                </span>
                 {!loading && user && (
                   <span style={styles.ratingBadge}>{user.mannerScore || 0}점</span>
                 )}
@@ -168,11 +162,23 @@ const UserPage = () => {
             <h2 style={styles.sectionTitle}>최근 공구 활동</h2>
           </div>
           <div style={styles.tabRow}>
-            <div style={styles.tab(activeTab === "ongoing")} onClick={() => setActiveTab("ongoing")}>
-              진행 중 {activeTab === "ongoing" && <div style={styles.tabUnderline} />}
+            <div
+              style={styles.tab(activeTab === "ongoing")}
+              onClick={() => setActiveTab("ongoing")}
+            >
+              진행 중
+              {activeTab === "ongoing" && (
+                <div style={styles.tabUnderline} />
+              )}
             </div>
-            <div style={styles.tab(activeTab === "closed")} onClick={() => setActiveTab("closed")}>
-              마감 {activeTab === "closed" && <div style={styles.tabUnderline} />}
+            <div
+              style={styles.tab(activeTab === "closed")}
+              onClick={() => setActiveTab("closed")}
+            >
+              마감
+              {activeTab === "closed" && (
+                <div style={styles.tabUnderline} />
+              )}
             </div>
           </div>
 
