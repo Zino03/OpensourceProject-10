@@ -22,6 +22,8 @@ public class CanceledOrderListResponseDto {
 
     private Integer quantity;
 
+    private LocalDateTime createdAt;
+
     private LocalDateTime canceledAt;
 
     private Integer canceledReason;
@@ -36,6 +38,7 @@ public class CanceledOrderListResponseDto {
                 post.getId(),
                 post.getTitle(),
                 buyer.getQuantity(),
+                buyer.getCreatedAt(),
                 buyer.getCanceledAt(),
                 buyer.getCanceledReason(),
                 buyer.getStatus()

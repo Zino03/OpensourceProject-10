@@ -567,7 +567,7 @@ public class BuyerService {
             Boolean hasMore = null;
             Page<?> orderListDto = null;
 
-            if (status == 5) {
+            if (status == 6) {
                 orderListDto = buyerPage.map(
                         buyerEntity -> CanceledOrderListResponseDto.of(buyerEntity)
                 );
