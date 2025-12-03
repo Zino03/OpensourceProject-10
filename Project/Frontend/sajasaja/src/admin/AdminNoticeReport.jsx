@@ -216,7 +216,7 @@ const AdminNoticePage = () => {
     setInterceptor(token);
 
     try {
-      const response = await api.get("/api/admin/reports/REVIEW");
+      const response = await api.get("/api/admin/reports/NOTICE");
 
       console.log(response.data);
 
