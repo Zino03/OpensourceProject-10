@@ -194,6 +194,8 @@ function OrderDetailOrderReceived() {
       return;
     }
 
+    console.log(res)
+
     // 🔥 status=0만 보이게 필터링
     const activeOrders = rawOrders.filter(o => o.status === 0);
 
@@ -252,16 +254,20 @@ function OrderDetailOrderReceived() {
   /* ===========================
      3. 실제 주문 취소 API 호출
   ============================ */
-  const handleConfirmCancel = async () => {
+  const handleConfirmCancel = async (id) => {
   if (!selectedOrder) return;
+
+  console.log(id)
 
   try {
     const res = await api.patch(`/api/mypage/order/${id}/cancel`, { status: 5 });
     console.log(res);
     fetchOrders();
     closeCancelModal();
+    alert("주문취소가 완료되었습니다.")
   } catch (err) {
-    console.error("주문 취소 실패:", err);
+    console.error("주문 취소 실패:", err.response.data);
+    alert(err.response.data.message);
   }
 };
   // 동적 steps 배열 생성

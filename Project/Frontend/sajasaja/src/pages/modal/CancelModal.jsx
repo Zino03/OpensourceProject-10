@@ -68,7 +68,7 @@ const BlackButton = styled(BaseButton)`
  *  - onClose: "돌아가기" 눌렀을 때 / 바깥 클릭 시
  *  - onConfirm: "주문 취소하기" 눌렀을 때
  */
-const CancelModal = ({ isOpen, onClose, onConfirm }) => {
+const CancelModal = ({ order, isOpen, onClose, onConfirm }) => {
   if (!isOpen) return null;
 
   const handleBackdropClick = (e) => {
@@ -87,7 +87,7 @@ const CancelModal = ({ isOpen, onClose, onConfirm }) => {
           <GhostButton type="button" onClick={onClose}>
             돌아가기
           </GhostButton>
-          <BlackButton type="button" onClick={onConfirm}>
+          <BlackButton type="button" onClick={() => onConfirm(order.id)}>
             주문 취소하기
           </BlackButton>
         </ButtonArea>
