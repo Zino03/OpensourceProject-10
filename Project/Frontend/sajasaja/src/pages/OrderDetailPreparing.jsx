@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react"; // ✅ useState, useEffect 추가
 import { useNavigate } from "react-router-dom";
 import { api, setInterceptor } from "../assets/setIntercepter"; // ✅ api, setInterceptor 추가
+import ContactModal from "./modal/ContactModal";
 
 /* ============================================
     🔥 SVG 화살표 아이콘 (색 변경 가능)
@@ -128,6 +129,7 @@ const styles = {
   },
 };
 
+
 const arrowColors = ["#000000ff", "#828282", "#ffffffff"];
 
 // 백엔드 Status Code (BuyerService.java 기준)
@@ -150,6 +152,8 @@ function OrderDetailPreparing() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  const [targetContact, setTargetContact] = useState("");
 
   // 🔥 동적 주문 수량
   const [counts, setCounts] = useState({
@@ -281,6 +285,21 @@ function OrderDetailPreparing() {
       path: STATUS_MAP[6].path,
     },
   ];
+
+  const handleContactClick = async (postId) => {
+        try {
+          // 해당 게시글 정보를 받아와서 contact 정보 추출
+          const response = await api.get(`/api/posts/${postId}`);
+          const contactInfo = response.data.post.contact;
+          
+          setTargetContact(contactInfo);
+          setIsContactModalOpen(true);
+        } catch (error) {
+          console.error("연락처 정보 조회 실패:", error);
+          alert("연락처 정보를 불러오는데 실패했습니다.");
+        }
+      };
+  
 
   return (
     <div style={styles.orderPage}>
@@ -421,6 +440,12 @@ function OrderDetailPreparing() {
           </tbody>
         </table>
       </div>
+      {/* 🔥 연락처 모달 추가 */}
+      <ContactModal
+        isOpen={isContactModalOpen}
+        onClose={() => setIsContactModalOpen(false)}
+        contact={targetContact}
+      />
     </div>
   );
 }

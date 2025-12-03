@@ -284,7 +284,6 @@ const NoticeText = styled.p`
   color: #888;
 `;
 
-// --- Utility Functions ---
 const formatPrice = (num) => (num ? num.toLocaleString("ko-KR") : "0");
 const formatDate = (dateString) => {
   if (!dateString) return "-";
@@ -300,12 +299,12 @@ const mapEntranceAccess = (code) => {
   }
 };
 
-// --- Main Component ---
 const OrderDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchOrder = async () => {
