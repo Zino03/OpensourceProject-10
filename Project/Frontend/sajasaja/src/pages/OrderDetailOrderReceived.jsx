@@ -172,49 +172,6 @@ function OrderDetailOrderReceived() {
       return;
     }
 
-<<<<<<< HEAD
-    console.log(res)
-
-    // 🔥 status=0만 보이게 필터링
-    const activeOrders = rawOrders.filter(o => o.status === 0);
-
-    // 🔥 주문 ID(o.id)로 매핑
-    const mapped = activeOrders.map((o) => {
-      const orderedDate = (o.createdAt || "").split("T")[0] || "";
-      const totalPrice = o.price ?? 0;
-
-      return {
-        id: o.id,        // ✔ 반드시 주문 ID 사용
-        postId: o.postId,
-        name: o.postTitle,
-        host: o.hostNickname,
-        quantity: o.quantity,
-        status: o.status,
-        date: orderedDate,
-        total: `${Number(totalPrice).toLocaleString()} 원`,
-      };
-    });
-
-    setOrders(mapped);
-  } catch (err) {
-    console.error("주문 내역 조회 실패:", err);
-  } finally {
-    setLoading(false);
-  }
-};
-
-
-  useEffect(() => {
-    // 인증 오류 수정: navigate 대신 실제 토큰을 setInterceptor에 전달
-    const token = localStorage.getItem("accessToken");
-    
-    if (!token || token === 'undefined') {
-        navigate('/login'); 
-        return;
-    }
-    
-=======
->>>>>>> d66b9dd2374e706220e590e162f4c299f1d76c29
     setInterceptor(token);
     fetchOrders();
   }, [navigate]);
@@ -232,28 +189,6 @@ function OrderDetailOrderReceived() {
     setSelectedOrder(null);
   };
 
-<<<<<<< HEAD
-  /* ===========================
-     3. 실제 주문 취소 API 호출
-  ============================ */
-  const handleConfirmCancel = async (id) => {
-  if (!selectedOrder) return;
-
-  console.log(id)
-
-  try {
-    const res = await api.patch(`/api/mypage/order/${id}/cancel`, { status: 5 });
-    console.log(res);
-    fetchOrders();
-    closeCancelModal();
-    alert("주문취소가 완료되었습니다.")
-  } catch (err) {
-    console.error("주문 취소 실패:", err.response.data);
-    alert(err.response.data.message);
-  }
-};
-  // 동적 steps 배열 생성
-=======
   /* ===================================
        🔥 3. 주문 취소 실행 (Status 5 전송)
   =================================== */
@@ -288,7 +223,6 @@ function OrderDetailOrderReceived() {
   /* ===================================
        🔥 STEP UI 데이터
   =================================== */
->>>>>>> d66b9dd2374e706220e590e162f4c299f1d76c29
   const steps = [
     { id: 0, label: STATUS_MAP[0].label, value: counts[0] || 0, path: STATUS_MAP[0].path },
     { id: 1, label: STATUS_MAP[1].label, value: counts[1] || 0, path: STATUS_MAP[1].path },
