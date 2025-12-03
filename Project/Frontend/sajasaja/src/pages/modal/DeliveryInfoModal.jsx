@@ -103,8 +103,9 @@ const DeliveryInfoModal = ({ isOpen, onClose, participants, onSave }) => {
           id: p.id,
           name: p.name,
           nickname: p.nickname,
+          reception: p.reception,
           address: p.address,
-          req: `${p.entrance.acess} ${p.entrance.detail}`, //TODO: FREE 자유출입 형식 변경
+          req: `${p.entrance.acess === "FREE" ? "" : p.entrance.acess} ${p.entrance.detail}`.trim(),
           tel: p.phone,
         }))
       );
@@ -133,6 +134,7 @@ const DeliveryInfoModal = ({ isOpen, onClose, participants, onSave }) => {
               <tr>
                 <th>성명</th>
                 <th>닉네임</th>
+                <th>받는분</th>
                 <th>배송지</th>
                 <th>요청사항</th>
                 <th>연락처</th>
@@ -143,6 +145,7 @@ const DeliveryInfoModal = ({ isOpen, onClose, participants, onSave }) => {
                 <tr key={row.id}>
                   <td>{row.name}</td>
                   <td>{row.nickname}</td>
+                  <td>{row.reception}</td>
                   <td style={{ textAlign: "left" }}>{row.address}</td>
                   <td>{row.req}</td>
                   <td>{row.tel}</td>

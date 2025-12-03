@@ -803,17 +803,20 @@ const GroupPurchaseDetail = () => {
     try {
       for (const item of updatedData) {
         if (item.invoiceNum) {
-          await api.post(`/api/posts/${id}/tracking`, {
+          let res = await api.post(`/api/posts/${id}/tracking`, {
             userNickname: item.nickname,
             courier: item.courier || "대한통운",
             trackingNumber: item.invoiceNum,
           });
+          console.log(res)
         }
       }
       alert("송장 정보가 저장되었습니다.");
       fetchPostDetail();
     } catch (err) {
-      alert("송장 등록 실패");
+      console.log(err.response.data)
+      alert(err.response.data.message);
+      // alert("송장 등록 실패");
     }
   };
 
@@ -897,7 +900,7 @@ const GroupPurchaseDetail = () => {
       <TopSection>
         <ImageArea>
           <MainImageWrapper>
-            {product.daysLeft <= 3 && (
+            {product.status === 2 && (
               <div
                 style={{
                   position: "absolute",
@@ -1249,7 +1252,7 @@ const GroupPurchaseDetail = () => {
               </ManageButtonGroup>
             ) : (
               <ManageButton onClick={() => setIsReceiveDateModalOpen(true)}>
-                수령일자 등록
+                수령일시 등록
               </ManageButton>
             )}
           </ManageHeader>
