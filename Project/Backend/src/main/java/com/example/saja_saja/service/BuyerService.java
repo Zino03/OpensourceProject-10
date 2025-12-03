@@ -158,6 +158,7 @@ public class BuyerService {
         if (post.getHost().equals(member.getUser())) {
             buyer.setIsPaid(1);
             buyer.setStatus(1);
+            post.setCurrentPaidQuantity(requestQuantity);
         } else {
             buyer.setPayerName(req.getPayerName());
             buyer.setPayerEmail(req.getPayerEmail());
@@ -249,15 +250,12 @@ public class BuyerService {
             post.setCurrentPaidQuantity(post.getCurrentPaidQuantity() - buyer.getQuantity());
         }
 
-        if (post.getStatus() != 3) {
-            int remainingQuantity = post.getQuantity() - post.getCurrentQuantity();
-
-            if (remainingQuantity <= 5) {
-                post.setStatus(2);
-            } else {
-                post.setStatus(1);
-            }
+        if (!post.getIsCanceled() && post.getQuantity() - post.getCurrentQuantity() <= 5) {
+            post.setStatus(2);
+        } else {
+            post.setStatus(1);
         }
+
 
 
         Optional<Buyer> optionalLastBuyer = buyerRepository.findFirstByPostAndIsCanceledAndIsPaidOrderByIdDesc(post, false, 0);
