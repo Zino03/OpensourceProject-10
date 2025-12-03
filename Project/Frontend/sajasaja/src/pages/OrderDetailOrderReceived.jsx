@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import CancelModal from "./modal/CancelModal";
+import ContactModal from "./modal/ContactModal";
 import { api, setInterceptor } from "../assets/setIntercepter";
 
 /* ============================================
@@ -159,6 +160,9 @@ const STATUS_MAP = {
 function OrderDetailOrderReceived() {
   const navigate = useNavigate();
 
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false); // ✅ [추가]
+  const [contact, setContact] = useState(null); // ✅ [추가]
+
   // 주문 리스트 상태
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -216,6 +220,7 @@ function OrderDetailOrderReceived() {
           name: o.postTitle,
           host: o.hostNickname,
           quantity: o.quantity,
+          phone: o.postContact,
           status: o.status,
           date: orderedDate,
           total: `${Number(totalPrice).toLocaleString()} 원`,
@@ -327,6 +332,16 @@ function OrderDetailOrderReceived() {
       path: STATUS_MAP[6].path,
     },
   ];
+
+  const openContact = (phone) => {
+    setContact(phone);
+    setIsContactModalOpen(true);
+  };
+
+  const closeContact = () => {
+    setContact(null);
+    setIsContactModalOpen(false);
+  };
 
   return (
     <div style={styles.orderPage}>
@@ -441,8 +456,13 @@ function OrderDetailOrderReceived() {
                     </button>
                   </td>
 
+                  {/* 문의하기 버튼 */}
                   <td style={styles.td}>
-                    <button type="button" style={styles.btnFilled}>
+                    <button
+                      type="button"
+                      style={styles.btnFilled}
+                      onClick={() => openContact(order.phone)}
+                    >
                       문의하기
                     </button>
                   </td>
@@ -452,6 +472,12 @@ function OrderDetailOrderReceived() {
           </tbody>
         </table>
       </div>
+      {/* ✅ [추가] 연락처 모달 */}
+      <ContactModal
+        isOpen={isContactModalOpen}
+        onClose={() => closeContact()}
+        contact={contact} // PostResponseDto의 contact 필드
+      />
 
       {/* 🔥 취소 모달 */}
       <CancelModal

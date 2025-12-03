@@ -1,6 +1,7 @@
 // 파일명: OrderDetail_PaymentCompleted.jsx
 import React, { useState, useEffect } from "react"; // ✅ useState, useEffect 추가
 import { useNavigate } from "react-router-dom";
+import ContactModal from "./modal/ContactModal";
 import { api, setInterceptor } from "../assets/setIntercepter"; // ✅ api, setInterceptor 추가
 
 /* ============================================
@@ -151,6 +152,9 @@ function OrderDetailPreparing() {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
 
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false); // ✅ [추가]
+  const [contact, setContact] = useState(null); // ✅ [추가]
+
   // 🔥 동적 주문 수량
   const [counts, setCounts] = useState({
     0: 0,
@@ -204,6 +208,7 @@ function OrderDetailPreparing() {
           host: o.hostNickname || "주최자",
           hostNickname: o.hostNickname,
           quantity: o.quantity ?? 0,
+          phone: o.postContact,
           date: orderedDate,
           total: `${Number(totalPrice).toLocaleString()} 원`,
           expectedDate: expectedDate,
@@ -281,6 +286,16 @@ function OrderDetailPreparing() {
       path: STATUS_MAP[6].path,
     },
   ];
+
+  const openContact = (phone) => {
+    setContact(phone);
+    setIsContactModalOpen(true);
+  };
+
+  const closeContact = () => {
+    setContact(null);
+    setIsContactModalOpen(false);
+  };
 
   return (
     <div style={styles.orderPage}>
@@ -411,7 +426,11 @@ function OrderDetailPreparing() {
 
                   {/* 문의하기 버튼 */}
                   <td style={styles.td}>
-                    <button type="button" style={styles.btnFilled}>
+                    <button
+                      type="button"
+                      style={styles.btnFilled}
+                      onClick={() => openContact(order.phone)}
+                    >
                       문의하기
                     </button>
                   </td>
@@ -421,6 +440,12 @@ function OrderDetailPreparing() {
           </tbody>
         </table>
       </div>
+      {/* ✅ [추가] 연락처 모달 */}
+      <ContactModal
+        isOpen={isContactModalOpen}
+        onClose={() => closeContact()}
+        contact={contact} // PostResponseDto의 contact 필드
+      />
     </div>
   );
 }
