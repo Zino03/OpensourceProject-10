@@ -1,4 +1,4 @@
-//배송정보 보는 모달
+// 배송정보 보는 모달
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 
@@ -47,7 +47,6 @@ const Table = styled.table`
   border-collapse: collapse;
   font-size: 12px;
   text-align: center;
-  position: sticky;
   table-layout: fixed;
   white-space: pre-wrap;
 
@@ -91,26 +90,48 @@ const CloseButton = styled.button`
   }
 `;
 
-const DeliveryInfoModal = ({ isOpen, onClose, participants, onSave }) => {
+// 🔹 entrance 한글 매핑
+const ENTRANCE_LABELS = {
+  PASSWORD: "공동현관 비밀번호",
+  CALL: "경비실 호출",
+  OTHER: "기타",
+  FREE: "", // 화면에서 숨김
+};
+
+// 🔹 entrance 포맷팅 함수
+const formatEntrance = (entrance) => {
+  if (!entrance) return "";
+
+  const access = entrance.acess; // 백에서 acess로 오고 있다 해서 그대로 씀
+  const detail = entrance.detail || "";
+  const label = ENTRANCE_LABELS[access] || "";
+
+  // FREE → 라벨 없이 detail만 노출 (예: "자유 출입")
+  if (access === "FREE") {
+    return detail.trim();
+  }
+
+  // 그 외 → "공동현관 비밀번호 1234#", "경비실 호출 인터폰 눌러주세요" 이런 식
+  return `${label} ${detail}`.trim();
+};
+
+const DeliveryInfoModal = ({ isOpen, onClose, participants }) => {
   const [deliveryData, setDeliveryData] = useState([]);
 
   useEffect(() => {
     if (isOpen) {
-      // 기존 participants 데이터를 복사해서 state에 넣음
-      // invoice 정보가 없으면 빈 문자열로 초기화
       setDeliveryData(
-        participants.map((p) => ({
+        (participants || []).map((p) => ({
           id: p.id,
           name: p.name,
           nickname: p.nickname,
-          reception: p.reception,
+          reception: p.reception, // 받는 분
           address: p.address,
-          req: `${p.entrance.acess === "FREE" ? "" : p.entrance.acess} ${p.entrance.detail}`.trim(),
+          req: formatEntrance(p.entrance),
           tel: p.phone,
         }))
       );
-
-      console.log(participants)
+      console.log("배송 모달 participants:", participants);
     }
   }, [isOpen, participants]);
 
@@ -123,11 +144,12 @@ const DeliveryInfoModal = ({ isOpen, onClose, participants, onSave }) => {
         <TableWrapper>
           <Table>
             <colgroup>
-              <col style={{ width: "100px" }} />
-              <col style={{ width: "100px" }} />
-              <col style={{ width: "auto" }} />
-              <col style={{ width: "140px" }} />
-              <col style={{ width: "200px" }} />
+              <col style={{ width: "80px" }} />   {/* 성명 */}
+              <col style={{ width: "80px" }} />   {/* 닉네임 */}
+              <col style={{ width: "100px" }} />  {/* 받는분 */}
+              <col style={{ width: "260px" }} />  {/* 배송지 */}
+              <col style={{ width: "220px" }} />  {/* 요청사항 */}
+              <col style={{ width: "150px" }} />  {/* 연락처 */}
             </colgroup>
 
             <thead>
@@ -141,16 +163,24 @@ const DeliveryInfoModal = ({ isOpen, onClose, participants, onSave }) => {
               </tr>
             </thead>
             <tbody>
-              {deliveryData.map((row) => (
-                <tr key={row.id}>
-                  <td>{row.name}</td>
-                  <td>{row.nickname}</td>
-                  <td>{row.reception}</td>
-                  <td style={{ textAlign: "left" }}>{row.address}</td>
-                  <td>{row.req}</td>
-                  <td>{row.tel}</td>
+              {deliveryData.length > 0 ? (
+                deliveryData.map((row) => (
+                  <tr key={row.id}>
+                    <td>{row.name}</td>
+                    <td>{row.nickname}</td>
+                    <td>{row.reception}</td>
+                    <td style={{ textAlign: "left" }}>{row.address}</td>
+                    <td>{row.req}</td>
+                    <td>{row.tel}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={6} style={{ padding: "20px", color: "#999" }}>
+                    배송 정보가 없습니다.
+                  </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </Table>
         </TableWrapper>
