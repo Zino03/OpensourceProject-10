@@ -1,5 +1,6 @@
 package com.example.saja_saja.dto.post;
 
+import com.example.saja_saja.entity.post.Buyer;
 import com.example.saja_saja.entity.post.Post;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Data
 @Builder
@@ -26,6 +28,12 @@ public class UserPostListResponseDto {
     private Boolean isSettled;
 
     public static UserPostListResponseDto of(Post post, Boolean settled) {
+        Integer hostQuantity = post.getBuyers().stream()
+                .filter(b -> Objects.equals(b.getUser(), post.getHost()))
+                .map(Buyer::getQuantity)
+                .findFirst()
+                .orElse(0);
+
         return builder()
                 .id(post.getId())
                 .title(post.getTitle())
@@ -34,7 +42,7 @@ public class UserPostListResponseDto {
                 .price(post.getPrice())
                 .quantity(post.getQuantity())
                 .currentQuantity(post.getCurrentQuantity())
-                .receivedPrice(post.getPrice()*post.getQuantity())
+                .receivedPrice(post.getPrice()*(post.getQuantity()-hostQuantity))
                 .status(post.getIsCanceled().equals(true) ? 5 : post.getStatus())
                 .isSettled(settled)
                 .build();

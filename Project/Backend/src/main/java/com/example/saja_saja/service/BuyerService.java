@@ -331,7 +331,13 @@ public class BuyerService {
         buyer.setPrice(post.getPrice()*requestQuantity);
         post.setCurrentQuantity(newTotal);
         post.setCurrentPaidQuantity(post.getCurrentPaidQuantity() - oldQuantity + requestQuantity);
-        if (post.getQuantity() - post.getCurrentQuantity() <= 5) {
+
+        Integer quantity = post.getQuantity();
+        Integer currentQuantity = post.getCurrentQuantity();
+
+        if (quantity.equals(currentQuantity)) {
+            post.setStatus(3);
+        } else if (quantity - currentQuantity <= 5) {
             post.setStatus(2);
         } else {
             post.setStatus(1);
