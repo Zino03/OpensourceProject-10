@@ -178,57 +178,50 @@ function OrderDetailOrderReceived() {
      1. 주문 목록 및 카운트 불러오기
   ============================ */
   const fetchOrders = async () => {
-    try {
-      setLoading(true);
-      setErrorMsg("");
+  try {
+    setLoading(true);
 
-      // GET /api/mypage/orders?status=0 호출
-      const res = await api.get("/api/mypage/orders", {
-        params: {
-          status: activeStatus, // 0 = 주문 접수
-          page: 0,
-        },
-      });
-      console.log(res.data);
+    const res = await api.get("/api/mypage/orders", {
+      params: { status: activeStatus, page: 0 },
+    });
 
-      // 응답 형태: { statusCounts: {...}, orders: [...], hasMore: true }
-      const { orders: rawOrders, statusCounts } = res.data;
+    const { orders: rawOrders, statusCounts } = res.data;
 
-      if (statusCounts) {
-          setCounts(statusCounts);
-      }
-      
-      if (!Array.isArray(rawOrders)) {
-        setOrders([]);
-        return;
-      }
+    if (statusCounts) setCounts(statusCounts);
 
-      // OrderListResponseDto 필드에 맞게 매핑
-      const mapped = rawOrders.map((o) => {
-        const orderedDate = (o.createdAt || "").split("T")[0] || "";
-        const totalPrice = o.price ?? 0;
-        console.log(rawOrders);
-        
-
-        return {
-          id: o.postId,
-          name: o.postTitle || "상품명 없음",
-          host: o.hostNickname || "주최자",
-          hostNickname: o.hostNickname,
-          quantity: o.quantity ?? 0,
-          date: orderedDate,
-          total: `${Number(totalPrice).toLocaleString()} 원`,
-        };
-      });
-
-      setOrders(mapped);
-    } catch (err) {
-      console.error("주문 내역 조회 실패:", err);
-      setErrorMsg(err.response?.data?.message || "주문 내역을 불러오는 중 오류가 발생했습니다.");
-    } finally {
-      setLoading(false);
+    if (!Array.isArray(rawOrders)) {
+      setOrders([]);
+      return;
     }
-  };
+
+    // 🔥 status=0만 보이게 필터링
+    const activeOrders = rawOrders.filter(o => o.status === 0);
+
+    // 🔥 주문 ID(o.id)로 매핑
+    const mapped = activeOrders.map((o) => {
+      const orderedDate = (o.createdAt || "").split("T")[0] || "";
+      const totalPrice = o.price ?? 0;
+
+      return {
+        id: o.id,        // ✔ 반드시 주문 ID 사용
+        postId: o.postId,
+        name: o.postTitle,
+        host: o.hostNickname,
+        quantity: o.quantity,
+        status: o.status,
+        date: orderedDate,
+        total: `${Number(totalPrice).toLocaleString()} 원`,
+      };
+    });
+
+    setOrders(mapped);
+  } catch (err) {
+    console.error("주문 내역 조회 실패:", err);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   useEffect(() => {
     // 인증 오류 수정: navigate 대신 실제 토큰을 setInterceptor에 전달
@@ -260,39 +253,17 @@ function OrderDetailOrderReceived() {
      3. 실제 주문 취소 API 호출
   ============================ */
   const handleConfirmCancel = async () => {
-    if (!selectedOrder) return;
+  if (!selectedOrder) return;
 
-    try {
-      // API 호출
-      await api.patch(`/api/mypage/order/${selectedOrder.id}/cancel`); 
-
-      // ✅ 수정된 로직: API 성공 시 로컬 상태에서 항목을 즉시 제거합니다.
-      // 이렇게 하면 목록에서 즉시 사라지는 것을 확인할 수 있습니다.
-      setOrders((prev) => prev.filter((o) => o.id !== selectedOrder.id));
-
-      // 카운트 업데이트를 위해 다시 주문 목록을 불러옵니다.
-      fetchOrders(); 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      closeCancelModal();
-    } catch (err) {
-      console.error("주문 취소 실패:", err);
-      alert(err.response?.data?.message || "주문 취소 중 오류가 발생했습니다.");
-    }
-  };
-
+  try {
+    const res = await api.patch(`/api/mypage/order/${id}/cancel`, { status: 5 });
+    console.log(res);
+    fetchOrders();
+    closeCancelModal();
+  } catch (err) {
+    console.error("주문 취소 실패:", err);
+  }
+};
   // 동적 steps 배열 생성
   const steps = [
       { id: 0, label: STATUS_MAP[0].label, value: counts[0] || 0, active: true, path: STATUS_MAP[0].path },
