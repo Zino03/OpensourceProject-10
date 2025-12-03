@@ -1,7 +1,7 @@
 // 파일 위치: src/pages/MyProfile.jsx
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { api, setInterceptor } from "../assets/setIntercepter";
+import { useLocation, useNavigate } from "react-router-dom";
+import { api, BASE_URL, setInterceptor } from "../assets/setIntercepter";
 
 const bankOptions = [
   { id: "shinhan", name: "신한", logo: "/images/banklogo/shinhan.svg" },
@@ -207,6 +207,9 @@ const styles = {
 
 function MyProfile() {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const nickname = location ? location.state.nickname : "";
 
   // 초기 상태를 모두 빈 문자열로 설정하여 uncontrolled -> controlled 에러 방지
   const [form, setForm] = useState({
@@ -257,14 +260,14 @@ function MyProfile() {
         });
         formData.append("user", jsonBlob);
 
-        const response = await api.patch("/api/mypage/user", formData, {
+        const response = await api.get("/api/mypage/user", {
           headers: { "Content-Type": "multipart/form-data" },
         });
 
         console.log(response);
 
         // 백엔드 데이터 구조에 맞춰 추출 (응답 자체가 객체)
-        const data = response.data;
+        const data = response.data.profile;
         console.log(data);
 
         // null 체크를 하여 빈 문자열 할당 (에러 해결 핵심)
@@ -283,7 +286,7 @@ function MyProfile() {
         setOriginalNickname(data.nickname || "");
         setOriginalEmail(data.email || "");
         if (data.profileImg) {
-          setProfileImage(`${data.profileImg}`);
+          setProfileImage(`${BASE_URL}${data.profileImg}`);
         }
       } catch (error) {
         console.error("유저 정보 로드 실패:", error);
