@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ConfirmationPurchase from "./modal/ConfirmationPurchase";
 import ReviewModal from "./modal/ReviewModal";
-import { api, setInterceptor } from "../assets/setIntercepter";
+import { api, BASE_URL, setInterceptor } from "../assets/setIntercepter";
 
 /* ============================================
     🔥 SVG 화살표 아이콘 (색 변경 가능)
@@ -186,7 +186,7 @@ function OrderDetail_Delivered() {
 
   // 후기 모달
   const [showReviewModal, setShowReviewModal] = useState(false);
-  const [reviewOrder, setReviewOrder] = useState(null);
+  const [reviewOrder, setReviewOrder] = useState({});
 
   const activeStatus = 4; // 🔥 현재 페이지의 상태: 배송 완료 (Status 4와 5를 함께 조회)
 
@@ -225,12 +225,11 @@ function OrderDetail_Delivered() {
         name: o.postTitle || "상품명 없음",
         host: o.hostNickname || "주최자",
         hostNickname: o.hostNickname,
+        imageUrl: `${BASE_URL}${o.postImage}`,
         quantity: o.quantity ?? 0,
         date: (o.createdAt || "").split("T")[0] || "",
         total: `${Number(o.price ?? 0).toLocaleString()} 원`,
         confirmed: o.status === 5, // Status 5면 구매확정 완료
-        // 후기 모달에 필요한 추가 정보 (임시 유지)
-        imageUrl: "/images/products/sample.png",
       }));
 
       setOrders(mapped);
@@ -296,6 +295,7 @@ function OrderDetail_Delivered() {
   ============================ */
   // 후기 모달 열기
   const handleOpenReviewModal = (order) => {
+    console.log(order);
     setReviewOrder(order);
     setShowReviewModal(true);
   };
@@ -303,7 +303,7 @@ function OrderDetail_Delivered() {
   // 후기 모달 닫기
   const handleCloseReviewModal = () => {
     setShowReviewModal(false);
-    setReviewOrder(null);
+    setReviewOrder({});
   };
 
   // 후기 등록 API 호출
