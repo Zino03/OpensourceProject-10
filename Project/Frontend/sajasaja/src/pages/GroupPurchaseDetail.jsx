@@ -664,10 +664,17 @@ const GroupPurchaseDetail = () => {
           address: b.userAddress
             ? `(${b.userAddress.zipCode}) ${b.userAddress.street} ${b.userAddress.detail}`
             : "주소 정보 없음",
-            entrance: b.userAddress.entranceAccess ? {acess: b.userAddress.entranceAccess, detail: b.userAddress.entranceDetail} : null,
+          entrance: b.userAddress.entranceAccess
+            ? {
+                acess: b.userAddress.entranceAccess,
+                detail: b.userAddress.entranceDetail,
+              }
+            : null,
           status: b.isPaid === 1 ? "결제 완료" : "결제 대기",
           date: b.receivedAt ? b.receivedAt.substring(0, 10) : "-",
-          invoice: b.trackingNumber ? { number: b.trackingNumber, courier: b.courier } : null,
+          invoice: b.trackingNumber
+            ? { number: b.trackingNumber, courier: b.courier }
+            : null,
           pickup: b.receivedAt ? { receiveDate: b.receivedAt } : null,
           receive: b.userAddress ? "delivery" : "pickup",
         }));
@@ -722,7 +729,7 @@ const GroupPurchaseDetail = () => {
     imageUrl: post.image ? `${BASE_URL}${post.image}` : "/images/sajasaja.png",
     description: post.content,
   };
-  console.log(product)
+  console.log(product);
   const filteredParticipants = participants.filter(
     (p) => p.receive === participantFilter
   );
@@ -809,13 +816,13 @@ const GroupPurchaseDetail = () => {
             courier: item.courier || "대한통운",
             trackingNumber: item.invoiceNum,
           });
-          console.log(res)
+          console.log(res);
         }
       }
       alert("송장 정보가 저장되었습니다.");
       fetchPostDetail();
     } catch (err) {
-      console.log(err.response.data)
+      console.log(err.response.data);
       alert(err.response.data.message);
       // alert("송장 등록 실패");
     }
@@ -925,7 +932,7 @@ const GroupPurchaseDetail = () => {
             />
           </MainImageWrapper>
         </ImageArea>
-            
+
         <InfoArea>
           <ProductTitleRow>
             <ProductTitle>{product.title}</ProductTitle>
@@ -1199,7 +1206,7 @@ const GroupPurchaseDetail = () => {
                       <UserName>{review.nickname || "익명"}</UserName>
                       <RatingText>별점 {review.score}점</RatingText>
                     </UserInfo>
-                    <ActionButton onClick={handleReportReview(review.id)}>
+                    <ActionButton onClick={() => handleReportReview(review.id)}>
                       <FaRegBell /> 신고
                     </ActionButton>
                   </CommentHeader>
