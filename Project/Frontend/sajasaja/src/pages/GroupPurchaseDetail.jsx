@@ -589,6 +589,8 @@ const GroupPurchaseDetail = () => {
   // 공지사항 입력 상태
   const [noticeContent, setNoticeContent] = useState("");
 
+  const [organizerMannerScore, setOrganizerMannerScore] = useState(0);
+
   // 모달 관리
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const [isReceiveDateModalOpen, setIsReceiveDateModalOpen] = useState(false);
@@ -621,6 +623,7 @@ const GroupPurchaseDetail = () => {
       setPost(postData);
       setNotices(postData.notices || []);
       setReviews(postData.reviews || []);
+      setOrganizerMannerScore(postData.host.mannerScore || 0);
 
       // 🔥 전체 현재 수량 저장
       setBaseCurrentCount(postData.currentQuantity || 0);
@@ -639,6 +642,8 @@ const GroupPurchaseDetail = () => {
         setHostOriginalQuantity(myQty); // 🔥 주최자의 원래 수량 기억
       }
 
+      console.log(myNickname)
+
       // 주최자 여부 확인
       if (postData.host && postData.host.nickname === myNickname) {
         setIsOrganizer(true);
@@ -646,7 +651,7 @@ const GroupPurchaseDetail = () => {
         if (
           postData.status === 0 ||
           postData.status === 4 ||
-          postData.isCanceled === false
+          postData.isCanceled === true
         ) {
           // 상태에 따라 조기 리턴할 거라면 여기서 return
           return;
@@ -654,21 +659,23 @@ const GroupPurchaseDetail = () => {
 
         // 주최자라면 참여자 목록 조회
         const buyersResponse = await api.get(`/api/posts/${id}/buyers`);
-        const buyers = buyersResponse.data.buyers || [];
+        const buyers = buyersResponse.data || [];
 
-        const mappedBuyers = buyers.map((b) => ({
+        console.log(buyersResponse.data)
+
+        const mappedBuyers = buyersResponse.data.map((b) => ({
           id: b.buyerId,
-          name: b.name,
-          nickname: b.nickname,
-          amount: `${b.totalPrice?.toLocaleString()}원`,
-          address: b.address
-            ? `(${b.address.zipCode}) ${b.address.street} ${b.address.detail}`
+          name: b.userName,
+          nickname: b.userNickname,
+          amount: `${b.price?.toLocaleString()}원`,
+          address: b.userAddress
+            ? `(${b.userAddress.zipCode}) ${b.userAddress.street} ${b.userAddress.detail}`
             : "주소 정보 없음",
           status: b.isPaid === 1 ? "결제 완료" : "결제 대기",
           date: b.receivedAt ? b.receivedAt.substring(0, 10) : "-",
           invoice: b.trackingNumber ? { number: b.trackingNumber } : null,
           pickup: b.receivedAt ? { receiveDate: b.receivedAt } : null,
-          receive: b.address ? "delivery" : "pickup",
+          receive: b.isDelivery ? "delivery" : "pickup",
         }));
         setParticipants(mappedBuyers);
       }
@@ -833,20 +840,24 @@ const GroupPurchaseDetail = () => {
   const handleReceiveDateSave = async (updatedData) => {
     try {
       for (const item of updatedData) {
-        if (item.receiveDate) {
-          const dateStr = `${item.receiveDate}T${
-            item.receiveTime || "00:00"
-          }:00`;
-          await api.post(`/api/posts/${id}/received-at`, {
-            buyerId: item.id,
-            receivedAt: dateStr,
-          });
-        }
+          if (!item.receiveDate || item.receiveDate.trim() === "") continue;
+
+        const dateStr = `${item.receiveDate}T${item.receiveTime || "00:00"}:00`;
+
+        console.log(item.nickname)
+        console.log(dateStr)
+
+        await api.post(`/api/posts/${id}/received-at`, {
+          userNickname: item.nickname,
+          receivedAt: dateStr,
+        });
       }
       alert("수령 일자가 저장되었습니다.");
       fetchPostDetail();
     } catch (err) {
-      alert("수령 일자 등록 실패");
+      // alert("수령 일자 등록 실패");
+      console.log(err.response.data)
+      alert(err.response.data.message);
     }
   };
 
@@ -964,8 +975,7 @@ const GroupPurchaseDetail = () => {
             <DetailRow>
               <Label>목표수량</Label>
               <Value>{product.goalCount}</Value>
-            </DetailRow>
-            <DetailRow>
+            </DetailRow><DetailRow>
               <Label>배송정보</Label>
               <Value>
                 {product.shipping}{" "}
@@ -974,28 +984,48 @@ const GroupPurchaseDetail = () => {
               </Value>
             </DetailRow>
             <OrganizerRow>
-              <Label>주최자</Label>
-              <OrganizerBadge>
-                <OrganizerLeft
-                  onClick={() => navigate(`/user/${post.host.nickname}`)}
-                >
-                  <ProfileIcon
-                    src={product.organizerProfileImage}
-                    alt="profile"
-                    onError={(e) =>
-                      (e.target.src = "/images/filledprofile.svg")
-                    }
-                  />
-                  <OrganizerName>{product.organizer}</OrganizerName>
-                </OrganizerLeft>
+        <Label>주최자</Label>
+        <OrganizerBadge>
+          <OrganizerLeft
+            onClick={() => navigate(`/user/${post.host.nickname}`)}
+          >
+            <ProfileIcon
+              src={product.organizerProfileImage}
+              alt="profile"
+              onError={(e) =>
+                (e.target.src = "/images/filledprofile.svg")
+              }
+            />
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+              }}
+            >
+              <OrganizerName>{product.organizer}</OrganizerName>
 
-                {!isOrganizer && (
-                  <ContactButton onClick={() => setIsContactModalOpen(true)}>
-                    문의하기
-                  </ContactButton>
-                )}
-              </OrganizerBadge>
-            </OrganizerRow>
+              {/* ✅ 매너점수 배지 (host.mannerScore 연동) */}
+              {organizerMannerScore !== undefined && (
+                <TimeBadge>
+                  {" "}
+                  {typeof organizerMannerScore === "number"
+                    ? organizerMannerScore.toFixed(1)
+                    : organizerMannerScore}
+                  점
+                </TimeBadge>
+              )}
+            </div>
+          </OrganizerLeft>
+
+          {!isOrganizer && (
+            <ContactButton onClick={() => setIsContactModalOpen(true)}>
+              문의하기
+            </ContactButton>
+          )}
+        </OrganizerBadge>
+      </OrganizerRow>
+
           </DetailList>
 
           <BottomArea>
@@ -1270,7 +1300,15 @@ const GroupPurchaseDetail = () => {
                 )}
               </tr>
             </thead>
-            <tbody onClick={() => setIsDeliveryInfoModalOpen(true)}>
+            {/* <tbody onClick={() => {setIsDeliveryInfoModalOpen(true)}}> */}
+              
+            <tbody
+                onClick={() => {
+                  if (participantFilter === "delivery" && filteredParticipants.length > 0) {
+                    setIsDeliveryInfoModalOpen(true);
+                  }
+                }}
+              >
               {filteredParticipants.length > 0 ? (
                 filteredParticipants.map((p, idx) => (
                   <tr key={idx}>

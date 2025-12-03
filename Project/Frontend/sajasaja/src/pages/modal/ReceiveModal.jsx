@@ -216,27 +216,37 @@ const ReceiveModal = ({ isOpen, onClose, participants, onSave }) => {
   };
 
   const handleSave = () => {
-    // 저장할 때는 다시 문자열 포맷(YYYY-MM-DD, HH:mm)으로 변환하여 부모에게 전달
-    const formattedData = RData.map((item) => {
+  const formattedData = RData
+    .map((item) => {
       const dateStr = item.receiveDate
-        ? item.receiveDate.toISOString().split('T')[0] // "2025-11-20"
-        : '';
+        ? item.receiveDate.toISOString().split("T")[0]
+        : "";
 
       const timeStr =
         item.receiveHour && item.receiveMinute
           ? `${item.receiveHour}:${item.receiveMinute}`
-          : '';
+          : "";
 
       return {
         ...item,
         receiveDate: dateStr,
         receiveTime: timeStr,
       };
+    })
+    // 🔥 값이 하나라도 있는 경우만 필터링해서 포함
+    .filter((item) => {
+      return item.receiveDate;
     });
 
-    onSave(formattedData);
-    onClose();
-  };
+    for (let item of formattedData) {
+      console.log(item);
+      console.log(item.receiveTime)
+    }
+
+  onSave(formattedData);
+  onClose();
+};
+
 
   return (
     <Overlay onClick={onClose}>
@@ -253,8 +263,8 @@ const ReceiveModal = ({ isOpen, onClose, participants, onSave }) => {
               </tr>
             </thead>
             <tbody>
-              {RData.map((row) => (
-                <tr key={row.id}>
+              {RData.map((row, id) => (
+                <tr key={id}>
                   <td>{row.name}</td>
                   <td>{row.nickname}</td>
                   <td>
