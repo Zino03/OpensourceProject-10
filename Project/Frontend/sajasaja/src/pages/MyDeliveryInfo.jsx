@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
-import { api, setInterceptor } from '../assets/setIntercepter';
+import { api, setInterceptor } from "../assets/setIntercepter";
 
 /* ===========================
    스타일 정의 (기존 코드 유지)
@@ -187,49 +187,58 @@ const MyDeliveryInfo = () => {
 
   // ✅ 배송지 목록 조회 (GET)
   const fetchAddressList = async () => {
-    const token = localStorage.getItem('accessToken');
+    const token = localStorage.getItem("accessToken");
     if (!token || !setInterceptor(token)) {
-       navigate('/login');
-       return;
+      navigate("/login");
+      return;
     }
 
     try {
       setLoading(true);
-      const response = await api.get('/api/mypage/addresses');
-      // 백엔드 응답 구조: { addresses: [ ... ] }
+      const response = await api.get("/api/mypage/addresses");
       const list = response.data.addresses || [];
-      
-      // 프론트엔드 구조로 매핑
-      const mappedList = list.map(addr => ({
-        id: addr.id,
-        // 백엔드 DTO 필드명 확인 필요 (UserAddressResponseDto)
-        // recipient: 받는 사람, name: 배송지명(집, 회사 등)
-        name: addr.recipient || addr.name, // 화면의 '받는 사람' 컬럼
-        label: addr.name,       // 화면의 '배송지명' 컬럼
-        zip: addr.zipCode,
-        road: `도로명: ${addr.street} ${addr.detail || ''}`,
-        entranceTitle: "공동현관 출입방법",
-        entranceDetail: addr.entranceDetail || addr.entranceAccess || "-",
-        phoneMasked: maskPhoneNumber(addr.phone),
-        isDefault: addr.isDefault,
-        
-        // 수정 페이지로 넘길 원본 데이터
-        originalData: {
-            name: addr.name,          // 배송지명
-            recipient: addr.recipient,// 받는사람
+
+      // ✅ 기본배송지 여러 개일 경우, 첫 번째 true만 인정
+      let defaultFound = false;
+
+      const mappedList = list.map((addr) => {
+        let isDefaultFlag = false;
+
+        if (addr.isDefault && !defaultFound) {
+          isDefaultFlag = true;
+          defaultFound = true;
+        }
+
+        return {
+          id: addr.id,
+          // recipient: 받는 사람, name: 배송지명(집, 회사 등)
+          name: addr.recipient || addr.name, // '받는 사람'
+          label: addr.name, // '배송지명'
+          zip: addr.zipCode,
+          road: `도로명: ${addr.street} ${addr.detail || ""}`,
+          entranceTitle: "공동현관 출입방법",
+          entranceDetail: addr.entranceDetail || addr.entranceAccess || "-",
+          phoneMasked: maskPhoneNumber(addr.phone),
+          isDefault: isDefaultFlag,
+
+          // 수정 페이지로 넘길 원본 데이터
+          originalData: {
+            name: addr.name, // 배송지명
+            recipient: addr.recipient, // 받는사람
             phone: addr.phone,
             zipCode: addr.zipCode,
             street: addr.street,
             detail: addr.detail,
             entranceAccess: addr.entranceAccess,
             entranceDetail: addr.entranceDetail,
-            isDefault: addr.isDefault
-        }
-      }));
+            isDefault: isDefaultFlag,
+          },
+        };
+      });
 
       // 기본 배송지가 상단에 오도록 정렬
       mappedList.sort((a, b) => (b.isDefault ? 1 : 0) - (a.isDefault ? 1 : 0));
-      
+
       setAddresses(mappedList);
     } catch (error) {
       console.error("배송지 목록 로드 실패:", error);
@@ -250,8 +259,8 @@ const MyDeliveryInfo = () => {
       state: {
         address: {
           addressId: addr.id,
-          ...addr.originalData 
-        }
+          ...addr.originalData,
+        },
       },
     });
   };
@@ -262,7 +271,7 @@ const MyDeliveryInfo = () => {
       try {
         await api.delete(`/api/mypage/address/${id}`);
         alert("배송지가 삭제되었습니다.");
-        fetchAddressList(); // 목록 갱신
+        fetchAddressList();
       } catch (error) {
         console.error("삭제 실패:", error);
         alert("삭제 중 오류가 발생했습니다.");
@@ -270,23 +279,40 @@ const MyDeliveryInfo = () => {
     }
   };
 
-  // ✅ 기본 배송지 설정 (PATCH)
+  // ✅ 기본 배송지 설정 (기존 기본 → false, 새 기본 → true)
   const handleSetDefault = async (id) => {
     try {
-        // isDefault: true만 보내면 백엔드 로직(UserService)이 나머지를 false로 처리해줌
-        await api.patch(`/api/mypage/address/${id}`, {
-            isDefault: true
+      const currentDefault = addresses.find((addr) => addr.isDefault);
+
+      if (currentDefault && currentDefault.id === id) {
+        alert("이미 기본 배송지로 설정된 주소입니다.");
+        return;
+      }
+
+      // 기존 기본배송지 해제
+      if (currentDefault) {
+        await api.patch(`/api/mypage/address/${currentDefault.id}`, {
+          isDefault: false,
         });
-        alert("기본 배송지로 설정되었습니다.");
-        fetchAddressList(); // 목록 갱신
+      }
+
+      // 새 기본배송지 설정
+      await api.patch(`/api/mypage/address/${id}`, {
+        isDefault: true,
+      });
+
+      alert("기본 배송지로 설정되었습니다.");
+      fetchAddressList();
     } catch (error) {
-        console.error("기본 배송지 설정 실패:", error);
-        alert("설정 중 오류가 발생했습니다.");
+      console.error("기본 배송지 설정 실패:", error);
+      alert("설정 중 오류가 발생했습니다.");
     }
   };
 
   if (loading) {
-      return <div style={{padding:'50px', textAlign:'center'}}>로딩 중...</div>;
+    return (
+      <div style={{ padding: "50px", textAlign: "center" }}>로딩 중...</div>
+    );
   }
 
   return (
@@ -305,58 +331,65 @@ const MyDeliveryInfo = () => {
       </TableHeader>
 
       {addresses.length === 0 ? (
-          <div style={{padding:'50px', textAlign:'center', color:'#888', borderBottom:'1px solid #e5e5e5'}}>
-              등록된 배송지가 없습니다.
-          </div>
+        <div
+          style={{
+            padding: "50px",
+            textAlign: "center",
+            color: "#888",
+            borderBottom: "1px solid #e5e5e5",
+          }}
+        >
+          등록된 배송지가 없습니다.
+        </div>
       ) : (
-          addresses.map((addr) => (
-            <AddressRowWrapper key={addr.id}>
-              <AddressRowGrid>
-                <NameCell>{addr.name}</NameCell>
+        addresses.map((addr) => (
+          <AddressRowWrapper key={addr.id}>
+            <AddressRowGrid>
+              <NameCell>{addr.name}</NameCell>
 
-                <LabelCell>{addr.label}</LabelCell>
+              <LabelCell>{addr.label}</LabelCell>
 
-                <AddressCell>
-                  {addr.isDefault && <DefaultBadge>기본배송지</DefaultBadge>}
+              <AddressCell>
+                {addr.isDefault && <DefaultBadge>기본배송지</DefaultBadge>}
 
-                  <ZipLine>({addr.zip})</ZipLine>
-                  <RoadLine>{addr.road}</RoadLine>
+                <ZipLine>({addr.zip})</ZipLine>
+                <RoadLine>{addr.road}</RoadLine>
 
-                  <InnerDivider />
+                <InnerDivider />
 
-                  <EntranceInfo>
-                    <div>{addr.entranceTitle}</div>
-                    <div>{addr.entranceDetail}</div>
-                  </EntranceInfo>
-                </AddressCell>
+                <EntranceInfo>
+                  <div>{addr.entranceTitle}</div>
+                  <div>{addr.entranceDetail}</div>
+                </EntranceInfo>
+              </AddressCell>
 
-                <PhoneCell>{addr.phoneMasked}</PhoneCell>
+              <PhoneCell>{addr.phoneMasked}</PhoneCell>
 
-                <ActionsCell>
-                  <ActionTopRow>
-                    <SmallButton onClick={() => handleEdit(addr)}>수정</SmallButton>
-
-                    {!addr.isDefault && (
-                      <SmallButton onClick={() => handleDelete(addr.id)}>
-                        삭제
-                      </SmallButton>
-                    )}
-                  </ActionTopRow>
+              <ActionsCell>
+                <ActionTopRow>
+                  <SmallButton onClick={() => handleEdit(addr)}>수정</SmallButton>
 
                   {!addr.isDefault && (
-                    <ActionBottomRow>
-                      <SmallButton
-                        style={{ width: "110px" }}
-                        onClick={() => handleSetDefault(addr.id)}
-                      >
-                        기본배송지 설정
-                      </SmallButton>
-                    </ActionBottomRow>
+                    <SmallButton onClick={() => handleDelete(addr.id)}>
+                      삭제
+                    </SmallButton>
                   )}
-                </ActionsCell>
-              </AddressRowGrid>
-            </AddressRowWrapper>
-          ))
+                </ActionTopRow>
+
+                {!addr.isDefault && (
+                  <ActionBottomRow>
+                    <SmallButton
+                      style={{ width: "110px" }}
+                      onClick={() => handleSetDefault(addr.id)}
+                    >
+                      기본배송지 설정
+                    </SmallButton>
+                  </ActionBottomRow>
+                )}
+              </ActionsCell>
+            </AddressRowGrid>
+          </AddressRowWrapper>
+        ))
       )}
     </PageWrapper>
   );
