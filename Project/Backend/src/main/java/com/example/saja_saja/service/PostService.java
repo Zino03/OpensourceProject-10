@@ -115,7 +115,9 @@ public class PostService {
                         return n;
                     })
                     .toList();
+        }
 
+        if(member != null) {
             // 내가 이 공구에 참여했는지 여부
             Buyer buyer = postEntity.getBuyers().stream()
                     .filter(b -> Objects.equals(b.getUser().getId(), member.getUser().getId()))

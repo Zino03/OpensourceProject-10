@@ -526,8 +526,7 @@ const RegisterStatusBadge = styled.span`
   padding: 6px 10px;
   border-radius: 20px;
   color: ${(props) => (props.$isRegistered ? "#00902F" : "#888")};
-  background-color: ${(props) =>
-    props.$isRegistered ? "#E3FCEF" : "#F0F0F0"};
+  background-color: ${(props) => (props.$isRegistered ? "#E3FCEF" : "#F0F0F0")};
 `;
 
 const ParticipantTable = styled.table`
@@ -593,8 +592,7 @@ const GroupPurchaseDetail = () => {
   // 모달 관리
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const [isReceiveDateModalOpen, setIsReceiveDateModalOpen] = useState(false);
-  const [isDeliveryInfoModalOpen, setIsDeliveryInfoModalOpen] =
-    useState(false);
+  const [isDeliveryInfoModalOpen, setIsDeliveryInfoModalOpen] = useState(false);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [participantFilter, setParticipantFilter] = useState("delivery");
 
@@ -835,7 +833,9 @@ const GroupPurchaseDetail = () => {
     try {
       for (const item of updatedData) {
         if (item.receiveDate) {
-          const dateStr = `${item.receiveDate}T${item.receiveTime || "00:00"}:00`;
+          const dateStr = `${item.receiveDate}T${
+            item.receiveTime || "00:00"
+          }:00`;
           await api.post(`/api/posts/${id}/received-at`, {
             buyerId: item.id,
             receivedAt: dateStr,
@@ -973,7 +973,9 @@ const GroupPurchaseDetail = () => {
                   <ProfileIcon
                     src={product.organizerProfileImage}
                     alt="profile"
-                    onError={(e) => (e.target.src = "/images/filledprofile.svg")}
+                    onError={(e) =>
+                      (e.target.src = "/images/filledprofile.svg")
+                    }
                   />
                   <OrganizerName>{product.organizer}</OrganizerName>
                 </OrganizerLeft>
@@ -993,9 +995,7 @@ const GroupPurchaseDetail = () => {
                 <QuantityLabel>구매 수량</QuantityLabel>
                 <QuantityBox>
                   <QtyButton
-                    onClick={() =>
-                      setQuantity((q) => (q > 1 ? q - 1 : 1))
-                    }
+                    onClick={() => setQuantity((q) => (q > 1 ? q - 1 : 1))}
                   >
                     -
                   </QtyButton>
@@ -1157,9 +1157,7 @@ const GroupPurchaseDetail = () => {
                   </CommentHeader>
                   <CommentContent>{notice.content}</CommentContent>
                   <CommentDate>
-                    {notice.createdAt
-                      ? notice.createdAt.substring(0, 10)
-                      : ""}
+                    {notice.createdAt ? notice.createdAt.substring(0, 10) : ""}
                   </CommentDate>
                 </CommentItem>
               ))}
@@ -1193,9 +1191,7 @@ const GroupPurchaseDetail = () => {
                   </CommentHeader>
                   <CommentContent>{review.content}</CommentContent>
                   <CommentDate>
-                    {review.createdAt
-                      ? review.createdAt.substring(0, 10)
-                      : ""}
+                    {review.createdAt ? review.createdAt.substring(0, 10) : ""}
                   </CommentDate>
                 </CommentItem>
               ))}
@@ -1234,9 +1230,7 @@ const GroupPurchaseDetail = () => {
             </TitleGroup>
             {participantFilter === "delivery" ? (
               <ManageButtonGroup>
-                <ManageButton
-                  onClick={() => setIsDeliveryInfoModalOpen(true)}
-                >
+                <ManageButton onClick={() => setIsDeliveryInfoModalOpen(true)}>
                   배송 정보
                 </ManageButton>
                 <ManageButton onClick={() => setIsInvoiceModalOpen(true)}>
@@ -1244,9 +1238,7 @@ const GroupPurchaseDetail = () => {
                 </ManageButton>
               </ManageButtonGroup>
             ) : (
-              <ManageButton
-                onClick={() => setIsReceiveDateModalOpen(true)}
-              >
+              <ManageButton onClick={() => setIsReceiveDateModalOpen(true)}>
                 수령일자 등록
               </ManageButton>
             )}
