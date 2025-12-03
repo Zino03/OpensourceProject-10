@@ -1,488 +1,504 @@
-// 파일명: OrderDetail_Delivered.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
-import ConfirmationPurchase from "./modal/ConfirmationPurchase";
-import ReviewModal from "./modal/ReviewModal";
-import { api, setInterceptor } from "../assets/setIntercepter";
+import { api } from '../assets/setIntercepter'; // api 인스턴스
+import AddressFind from "./modal/AddressFind";
 
-/* ============================================
-    🔥 SVG 화살표 아이콘 (색 변경 가능)
-=============================================== */
-const ArrowIcon = ({ color = "#b0b0b0" }) => (
-  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    style={{ marginTop: "22px" }}
-  >
-    <path
-      d="M8 4l8 8-8 8"
-      stroke={color}
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
+/* ===========================
+   공통 레이아웃 (기존 스타일 유지)
+=========================== */
+const Container = styled.div`
+  width: 100%;
+  max-width: 1040px;
+  margin: 60px auto 100px;
+  padding: 0 24px;
+  box-sizing: border-box;
+  color: #222;
+`;
+const PageTitle = styled.h2`
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 30px;
+`;
+const Section = styled.section`
+  margin-bottom: 40px;
+`;
+const SectionTitle = styled.h3`
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 16px;
+`;
+const LabelRow = styled.div`
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 500;
+`;
+const Label = styled.span``;
+const RequiredDot = styled.span`
+  color: #ff3b30;
+  margin-left: 4px;
+`;
+const InputArea = styled.div`
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+const StyledInput = styled.input`
+  width: 100%;
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 13px;
+  box-sizing: border-box;
+  &::placeholder { color: #aaa; }
+  &:read-only { background-color: #f6f6f6; border-color: #eee; }
+`;
+const DeliveryNameInput = styled(StyledInput)`
+  max-width: 280px;
+`;
+const CheckboxLabel = styled.label`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  input { width: 16px; height: 16px; }
+`;
+const ZipRow = styled.div`
+  display: flex;
+  gap: 8px;
+  align-items: center;
+`;
+const ZipInput = styled(StyledInput)`
+  max-width: 150px;
+  background-color: #f6f6f6;
+  border-color: #eee;
+`;
+const ZipButton = styled.button`
+  height: 44px;
+  padding: 0 18px;
+  border: 1px solid #ff7e00;
+  border-radius: 6px;
+  background: #fff;
+  color: #ff7e00;
+  font-size: 13px;
+  cursor: pointer;
+`;
+const PhoneRow = styled.div`
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  input { width: 90px; text-align: center; }
+`;
+const AddressBox = styled.div`
+  background-color: #f6f6f6;
+  border: 1px solid #eee;
+  padding: 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #666;
+`;
+const AddressText = styled.p`
+  margin: 0;
+`;
+const RadioGroup = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+`;
+const RadioLabel = styled.label`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  input {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #bbb;
+    border-radius: 50%;
+    margin: 0;
+    position: relative;
+  }
+  input:checked { border-color: #ff7e00; }
+  input:checked::after {
+    content: "";
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    background-color: #ff7e00;
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+`;
+const NoticeWrapper = styled.div`
+  margin-top: 24px;
+`;
+const NoticeTitle = styled.p`
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 6px;
+`;
+const NoticeList = styled.ul`
+  padding-left: 18px;
+  list-style: disc;
+  margin: 0 0 8px 0;
+  li { font-size: 11px; color: #777; margin-bottom: 3px; }
+`;
+const ButtonRow = styled.div`
+  display: flex;
+  gap: 10px;
+  margin-top: 40px;
+`;
+const BaseButton = styled.button`
+  flex: 1;
+  height: 48px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+`;
+const CancelButton = styled(BaseButton)`
+  border: 1px solid #ddd;
+  background-color: #fff;
+  color: #666;
+`;
+const SubmitButton = styled(BaseButton)`
+  border: none;
+  background-color: #000;
+  color: #fff;
+`;
 
-const styles = {
-  orderPage: {
-    maxWidth: "1200px",
-    margin: "60px auto",
-    color: "#222",
-  },
-  orderSteps: {
-    display: "flex",
-    alignItems: "flex-start",
-    gap: "52px",
-    marginBottom: "50px",
-    justifyContent: "center",
-  },
-  orderStep: {
-    textAlign: "center",
-    cursor: "pointer",
-  },
-  stepNumber: {
-    fontSize: "60px",
-    fontWeight: 401,
-    color: "#b0b0b0",
-    lineHeight: 1,
-    fontFamily: "Pretendard",
-  },
-  stepNumberActive: {
-    fontSize: "60px",
-    fontWeight: 401,
-    color: "#000",
-    lineHeight: 1,
-    fontFamily: "Pretendard",
-  },
-  stepLabel: {
-    fontSize: "13px",
-    marginTop: "8px",
-    color: "#555",
-  },
-  orderListWrapper: {
-    marginTop: "20px",
-  },
-  orderListHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-end",
-    width: "77%",
-    margin: "0 auto",
-    borderBottom: "1px solid #000",
-    paddingBottom: "8px",
-  },
-  orderListTitle: {
-    fontSize: "16px",
-    fontWeight: 900,
-  },
-  orderTable: {
-    width: "77%",
-    margin: "0 auto",
-    borderCollapse: "collapse",
-    fontSize: "13px",
-  },
-  tableHeadRow: {
-    borderBottom: "1px solid #000",
-  },
-  th: {
-    padding: "20px 8px",
-    textAlign: "center",
-    fontWeight: 500,
-    color: "#555",
-    fontSize: "13.5px",
-  },
-  td: {
-    padding: "10px 8px",
-    textAlign: "center",
-    fontSize: "11.5px",
-  },
-  bodyRow: {
-    borderBottom: "1px solid #f1f1f1",
-  },
-  lastBodyRow: {
-    borderBottom: "1px solid #e1e1e1",
-  },
-  productName: {
-    maxWidth: "200px",
-    whiteSpace: "nowrap",
-    textAlign: "left",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-  },
-  orderActions: {
-    display: "flex",
-    gap: "8px",
-  },
-  btnConfirmDefault: {
-    minWidth: "90px",
-    padding: "4px 14px",
-    fontSize: "11px",
-    borderRadius: "6px",
-    cursor: "pointer",
-    backgroundColor: "#fff",
-    border: "1px solid #000",
-    color: "#000",
-  },
-  btnConfirmDone: {
-    minWidth: "90px",
-    padding: "4px 14px",
-    fontSize: "11px",
-    borderRadius: "6px",
-    cursor: "default",
-    backgroundColor: "#e0e0e0",
-    border: "1px solid #e0e0e0",
-    color: "#000",
-  },
-  btnFilled: {
-    minWidth: "90px",
-    padding: "4px 14px",
-    fontSize: "11px",
-    borderRadius: "6px",
-    cursor: "pointer",
-    border: "1px solid #000000ff",
-    backgroundColor: "#000000ff",
-    color: "#fff",
-  },
-};
+/* ===========================
+   메인 컴포넌트
+=========================== */
 
-/* ============================================
-    🔥 화살표 색상 배열 및 STATUS_MAP
-=============================================== */
-const arrowColors = ["#828282", "#828282", "#828282", "#828282", "#ffffffff"];
-
-// 백엔드 Status Code
-const STATUS_MAP = {
-    0: { label: "주문 접수", path: "/order-received" },
-    1: { label: "결제 완료", path: "/order-payment-received" },
-    2: { label: "상품 준비 중", path: "/order-preparing" },
-    3: { label: "배송 중", path: "/order-shipping" },
-    4: { label: "배송 완료", path: "/order-delivered" }, // Status 4와 5를 이 페이지에서 보여줌
-    6: { label: "주문 취소", path: "/order-cancelled" },
-};
-
-function OrderDetail_Delivered() {
+const NewDeliveryInfo = () => {
   const navigate = useNavigate();
 
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [errorMsg, setErrorMsg] = useState("");
-  const [counts, setCounts] = useState({ 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 });
+  // 상태값
+  const [labelName, setLabelName] = useState("");
+  const [isDefault, setIsDefault] = useState(false);
+  const [receiver, setReceiver] = useState("");
 
-  // 구매확정 모달
-  const [showModal, setShowModal] = useState(false);
-  const [selectedOrderToConfirm, setSelectedOrderToConfirm] = useState(null);
+  const [phone, setPhone] = useState({
+    p1: "010",
+    p2: "",
+    p3: "",
+  });
 
-  // 후기 모달
-  const [showReviewModal, setShowReviewModal] = useState(false);
-  const [reviewOrder, setReviewOrder] = useState(null);
-  
-  const activeStatus = 4; // 🔥 현재 페이지의 상태: 배송 완료 (Status 4와 5를 함께 조회)
+  const [zipCode, setZipCode] = useState(""); // 우편번호
+  const [roadAddr, setRoadAddr] = useState(""); // 도로명 주소
+  const [detailAddr, setDetailAddr] = useState(""); // 상세 주소
 
-  /* ===========================
-     1. 주문 목록 및 카운트 불러오기
-  ============================ */
-  const fetchOrders = async () => {
+  // 공동현관 출입방법 (프론트엔드 키값)
+  const [entranceMethod, setEntranceMethod] = useState("password");
+  const [entranceDetail, setEntranceDetail] = useState("");
+
+  const [agree, setAgree] = useState(false);
+  const [isAddressOpen, setIsAddressOpen] = useState(false);
+
+  const isEmpty = (v) => !v || v.trim() === "";
+
+  const handleEntranceChange = (method) => {
+    setEntranceMethod(method);
+    if (method === "free") {
+      setEntranceDetail("");
+    }
+  };
+
+  // ✅ [수정됨] 주소 검색 완료 핸들러
+  // 모달에서 전달해주는 data 객체에 zonecode(우편번호)와 address(주소)가 포함되어 있다고 가정합니다.
+  const handleAddressComplete = (data) => {
+    setZipCode(data.zonecode); // 우편번호 상태 업데이트
+    setRoadAddr(data.address); // 도로명 주소 상태 업데이트
+    setIsAddressOpen(false);   // 모달 닫기
+  };
+
+  // 백엔드 Enum 값 매핑 함수
+  const getEntranceAccessEnum = (method) => {
+    switch (method) {
+        case "password": return "PASSWORD";
+        case "security": return "CALL";
+        case "free": return "FREE";
+        case "etc": return "OTHER";
+        default: return "OTHER";
+    }
+  };
+
+  const getEntranceLabel = () => {
+    switch (entranceMethod) {
+      case "password": return "공동현관 비밀번호";
+      case "security": return "경비실 호출 방법";
+      case "etc": return "기타 상세 내용";
+      default: return "";
+    }
+  };
+
+  const getEntrancePlaceholder = () => {
+    switch (entranceMethod) {
+      case "password": return "공동현관 비밀번호를 입력해주세요.";
+      case "security": return "경비실 호출 방법을 입력해주세요.";
+      case "etc": return "기타 상세 내용을 입력해주세요.";
+      default: return "";
+    }
+  };
+
+  // 배송지 등록 API 호출
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // 1. 필수값 검증
+    if (isEmpty(labelName)) { alert("배송지 명을 입력해주세요."); return; }
+    if (isEmpty(receiver)) { alert("받는 분을 입력해주세요."); return; }
+    if (isEmpty(phone.p2) || isEmpty(phone.p3)) { alert("연락처를 모두 입력해주세요."); return; }
+    if (isEmpty(zipCode)) { alert("우편번호를 입력해주세요."); return; }
+    if (isEmpty(detailAddr)) { alert("상세주소를 입력해주세요."); return; }
+    if (entranceMethod !== "free" && isEmpty(entranceDetail)) {
+      alert(`${getEntranceLabel()}를 입력해주세요.`);
+      return;
+    }
+    if (!agree) { alert("개인정보 수집 및 이용에 동의해주세요."); return; }
+
+    // 2. 데이터 가공 (UserAddressRequestDto 구조)
+    const requestData = {
+        name: labelName,          // 배송지명
+        recipient: receiver,      // 받는 사람
+        phone: `${phone.p1}-${phone.p2}-${phone.p3}`, // 전화번호 (010-1234-5678)
+        zipCode: zipCode,         // 우편번호
+        street: roadAddr,         // 도로명 주소
+        detail: detailAddr,       // 상세 주소
+        entranceAccess: getEntranceAccessEnum(entranceMethod), // 출입방법 Enum
+        entranceDetail: entranceMethod === "free" ? "자유 출입" : entranceDetail,
+        isDefault: isDefault      // 기본 배송지 여부
+    };
+
     try {
-      setLoading(true);
-      setErrorMsg("");
+        // 3. POST 요청 전송
+        const response = await api.post("/api/mypage/address", requestData);
 
-      // GET /api/mypage/orders?status=4 호출
-      const res = await api.get("/api/mypage/orders", {
-        params: {
-          status: activeStatus,
-          page: 0,
-        },
-      });
-
-      const { orders: rawOrders, statusCounts } = res.data; //
-
-      if (statusCounts) {
-          setCounts(statusCounts);
-      }
-      
-      if (!Array.isArray(rawOrders)) {
-        setOrders([]);
-        return;
-      }
-
-      // OrderListResponseDto 필드에 맞게 매핑
-      const mapped = rawOrders.map((o) => ({
-          id: o.id,
-          name: o.postTitle || "상품명 없음",
-          host: o.hostNickname || "주최자",
-          hostNickname: o.hostNickname,
-          quantity: o.quantity ?? 0,
-          date: (o.createdAt || "").split("T")[0] || "",
-          total: `${Number(o.price ?? 0).toLocaleString()} 원`,
-          confirmed: o.status === 5, // Status 5면 구매확정 완료
-          // 후기 모달에 필요한 추가 정보 (임시 유지)
-          imageUrl: "/images/products/sample.png", 
-      }));
-
-      setOrders(mapped);
-    } catch (err) {
-      console.error("주문 내역 조회 실패:", err);
-      setErrorMsg(err.response?.data?.message || "주문 내역을 불러오는 중 오류가 발생했습니다.");
-    } finally {
-      setLoading(false);
+        if (response.status === 200 || response.status === 201) {
+            alert("배송지가 등록되었습니다.");
+            navigate("/mydelivery");
+        }
+    } catch (error) {
+        console.error("배송지 등록 실패:", error);
+        if (error.response && error.response.data) {
+             const errorData = error.response.data;
+             if(errorData.message) {
+                 alert(errorData.message);
+             } else {
+                 alert("입력 정보를 확인해주세요.");
+             }
+        } else {
+            alert("배송지 등록 중 오류가 발생했습니다.");
+        }
     }
   };
-
-  useEffect(() => {
-    // 인증 오류 수정: navigate 대신 실제 토큰을 setInterceptor에 전달
-    const token = localStorage.getItem("accessToken");
-    
-    if (!token || token === 'undefined') {
-        navigate('/login'); 
-        return;
-    }
-    
-    setInterceptor(token);
-    fetchOrders();
-  }, [navigate]);
-
-  /* ===========================
-     2. 구매 확정 로직 (API 연동)
-  ============================ */
-  const handleConfirmPurchase = async () => {
-    if (!selectedOrderToConfirm) return;
-
-    try {
-      // PATCH /mypage/order/{buyerId}/confirm 호출
-      await api.patch(`/api/mypage/order/${selectedOrderToConfirm.id}/confirm`);
-
-      // 성공 후 목록 새로고침
-      fetchOrders(); 
-
-      setShowModal(false);
-      setSelectedOrderToConfirm(null);
-    } catch (err) {
-      console.error("구매 확정 실패:", err);
-      alert(err.response?.data?.message || "구매 확정 중 오류가 발생했습니다.");
-    }
-  };
-
-  const handleCancelModal = () => {
-    setShowModal(false);
-    setSelectedOrderToConfirm(null);
-  };
-
-  /* ===========================
-     3. 후기 작성 로직 (API 연동)
-  ============================ */
-  // 후기 모달 열기
-  const handleOpenReviewModal = (order) => {
-    setReviewOrder(order);
-    setShowReviewModal(true);
-  };
-
-  // 후기 모달 닫기
-  const handleCloseReviewModal = () => {
-    setShowReviewModal(false);
-    setReviewOrder(null);
-  };
-
-  // 후기 등록 API 호출
-  const handleSubmitReview = async (orderId, rating, reviewText) => {
-    try {
-        const body = {
-            content: reviewText,
-            rating: rating,
-        };
-
-        // POST /mypage/order/{buyerId}/review 호출
-        await api.post(`/api/mypage/order/${orderId}/review`, body);
-
-        alert("후기가 성공적으로 등록되었습니다.");
-        
-        // 후기 등록 후 상태가 변경될 수 있으므로 목록 새로고침
-        fetchOrders(); 
-
-        handleCloseReviewModal();
-    } catch (err) {
-        console.error("후기 등록 실패:", err);
-        alert(err.response?.data?.message || "후기 등록 중 오류가 발생했습니다.");
-    }
-  };
-
-  // 동적 steps 배열 생성 (Status 4와 5를 '배송 완료'로 통합하여 표시)
-  const steps = [
-      { id: 0, label: STATUS_MAP[0].label, value: counts[0] || 0, active: false, path: STATUS_MAP[0].path },
-      { id: 1, label: STATUS_MAP[1].label, value: counts[1] || 0, active: false, path: STATUS_MAP[1].path },
-      { id: 2, label: STATUS_MAP[2].label, value: counts[2] || 0, active: false, path: STATUS_MAP[2].path },
-      { id: 3, label: STATUS_MAP[3].label, value: counts[3] || 0, active: false, path: STATUS_MAP[3].path },
-      { id: 4, label: STATUS_MAP[4].label, value: (counts[4] || 0) + (counts[5] || 0), active: true, path: STATUS_MAP[4].path }, 
-      { id: 6, label: STATUS_MAP[6].label, value: counts[6] || 0, active: false, path: STATUS_MAP[6].path },
-  ];
 
   return (
-    <div style={styles.orderPage}>
-      {/* 🔥 상단 주문 단계 */}
-      <div style={styles.orderSteps}>
-        {steps.map((step, index) => (
-          <React.Fragment key={step.id}>
-            <div
-              style={styles.orderStep}
-              onClick={() => step.path && navigate(step.path)}
-            >
-              <div
-                style={step.id === activeStatus ? styles.stepNumberActive : styles.stepNumber}
-              >
-                {step.value}
-              </div>
-              <div style={styles.stepLabel}>{step.label}</div>
-            </div>
+    <Container>
+      <PageTitle>배송지 등록</PageTitle>
 
-            {index < steps.length - 1 && (
-              <ArrowIcon color={step.id === activeStatus ? arrowColors[index] : arrowColors[index + 1]} />
+      <form onSubmit={handleSubmit}>
+        <Section>
+          <SectionTitle>배송지 정보</SectionTitle>
+
+          <LabelRow>
+            <Label>배송지 명</Label>
+            <RequiredDot>*</RequiredDot>
+          </LabelRow>
+          <InputArea>
+            <ZipRow>
+              <DeliveryNameInput
+                placeholder="최대 10자"
+                maxLength={10}
+                value={labelName}
+                onChange={(e) => setLabelName(e.target.value)}
+              />
+              <CheckboxLabel>
+                <input
+                  type="checkbox"
+                  checked={isDefault}
+                  onChange={(e) => setIsDefault(e.target.checked)}
+                />
+                기본 배송지 설정
+              </CheckboxLabel>
+            </ZipRow>
+          </InputArea>
+
+          <LabelRow style={{ marginTop: "20px" }}>
+            <Label>받는 분</Label>
+            <RequiredDot>*</RequiredDot>
+          </LabelRow>
+          <InputArea>
+            <StyledInput
+              placeholder="최대 10자"
+              maxLength={10}
+              value={receiver}
+              onChange={(e) => setReceiver(e.target.value)}
+            />
+          </InputArea>
+
+          <LabelRow style={{ marginTop: "20px" }}>
+            <Label>연락처</Label>
+            <RequiredDot>*</RequiredDot>
+          </LabelRow>
+          <InputArea>
+            <PhoneRow>
+              <StyledInput value={phone.p1} readOnly />
+              <span>-</span>
+              <StyledInput
+                maxLength={4}
+                value={phone.p2}
+                onChange={(e) =>
+                  setPhone({ ...phone, p2: e.target.value.replace(/\D/g, "") })
+                }
+              />
+              <span>-</span>
+              <StyledInput
+                maxLength={4}
+                value={phone.p3}
+                onChange={(e) =>
+                  setPhone({ ...phone, p3: e.target.value.replace(/\D/g, "") })
+                }
+              />
+            </PhoneRow>
+          </InputArea>
+
+          <LabelRow style={{ marginTop: "20px" }}>
+            <Label>주소</Label>
+            <RequiredDot>*</RequiredDot>
+          </LabelRow>
+
+          <InputArea>
+            <ZipRow>
+              <ZipInput
+                placeholder="우편번호"
+                value={zipCode} // 상태값 연결
+                readOnly
+              />
+              <ZipButton type="button" onClick={() => setIsAddressOpen(true)}>
+                우편번호
+              </ZipButton>
+            </ZipRow>
+
+            <AddressBox>
+              <AddressText>
+                <strong>도로명</strong>{" "}
+                {roadAddr || "도로명 주소를 입력해주세요."} {/* 상태값 연결 */}
+              </AddressText>
+            </AddressBox>
+
+            <StyledInput
+              placeholder="상세주소 입력"
+              value={detailAddr}
+              onChange={(e) => setDetailAddr(e.target.value)}
+            />
+          </InputArea>
+        </Section>
+
+        <Section>
+          <SectionTitle>배송지 요청사항</SectionTitle>
+          <LabelRow>
+            <Label>공동현관 출입방법</Label>
+            <RequiredDot>*</RequiredDot>
+          </LabelRow>
+
+          <InputArea>
+            <RadioGroup>
+              <RadioLabel>
+                <input
+                  type="radio"
+                  checked={entranceMethod === "password"}
+                  onChange={() => handleEntranceChange("password")}
+                />
+                비밀번호
+              </RadioLabel>
+              <RadioLabel>
+                <input
+                  type="radio"
+                  checked={entranceMethod === "security"}
+                  onChange={() => handleEntranceChange("security")}
+                />
+                경비실 호출
+              </RadioLabel>
+              <RadioLabel>
+                <input
+                  type="radio"
+                  checked={entranceMethod === "free"}
+                  onChange={() => handleEntranceChange("free")}
+                />
+                자유출입가능
+              </RadioLabel>
+              <RadioLabel>
+                <input
+                  type="radio"
+                  checked={entranceMethod === "etc"}
+                  onChange={() => handleEntranceChange("etc")}
+                />
+                기타사항
+              </RadioLabel>
+            </RadioGroup>
+
+            {entranceMethod !== "free" && (
+              <>
+                <LabelRow style={{ marginTop: "10px" }}>
+                  <Label>{getEntranceLabel()}</Label>
+                  <RequiredDot>*</RequiredDot>
+                </LabelRow>
+                <StyledInput
+                  placeholder={getEntrancePlaceholder()}
+                  value={entranceDetail}
+                  onChange={(e) => setEntranceDetail(e.target.value)}
+                />
+              </>
             )}
-          </React.Fragment>
-        ))}
-      </div>
+          </InputArea>
 
-      {/* ============================
-          주문 내역 테이블
-      ============================ */}
-      <div style={styles.orderListWrapper}>
-        <div style={styles.orderListHeader}>
-          <h2 style={styles.orderListTitle}>주문 내역</h2>
-        </div>
-        
-        {errorMsg && (
-          <div
-            style={{
-              width: "77%",
-              margin: "10px auto",
-              fontSize: "12px",
-              color: "#D32F2F",
-            }}
-          >
-            {errorMsg}
-          </div>
-        )}
+          <NoticeWrapper>
+            <NoticeTitle>개인정보 수집 이용안내</NoticeTitle>
+            <NoticeList>
+              <li>개인정보 수집 목적: 상품구매 시 배송처리</li>
+              <li>수집 항목: 배송지명, 수령인정보(받는분, 연락처, 주소, 공동현관 출입방법)</li>
+              <li>보유 및 이용기간: 정보 삭제 또는 회원 탈퇴 시까지</li>
+              <li>확인 버튼을 누르지 않을 경우 배송지 정보가 저장되지 않습니다.</li>
+            </NoticeList>
 
-        <table style={styles.orderTable}>
-          <thead>
-            <tr style={styles.tableHeadRow}>
-              <th style={styles.th}>상품명</th>
-              <th style={styles.th}>주최자정보</th>
-              <th style={styles.th}>수량</th>
-              <th style={styles.th}>주문일</th>
-              <th style={styles.th}>결제금액</th>
-              <th style={styles.th}>구매확정</th>
-              <th style={styles.th}>후기</th>
-            </tr>
-          </thead>
+            <CheckboxLabel>
+              <input
+                type="checkbox"
+                checked={agree}
+                onChange={(e) => setAgree(e.target.checked)}
+              />
+              위 개인정보 수집 및 이용에 동의합니다.
+            </CheckboxLabel>
+          </NoticeWrapper>
+        </Section>
 
-          <tbody>
-            {loading ? (
-              <tr>
-                <td style={styles.td} colSpan={7}>
-                  주문 내역을 불러오는 중입니다...
-                </td>
-              </tr>
-            ) : orders.length === 0 ? (
-              <tr>
-                <td style={styles.td} colSpan={7}>
-                  배송 완료된 주문이 없습니다.
-                </td>
-              </tr>
-            ) : (
-              orders.map((order, idx) => (
-                <tr
-                  key={order.id}
-                  style={
-                    idx === orders.length - 1
-                      ? styles.lastBodyRow
-                      : styles.bodyRow
-                  }
-                >
-                  <td
-                    style={{
-                      ...styles.td,
-                      ...styles.productName,
-                      cursor: "pointer",
-                    }}
-                    onClick={() => navigate(`/orderpage/${order.id}`)}
-                  >
-                    {order.name}
-                  </td>
+        <ButtonRow>
+          <CancelButton type="button" onClick={() => navigate(-1)}>
+            취소
+          </CancelButton>
+          <SubmitButton type="submit">확인</SubmitButton>
+        </ButtonRow>
+      </form>
 
-                  <td
-                    style={{
-                      ...styles.td,
-                      minWidth: "100px",
-                      cursor: "pointer",
-                    }}
-                    onClick={() => navigate(`/user/${order.hostNickname || order.host}`)}
-                  >
-                    {order.host}
-                  </td>
-                  <td style={styles.td}>{order.quantity}</td>
-                  <td style={styles.td}>{order.date}</td>
-                  <td style={styles.td}>{order.total}</td>
-
-                  {/* 구매확정 버튼 */}
-                  <td style={styles.td}>
-                    <button
-                      type="button"
-                      style={
-                        order.confirmed
-                          ? styles.btnConfirmDone
-                          : styles.btnConfirmDefault
-                      }
-                      onClick={() => {
-                        if (order.confirmed) return;
-                        setSelectedOrderToConfirm(order);
-                        setShowModal(true);
-                      }}
-                    >
-                      {order.confirmed ? "확정 완료" : "구매확정"}
-                    </button>
-                  </td>
-
-                  {/* 후기 작성 버튼 */}
-                  <td style={styles.td}>
-                    <button
-                      type="button"
-                      style={styles.btnFilled}
-                      onClick={() => handleOpenReviewModal(order)}
-                    >
-                      후기 작성
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* 구매확정 모달 */}
-      {showModal && (
-        <ConfirmationPurchase
-          onCancel={handleCancelModal}
-          onConfirm={handleConfirmPurchase}
-        />
-      )}
-
-      {/* 후기 작성 모달 */}
-      {showReviewModal && reviewOrder && (
-        <ReviewModal
-          orderId={reviewOrder.id}
-          productName={reviewOrder.name}
-          host={reviewOrder.host}
-          price={reviewOrder.total}
-          imageUrl={reviewOrder.imageUrl}
-          onClose={handleCloseReviewModal}
-          onSubmit={handleSubmitReview}
-        />
-      )}
-    </div>
+      {/* 모달 연동 */}
+      <AddressFind
+        isOpen={isAddressOpen}
+        onClose={() => setIsAddressOpen(false)}
+        onComplete={handleAddressComplete}
+      />
+    </Container>
   );
-}
+};
 
-export default OrderDetailDelivered;
+export default NewDeliveryInfo;
