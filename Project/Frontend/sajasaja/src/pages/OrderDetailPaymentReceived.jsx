@@ -1,180 +1,240 @@
-// 파일명: OrderDetail_PaymentReceived.jsx
-import React, { useState } from "react";
+// 파일명: OrderDetailPaymentReceived.jsx
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import CancelModal from "./modal/CancelModal"; // 🔥 모달 import
+import CancelModal from "./modal/CancelModal";
+import { api, setInterceptor } from "../assets/setIntercepter"; // api, setInterceptor import
 
 /* ============================================
-    🔥 SVG 화살표 아이콘
+    🔥 SVG 화살표 아이콘 및 스타일 (생략)
 =============================================== */
 const ArrowIcon = ({ color = "#b0b0b0" }) => (
-  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    style={{ marginTop: "22px" }}
-  >
-    <path
-      d="M8 4l8 8-8 8"
-      stroke={color}
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    style={{ marginTop: "22px" }}
+  >
+    <path
+      d="M8 4l8 8-8 8"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
 );
 
-/* ============================================
-    🔥 스타일
-=============================================== */
 const styles = {
-  orderPage: {
-    maxWidth: "1200px",
-    margin: "60px auto",
-    color: "#222",
-  },
-  orderSteps: {
-    display: "flex",
-    alignItems: "flex-start",
-    gap: "52px",
-    marginBottom: "50px",
-    justifyContent: "center",
-  },
-  orderStep: {
-    textAlign: "center",
-    cursor: "pointer",
-  },
-  stepNumber: {
-    fontSize: "60px",
-    fontWeight: 401,
-    color: "#b0b0b0",
-    lineHeight: 1,
-    fontFamily: "Pretendard",
-  },
-  stepNumberActive: {
-    fontSize: "60px",
-    fontWeight: 401,
-    color: "#000",
-    lineHeight: 1,
-    fontFamily: "Pretendard",
-  },
-  stepLabel: {
-    fontSize: "13px",
-    marginTop: "8px",
-    color: "#555",
-  },
-  orderListWrapper: {
-    marginTop: "20px",
-  },
-  orderListHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-end",
-    width: "77%",
-    margin: "0 auto",
-    borderBottom: "1px solid #000",
-    paddingBottom: "8px",
-  },
-  orderListTitle: {
-    fontSize: "16px",
-    fontWeight: 900,
-  },
-  orderListNotice: {
-    fontSize: "12px",
-    color: "#D32F2F",
-  },
-  orderTable: {
-    width: "77%",
-    margin: "0 auto",
-    borderCollapse: "collapse",
-    fontSize: "13px",
-  },
-  tableHeadRow: { borderBottom: "1px solid #000" },
-  th: {
-    padding: "20px 8px",
-    textAlign: "center",
-    fontWeight: 500,
-    color: "#555",
-    fontSize: "13.5px",
-  },
-  td: {
-    padding: "10px 8px",
-    textAlign: "center",
-    fontSize: "11.5px",
-  },
-  bodyRow: { borderBottom: "1px solid #f1f1f1" },
-  lastBodyRow: { borderBottom: "1px solid #e1e1e1" },
-  productName: {
-    maxWidth: "200px",
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    textAlign: "left",
-  },
-  btnOutline: {
-    minWidth: "90px",
-    padding: "4px 14px",
-    fontSize: "11px",
-    borderRadius: "6px",
-    cursor: "pointer",
-    border: "1px solid #000",
-    backgroundColor: "#fff",
-    color: "#444",
-  },
-  btnFilled: {
-    minWidth: "90px",
-    padding: "4px 14px",
-    fontSize: "11px",
-    borderRadius: "6px",
-    cursor: "pointer",
-    border: "1px solid #FF7E00",
-    backgroundColor: "#FF7E00",
-    color: "#fff",
-  },
+  orderPage: {
+    maxWidth: "1200px",
+    margin: "60px auto",
+    color: "#222",
+  },
+  orderSteps: {
+    display: "flex",
+    alignItems: "flex-start",
+    gap: "52px",
+    marginBottom: "50px",
+    justifyContent: "center",
+  },
+  orderStep: {
+    textAlign: "center",
+    cursor: "pointer",
+  },
+  stepNumber: {
+    fontSize: "60px",
+    fontWeight: 401,
+    color: "#b0b0b0",
+    lineHeight: 1,
+    fontFamily: "Pretendard",
+  },
+  stepNumberActive: {
+    fontSize: "60px",
+    fontWeight: 401,
+    color: "#000",
+    lineHeight: 1,
+    fontFamily: "Pretendard",
+  },
+  stepLabel: {
+    fontSize: "13px",
+    marginTop: "8px",
+    color: "#555",
+  },
+  orderListWrapper: {
+    marginTop: "20px",
+  },
+  orderListHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
+    width: "77%",
+    margin: "0 auto",
+    borderBottom: "1px solid #000",
+    paddingBottom: "8px",
+  },
+  orderListTitle: {
+    fontSize: "16px",
+    fontWeight: 900,
+  },
+  orderListNotice: {
+    fontSize: "12px",
+    color: "#D32F2F",
+  },
+  orderTable: {
+    width: "77%",
+    margin: "0 auto",
+    borderCollapse: "collapse",
+    fontSize: "13px",
+  },
+  tableHeadRow: { borderBottom: "1px solid #000" },
+  th: {
+    padding: "20px 8px",
+    textAlign: "center",
+    fontWeight: 500,
+    color: "#555",
+    fontSize: "13.5px",
+  },
+  td: {
+    padding: "10px 8px",
+    textAlign: "center",
+    fontSize: "11.5px",
+  },
+  bodyRow: { borderBottom: "1px solid #f1f1f1" },
+  lastBodyRow: { borderBottom: "1px solid #e1e1e1" },
+  productName: {
+    maxWidth: "200px",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    textAlign: "left",
+  },
+  btnOutline: {
+    minWidth: "90px",
+    padding: "4px 14px",
+    fontSize: "11px",
+    borderRadius: "6px",
+    cursor: "pointer",
+    border: "1px solid #000",
+    backgroundColor: "#fff",
+    color: "#444",
+  },
+  btnFilled: {
+    minWidth: "90px",
+    padding: "4px 14px",
+    fontSize: "11px",
+    borderRadius: "6px",
+    cursor: "pointer",
+    border: "1px solid #FF7E00",
+    backgroundColor: "#FF7E00",
+    color: "#fff",
+  },
 };
 
-/* ============================================
-    🔥 화살표 색상
-=============================================== */
 const arrowColors = ["#828282", "#000000ff", "#828282", "#828282", "#ffffffff"];
 
-/* 단계별 주문 수 */
-const orderCounts = {
-  received: 4,
-  payment: 4,
-  preparing: 4,
-  shipping: 3,
-  delivered: 4,
-  cancelled: 4,
+// 백엔드 Status Code (BuyerService.java 기준)
+const STATUS_MAP = {
+    0: { label: "주문 접수", path: "/order-detail" },
+    1: { label: "결제 완료", path: "/received" },
+    2: { label: "상품 준비 중", path: "/preparing" },
+    3: { label: "배송 중", path: "/shipping" },
+    4: { label: "배송 완료", path: "/delivered" },
+    6: { label: "주문 취소", path: "/cancelled" },
 };
 
-/* 현재 단계 = 결제 완료 */
-const steps = [
-  { id: 1, label: "주문 접수", value: orderCounts.received, path: "/order-detail" },
-  { id: 2, label: "결제 완료", value: orderCounts.payment, active: true, path: "/received" },
-  { id: 3, label: "상품 준비 중", value: orderCounts.preparing, path: "/preparing" },
-  { id: 4, label: "배송 중", value: orderCounts.shipping, path: "/shipping" },
-  { id: 5, label: "배송완료", value: orderCounts.delivered, path: "/delivered" },
-  { id: 6, label: "주문 취소", value: orderCounts.cancelled, path: "/cancelled" },
-];
-
-/* 주문 리스트 */
-const orders = [
-  { id: 1, name: "애니 피오르크 미니 프레첼 스낵 150g", host: "사자사자", quantity: 1, date: "2025-11-12", total: "7,000 원" },
-  { id: 2, name: "비로드슴 실온 닭가슴살 7종 10팩 골라담기", host: "빈지노", quantity: 2, date: "2025-05-20", total: "12,400 원" },
-  { id: 3, name: "연평도 자연 간장게장 100% 알베기 암꽃게 ...", host: "간장게장맛있어요요요", quantity: 2, date: "2025-01-13", total: "23,600 원" },
-  { id: 4, name: "[아이앤비] 섬유유연제 건조기", host: "김우민호", quantity: 1, date: "2025-01-07", total: "5,200 원" },
-];
-
 /* ============================================
-    🔥 메인 컴포넌트
+   🔥 메인 컴포넌트 (결제 완료 리스트)
 =============================================== */
-function OrderDetail_PaymentReceived() {
+function OrderDetailPaymentReceived() {
   const navigate = useNavigate();
+
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const [counts, setCounts] = useState({
+      0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0
+  });
 
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  
+  const activeStatus = 1; // 🔥 현재 페이지의 상태: 결제 완료
 
+  /* ===========================
+     1. 주문 목록 및 카운트 불러오기
+  ============================ */
+  const fetchOrders = async () => {
+    try {
+      setLoading(true);
+      setErrorMsg("");
+
+      // GET /api/mypage/orders?status=1 호출
+      const res = await api.get("/api/mypage/orders", {
+        params: {
+          status: activeStatus, // 1 = 결제 완료
+          page: 0,
+        },
+      });
+
+      console.log(res);
+
+      const { orders: rawOrders, statusCounts } = res.data; //
+
+      if (statusCounts) {
+          setCounts(statusCounts);
+      }
+      
+      if (!Array.isArray(rawOrders)) {
+        setOrders([]);
+        return;
+      }
+
+      // OrderListResponseDto 필드에 맞게 매핑
+      const mapped = rawOrders.map((o) => {
+        const orderedDate = (o.createdAt || "").split("T")[0] || "";
+        const totalPrice = o.price ?? 0;
+
+        return {
+          id: o.id,
+          name: o.postTitle || "상품명 없음",
+          host: o.hostNickname || "주최자",
+          hostNickname: o.hostNickname,
+          quantity: o.quantity ?? 0,
+          date: orderedDate,
+          total: `${Number(totalPrice).toLocaleString()} 원`,
+        };
+      });
+
+      setOrders(mapped);
+    } catch (err) {
+      console.error("주문 내역 조회 실패:", err);
+      // setInterceptor에서 인증 오류 시 리디렉션 처리되므로, 다른 오류만 사용자에게 표시
+      setErrorMsg(err.response?.data?.message || "주문 내역을 불러오는 중 오류가 발생했습니다.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // 🔥 에러 수정: navigate 대신 실제 토큰을 setInterceptor에 전달
+    const token = localStorage.getItem("accessToken");
+    
+    if (!token || token === 'undefined') {
+        // 토큰이 없으면 로그인 페이지로 이동
+        navigate('/login'); 
+        return;
+    }
+    
+    setInterceptor(token);
+    fetchOrders();
+  }, [navigate]);
+  // ... (이하 동일한 함수들 유지)
+
+  /* ===========================
+     2. 취소 모달 열기 / 닫기
+  ============================ */
   const openCancelModal = (order) => {
     setSelectedOrder(order);
     setIsCancelModalOpen(true);
@@ -185,33 +245,68 @@ function OrderDetail_PaymentReceived() {
     setSelectedOrder(null);
   };
 
-  const handleConfirmCancel = () => {
-    console.log("취소된 주문:", selectedOrder);
-    navigate("/cancelled");
+  /* ===========================
+     3. 실제 주문 취소 API 호출
+     - PATCH /api/mypage/order/{buyerId}/cancel
+  ============================ */
+  const handleConfirmCancel = async () => {
+    if (!selectedOrder) return;
 
-    setIsCancelModalOpen(false);
-    setSelectedOrder(null);
+    try {
+      // PATCH /api/mypage/order/{buyerId}/cancel 호출
+      await api.patch(`/api/mypage/order/${selectedOrder.id}/cancel`);
+
+      // 취소 후 주문 목록 새로고침
+      fetchOrders(); 
+
+      closeCancelModal();
+    } catch (err) {
+      console.error("주문 취소 실패:", err);
+      alert(err.response?.data?.message || "주문 취소 중 오류가 발생했습니다.");
+    }
   };
+
+  // 동적 steps 배열 생성 (Status 4와 5를 '배송 완료'로 통합하여 표시)
+  const steps = [
+      { id: 0, label: STATUS_MAP[0].label, value: counts[0] || 0, active: false, path: STATUS_MAP[0].path },
+      { id: 1, label: STATUS_MAP[1].label, value: counts[1] || 0, active: true, path: STATUS_MAP[1].path },
+      { id: 2, label: STATUS_MAP[2].label, value: counts[2] || 0, active: false, path: STATUS_MAP[2].path },
+      { id: 3, label: STATUS_MAP[3].label, value: counts[3] || 0, active: false, path: STATUS_MAP[3].path },
+      // Status 4 (배송 완료) + Status 5 (구매 확정) 합산
+      { id: 4, label: STATUS_MAP[4].label, value: (counts[4] || 0) + (counts[5] || 0), active: false, path: STATUS_MAP[4].path }, 
+      { id: 6, label: STATUS_MAP[6].label, value: counts[6] || 0, active: false, path: STATUS_MAP[6].path },
+  ];
+  
 
   return (
     <div style={styles.orderPage}>
-      {/* 🔥 상단 단계 */}
+      {/* 🔥 상단 주문 단계 + svg 화살표 */}
       <div style={styles.orderSteps}>
         {steps.map((step, index) => (
           <React.Fragment key={step.id}>
-            <div style={styles.orderStep} onClick={() => navigate(step.path)}>
-              <div style={step.active ? styles.stepNumberActive : styles.stepNumber}>
+            <div
+              style={styles.orderStep}
+              onClick={() => step.path && navigate(step.path)}
+            >
+              <div
+                style={step.id === activeStatus ? styles.stepNumberActive : styles.stepNumber}
+              >
                 {step.value}
               </div>
               <div style={styles.stepLabel}>{step.label}</div>
             </div>
 
-            {index < steps.length - 1 && <ArrowIcon color={arrowColors[index]} />}
+            {/* 화살표: 마지막 단계(주문 취소) 앞에는 생략 */}
+            {index < steps.length - 1 && (
+              <ArrowIcon color={step.id === activeStatus ? arrowColors[index] : arrowColors[index + 1]} />
+            )}
           </React.Fragment>
         ))}
       </div>
 
-      {/* 🔥 테이블 */}
+      {/* ============================
+          주문 내역 테이블
+      ============================ */}
       <div style={styles.orderListWrapper}>
         <div style={styles.orderListHeader}>
           <h2 style={styles.orderListTitle}>주문 내역</h2>
@@ -219,6 +314,19 @@ function OrderDetail_PaymentReceived() {
             상품 준비가 시작되면 주문 취소가 어렵습니다.
           </span>
         </div>
+
+        {errorMsg && (
+          <div
+            style={{
+              width: "77%",
+              margin: "10px auto",
+              fontSize: "12px",
+              color: "#D32F2F",
+            }}
+          >
+            {errorMsg}
+          </div>
+        )}
 
         <table style={styles.orderTable}>
           <thead>
@@ -234,56 +342,78 @@ function OrderDetail_PaymentReceived() {
           </thead>
 
           <tbody>
-            {orders.map((order, idx) => (
-              <tr
-                key={order.id}
-                style={idx === orders.length - 1 ? styles.lastBodyRow : styles.bodyRow}
-              >
-                <td
-                  style={{ ...styles.td, ...styles.productName, cursor: "pointer" }}
-                  onClick={() => navigate(`/orderpage/${order.id}`)}
-
-                >
-                  {order.name}
-                </td>
-
-                <td
-                  style={{
-                    ...styles.td,
-                    minWidth: "100px",
-                    cursor: "pointer",          // 마우스 올렸을 때 손모양
-                  }}
-                  onClick={() => navigate("/userpage")}  // ✅ 여기서 사용자 프로필로 이동
-                >
-                  {order.host}
-                </td>
-
-                <td style={styles.td}>{order.quantity}</td>
-                <td style={styles.td}>{order.date}</td>
-                <td style={styles.td}>{order.total}</td>
-
-                <td style={styles.td}>
-                  <button
-                    type="button"
-                    style={styles.btnOutline}
-                    onClick={() => openCancelModal(order)} // 🔥 모달 열기
-                  >
-                    주문 취소
-                  </button>
-                </td>
-
-                <td style={styles.td}>
-                  <button type="button" style={styles.btnFilled}>
-                    문의하기
-                  </button>
+            {loading ? (
+              <tr>
+                <td style={styles.td} colSpan={7}>
+                  주문 내역을 불러오는 중입니다...
                 </td>
               </tr>
-            ))}
+            ) : orders.length === 0 ? (
+              <tr>
+                <td style={styles.td} colSpan={7}>
+                  결제 완료 상태의 주문이 없습니다.
+                </td>
+              </tr>
+            ) : (
+              orders.map((order, idx) => (
+                <tr
+                  key={order.id}
+                  style={
+                    idx === orders.length - 1
+                      ? styles.lastBodyRow
+                      : styles.bodyRow
+                  }
+                >
+                  <td
+                    style={{
+                      ...styles.td,
+                      ...styles.productName,
+                      cursor: "pointer",
+                    }}
+                    onClick={() => navigate(`/orderpage/${order.id}`)}
+                  >
+                    {order.name}
+                  </td>
+
+                  <td
+                    style={{
+                      ...styles.td,
+                      minWidth: "100px",
+                      cursor: "pointer",
+                    }}
+                    onClick={() =>
+                      navigate(`/user/${order.hostNickname || order.host}`)
+                    }
+                  >
+                    {order.host}
+                  </td>
+
+                  <td style={styles.td}>{order.quantity}</td>
+                  <td style={styles.td}>{order.date}</td>
+                  <td style={styles.td}>{order.total}</td>
+
+                  <td style={styles.td}>
+                    <button
+                      type="button"
+                      style={styles.btnOutline}
+                      onClick={() => openCancelModal(order)}
+                    >
+                      주문 취소
+                    </button>
+                  </td>
+                  <td style={styles.td}>
+                    <button type="button" style={styles.btnFilled}>
+                      문의하기
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
 
-      {/* 🔥 취소 모달 */}
+      {/* 🔥 주문 취소 모달 */}
       <CancelModal
         isOpen={isCancelModalOpen}
         onClose={closeCancelModal}
@@ -294,4 +424,4 @@ function OrderDetail_PaymentReceived() {
   );
 }
 
-export default OrderDetail_PaymentReceived;
+export default OrderDetailPaymentReceived;
