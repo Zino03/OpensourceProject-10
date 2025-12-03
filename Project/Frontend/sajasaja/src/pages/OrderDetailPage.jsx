@@ -1,468 +1,544 @@
-// 파일명: OrderDetailPage.jsx 
-import React from "react";
+import React, { useState, useEffect } from "react";
+import styled from "styled-components";
+import { useParams, useNavigate } from "react-router-dom";
+import { api, BASE_URL } from "../assets/setIntercepter";
 
-/* ==========================================
-   🔧 더미 주문 데이터 (레이아웃 확인용)
-   - 나중에 백엔드 응답으로 교체
-========================================== */
-const mockOrder = {
-  recipient: "최지우",
-  addressStreet: "충북 청주시 가나구 다라로 123(삼성동, 사자아파트) 123동 1234호",
-  addressPhone: "010-8239-5709",
-  entranceAccess: "FREE", // FREE / PASSWORD / CALL / OTHER
-  entranceDetail: "#1234#",
-  postId: 10,
-  postImg: "/images/sample-product.png",
-  postTitle: "애니 퍼콘 미니 프레첼 스낵 150g",
-  endAt: "2025-11-30T00:00:00",
-  hostName: "변호조",
-  hostNickname: "사자사자",
-  deliveryFee: 0,
-  pickupAddress:
-    "충북 청주시 가나구 다라로 123(삼성동, 사자아파트)****, 123동 1234호",
-  createdAt: "2025-11-12T10:00:00",
-  courier: "대한통운",
-  trackingNumber: "1234567890123",
-  price: 2670,
-  quantity: 3,
-  isDelivery: true, // 🔥 true = 1번(배송), false = 2번(수령)
-  status: 0,
-  receivedAt: null,
-  virtualAccount: "1234567890",
-  virtualAccountBank: "농협",
-  buyerName: "최지우",
-  buyerPhone: "010-1234-5678",
-  email: "example@email.com",
-};
+// 단계별 상태 정의 (화면 표시용)
+const STATUS_STEPS = [
+  { step: 1, label: "주문접수" }, // DB Status 0
+  { step: 2, label: "결제완료" }, // DB Status 1
+  { step: 3, label: "상품준비" }, // DB Status 2
+  { step: 4, label: "배송중" },   // DB Status 3
+  { step: 5, label: "배송완료" }, // DB Status 4 
+  { step: 6, label: "회원가입" }, // DB Status 5
+];
 
-/* ==========================================
-   🔧 유틸 함수
-========================================== */
-function formatPrice(num) {
-  if (num == null) return "-";
-  return num.toLocaleString("ko-KR");
-}
+// --- Styled Components ---
+const Page = styled.div`
+  width: 100%;
+  background-color: #ffffff;
+`;
 
-function formatDate(dateString) {
-  if (!dateString) return "-";
-  const d = new Date(dateString);
-  if (Number.isNaN(d.getTime())) return "-";
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
+const Inner = styled.div`
+  max-width: 900px;
+  margin: 80px auto 120px;
+  padding: 0 40px;
+  box-sizing: border-box;
+  color: #222;
+  font-family: Pretendard, -apple-system, BlinkMacSystemFont, system-ui;
+  font-size: 13px;
+`;
 
-function formatEndAtForProduct(endAt) {
-  if (!endAt) return "";
-  const d = new Date(endAt);
-  if (Number.isNaN(d.getTime())) return "";
-  const yy = String(d.getFullYear()).slice(2);
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `~ ${yy}. ${mm}. ${dd}`;
-}
+const TitleRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #000;
+  margin-bottom: 30px;
+`;
 
-function mapEntranceAccess(code) {
-  switch (code) {
-    case "FREE":
-      return "자유출입가능";
-    case "PASSWORD":
-      return "공동현관 비밀번호";
-    case "CALL":
-      return "현관 호출";
-    case "OTHER":
-      return "기타";
-    default:
-      return "-";
+const PageTitle = styled.h1`
+  font-size: 20px;
+  font-weight: 700;
+`;
+
+const OrderDate = styled.span`
+  font-size: 13px;
+  color: #555;
+`;
+
+// 상태 표시바 스타일
+const StatusContainer = styled.div`
+  width: 100%;
+  margin-bottom: 40px;
+  padding: 20px 0;
+  border-bottom: 1px solid #eee;
+`;
+
+const CancelBanner = styled.div`
+  width: 100%;
+  padding: 15px;
+  background-color: #ffebee;
+  color: #c62828;
+  font-weight: 700;
+  text-align: center;
+  border-radius: 8px;
+  margin-bottom: 30px;
+  font-size: 14px;
+`;
+
+const StepWrapper = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+`;
+
+const StepLineBg = styled.div`
+  position: absolute;
+  top: 12px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #eee;
+  z-index: 0;
+`;
+
+const StepLineFill = styled.div`
+  position: absolute;
+  top: 12px;
+  left: 0;
+  height: 2px;
+  background-color: #ff7e00;
+  z-index: 1;
+  width: ${(props) => props.$width}%;
+  transition: width 0.3s ease;
+`;
+
+const StepItem = styled.div`
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 60px;
+`;
+
+const StepCircle = styled.div`
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: ${(props) => (props.$active ? "#ff7e00" : "#fff")};
+  border: 2px solid ${(props) => (props.$active ? "#ff7e00" : "#ddd")};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: ${(props) => (props.$active ? "#fff" : "#999")};
+  font-size: 10px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  transition: all 0.3s ease;
+`;
+
+const StepLabel = styled.span`
+  font-size: 11px;
+  font-weight: ${(props) => (props.$active ? "700" : "400")};
+  color: ${(props) => (props.$active ? "#333" : "#aaa")};
+`;
+
+// 섹션 스타일
+const Section = styled.section`
+  margin-top: 36px;
+`;
+
+const SectionHeader = styled.div`
+  margin-bottom: 8px;
+`;
+
+const SectionTitle = styled.div`
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 8px;
+`;
+
+const SectionDivider = styled.div`
+  height: 1px;
+  background-color: #f0f0f0;
+`;
+
+const InfoBlock = styled.div`
+  margin-top: 18px;
+`;
+
+const InfoRow = styled.div`
+  display: flex;
+  margin-bottom: 10px;
+`;
+
+const InfoLabel = styled.div`
+  width: 90px;
+  color: #777;
+  flex-shrink: 0;
+`;
+
+const InfoValue = styled.div`
+  flex: 1;
+  white-space: pre-line;
+  word-break: break-all;
+`;
+
+// 상품 정보 스타일
+const ProductRow = styled.div`
+  display: flex;
+  align-items: flex-start;
+  margin-top: 18px;
+  @media (max-width: 600px) {
+    flex-direction: column;
   }
-}
+`;
 
-/* ==========================================
-   🔧 스타일 (시안 최대한 동일)
-========================================== */
-const styles = {
-  page: {
-    width: "100%",
-    backgroundColor: "#ffffff",
-  },
-  inner: {
-    maxWidth: "1040px",
-    margin: "80px auto 120px",
-    padding: "0 40px",
-    boxSizing: "border-box",
-    color: "#222",
-    fontFamily: "Pretendard, -apple-system, BlinkMacSystemFont, system-ui",
-    fontSize: "13px",
-  },
-  titleRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-end",
-    paddingBottom: "12px",
-    borderBottom: "2px solid #000000",
-  },
-  pageTitle: {
-    fontSize: "20px",
-    fontWeight: 700,
-  },
-  orderDate: {
-    fontSize: "13px",
-    color: "#555",
-  },
+const ProductLeft = styled.div`
+  display: flex;
+  flex: 1;
+`;
 
-  section: {
-    marginTop: "36px",
-  },
-  sectionHeader: {
-    marginBottom: "8px",
-  },
-  sectionTitle: {
-    fontSize: "14px",
-    fontWeight: 700,
-    marginBottom: "8px",
-  },
-  sectionDivider: {
-    height: "1px",
-    backgroundColor: "#f0f0f0",
-  },
+const ProductImageBox = styled.div`
+  width: 120px;
+  height: 120px;
+  border: 1px solid #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin-right: 20px;
+  border-radius: 6px;
+  flex-shrink: 0;
+`;
 
-  infoBlock: {
-    marginTop: "18px",
-  },
-  infoRow: {
-    display: "flex",
-    marginBottom: "10px",
-  },
-  infoLabel: {
-    width: "80px",
-    color: "#777",
-  },
-  infoValue: {
-    flex: 1,
-    whiteSpace: "pre-line",
-  },
+const ProductImage = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+`;
 
-  // 상품 정보
-  productRow: {
-    display: "flex",
-    alignItems: "flex-start",
-    marginTop: "18px",
-  },
-  productLeft: {
-    display: "flex",
-    flex: 1,
-  },
-  productImageBox: {
-    width: "140px",
-    height: "140px",
-    border: "1px solid #eeeeee",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    overflow: "hidden",
-    marginRight: "30px",
-  },
-  productImage: {
-    maxWidth: "100%",
-    maxHeight: "100%",
-    objectFit: "cover",
-  },
-  productTextBox: {
-    fontSize: "13px",
-    lineHeight: 1.7,
-  },
-  productName: {
-    marginBottom: "4px",
-  },
-  productMeta: {
-    color: "#777",
-  },
-  productPrice: {
-    marginTop: "12px",
-  },
+const ProductTextBox = styled.div`
+  font-size: 13px;
+  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+`;
 
-  productRight: {
-    width: "260px",
-    marginLeft: "40px",
-    fontSize: "13px",
-  },
-  productRightTitle: {
-    fontSize: "13px",
-    fontWeight: 700,
-    marginBottom: "8px",
-  },
+const ProductName = styled.div`
+  font-weight: 600;
+  margin-bottom: 4px;
+  font-size: 14px;
+`;
 
-  // 결제 정보
-  paymentRow: {
-    display: "flex",
-    marginTop: "18px",
-  },
-  paymentLeft: {
-    flex: 1,
-  },
-  paymentRight: {
-    width: "260px",
-    marginLeft: "40px",
-  },
-  totalRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    marginTop: "12px",
-    paddingTop: "6px",
-    borderTop: "1px solid #eeeeee",
-    fontWeight: 700,
-    fontSize: "14px",
-  },
+const ProductMeta = styled.div`
+  color: #777;
+  font-size: 12px;
+`;
 
-  noticeText: {
-    marginTop: "18px",
-    fontSize: "11px",
-    lineHeight: 1.8,
-    whiteSpace: "pre-line",
-    color: "#444",
-  },
+const ProductRight = styled.div`
+  width: 260px;
+  margin-left: 40px;
+  font-size: 13px;
+  @media (max-width: 600px) {
+    width: 100%;
+    margin-left: 0;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #f9f9f9;
+  }
+`;
+
+const ProductRightTitle = styled.div`
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 8px;
+`;
+
+const PaymentRow = styled.div`
+  display: flex;
+  margin-top: 18px;
+  @media (max-width: 600px) {
+    flex-direction: column;
+  }
+`;
+
+const PaymentLeft = styled.div`
+  flex: 1;
+`;
+
+const PaymentRight = styled.div`
+  width: 260px;
+  margin-left: 40px;
+  @media (max-width: 600px) {
+    width: 100%;
+    margin-left: 0;
+    margin-top: 20px;
+  }
+`;
+
+const TotalRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #eee;
+  font-weight: 700;
+  font-size: 16px;
+  color: #000;
+`;
+
+const NoticeText = styled.p`
+  margin-top: 18px;
+  font-size: 11px;
+  line-height: 1.8;
+  white-space: pre-line;
+  color: #888;
+`;
+
+// --- Utility Functions ---
+const formatPrice = (num) => (num ? num.toLocaleString("ko-KR") : "0");
+const formatDate = (dateString) => {
+  if (!dateString) return "-";
+  return dateString.substring(0, 10);
+};
+const mapEntranceAccess = (code) => {
+  switch (code) {
+    case "FREE": return "자유출입가능";
+    case "PASSWORD": return "공동현관 비밀번호";
+    case "CALL": return "현관 호출";
+    case "OTHER": return "기타";
+    default: return "-";
+  }
 };
 
-/* ==========================================
-   🔥 메인 컴포넌트
-========================================== */
+// --- Main Component ---
 const OrderDetailPage = () => {
-  // 지금은 mockOrder 사용 (백엔드 붙을 때 교체)
-  const order = mockOrder;
-  const isDelivery = order.isDelivery;
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [order, setOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const productTotal = (order.price || 0) * (order.quantity || 0);
-  const deliveryFee = order.deliveryFee || 0;
-  const totalAmount = productTotal + deliveryFee;
+  useEffect(() => {
+    const fetchOrder = async () => {
+      try {
+        const response = await api.get(`/api/mypage/order/${id}`);
+        setOrder(response.data.order);
+      } catch (error) {
+        console.error("주문 상세 조회 실패:", error);
+        alert("주문 정보를 불러오는데 실패했습니다.");
+        navigate(-1);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) fetchOrder();
+  }, [id, navigate]);
+
+  if (loading) return <div style={{ padding: "100px", textAlign: "center" }}>로딩 중...</div>;
+  if (!order) return <div style={{ padding: "100px", textAlign: "center" }}>주문 정보가 없습니다.</div>;
+
+  const isDelivery = order.isDelivery; // 배송 여부
+  const totalAmount = (order.price * order.quantity) + (order.deliveryFee || 0);
+  const currentStatus = order.status; // DB status 0~6
+
+  // 🔹 DB Status -> Visual Step 매핑
+  // 0(접수) -> 1
+  // 1(결제) -> 2
+  // 2(준비) -> 3
+  // 3(배송중) -> 4
+  // 4(완료), 5(확정) -> 5
+  let visualStep = 1;
+  if (currentStatus === 1) visualStep = 2;
+  else if (currentStatus === 2) visualStep = 3;
+  else if (currentStatus === 3) visualStep = 4;
+  else if (currentStatus >= 4 && currentStatus <= 5) visualStep = 5;
+
+  const progressPercent = ((visualStep - 1) / (STATUS_STEPS.length - 1)) * 100;
 
   return (
-    <div style={styles.page}>
-      <div style={styles.inner}>
-        {/* 상단 타이틀 + 날짜 + 굵은 선 */}
-        <div style={styles.titleRow}>
-          <h1 style={styles.pageTitle}>주문 상세</h1>
-          <span style={styles.orderDate}>{formatDate(order.createdAt)}</span>
-        </div>
+    <Page>
+      <Inner>
+        <TitleRow>
+          <PageTitle>주문 상세</PageTitle>
+          <OrderDate>주문일자: {formatDate(order.createdAt)}</OrderDate>
+        </TitleRow>
+
+        {/* 🔹 상태 진행 바 (취소된 경우 배너 표시) */}
+        {currentStatus === 6 ? (
+          <CancelBanner>🚫 취소된 주문입니다.</CancelBanner>
+        ) : (
+          <StatusContainer>
+            <StepWrapper>
+              <StepLineBg />
+              <StepLineFill $width={progressPercent} />
+              {STATUS_STEPS.map((s) => {
+                const isActive = visualStep >= s.step;
+                return (
+                  <StepItem key={s.step}>
+                    <StepCircle $active={isActive}>
+                      {isActive ? "✔" : s.step}
+                    </StepCircle>
+                    <StepLabel $active={isActive}>{s.label}</StepLabel>
+                  </StepItem>
+                );
+              })}
+            </StepWrapper>
+          </StatusContainer>
+        )}
 
         {/* 1. 배송지 정보 / 수령 정보 */}
-        <section style={styles.section}>
-          <div style={styles.sectionHeader}>
-            <div style={styles.sectionTitle}>
-              {isDelivery ? "배송지 정보" : "수령 정보"}
-            </div>
-            <div style={styles.sectionDivider} />
-          </div>
-
-          <div style={styles.infoBlock}>
+        <Section>
+          <SectionHeader>
+            <SectionTitle>{isDelivery ? "배송지 정보" : "수령 정보"}</SectionTitle>
+            <SectionDivider />
+          </SectionHeader>
+          <InfoBlock>
             {isDelivery ? (
               <>
-                <div style={styles.infoRow}>
-                  <div style={styles.infoLabel}>받는 사람</div>
-                  <div style={styles.infoValue}>{order.recipient}</div>
-                </div>
-                <div style={styles.infoRow}>
-                  <div style={styles.infoLabel}>주소</div>
-                  <div style={styles.infoValue}>{order.addressStreet}</div>
-                </div>
-                <div style={styles.infoRow}>
-                  <div style={styles.infoLabel}>연락처</div>
-                  <div style={styles.infoValue}>{order.addressPhone}</div>
-                </div>
-                <div style={styles.infoRow}>
-                  <div style={styles.infoLabel}>
-                    공동현관<br />출입방법
-                  </div>
-                  <div style={styles.infoValue}>
-                    {mapEntranceAccess(order.entranceAccess)}
-                  </div>
-                </div>
-                <div style={styles.infoRow}>
-                  <div style={styles.infoLabel}>
-                    공동현관<br />비밀번호
-                  </div>
-                  <div style={styles.infoValue}>
-                    {order.entranceDetail || "-"}
-                  </div>
-                </div>
+                <InfoRow><InfoLabel>받는 사람</InfoLabel><InfoValue>{order.recipient}</InfoValue></InfoRow>
+                <InfoRow>
+                  <InfoLabel>주소</InfoLabel>
+                  <InfoValue>
+                    {order.addressStreet} {order.addressDetail || ""}
+                  </InfoValue>
+                </InfoRow>
+                <InfoRow><InfoLabel>연락처</InfoLabel><InfoValue>{order.addressPhone}</InfoValue></InfoRow>
+                {order.entranceAccess && (
+                  <>
+                    <InfoRow>
+                      <InfoLabel>공동현관</InfoLabel>
+                      <InfoValue>{mapEntranceAccess(order.entranceAccess)}</InfoValue>
+                    </InfoRow>
+                    <InfoRow>
+                      <InfoLabel>출입내용</InfoLabel>
+                      <InfoValue>{order.entranceDetail || "-"}</InfoValue>
+                    </InfoRow>
+                  </>
+                )}
               </>
             ) : (
               <>
-                <div style={styles.infoRow}>
-                  <div style={styles.infoLabel}>수령지</div>
-                  <div style={styles.infoValue}>{order.pickupAddress}</div>
-                </div>
-                <div style={styles.infoRow}>
-                  <div style={styles.infoLabel}>수령일자</div>
-                  <div style={styles.infoValue}>
-                    {formatDate(order.receivedAt || order.endAt)}
-                  </div>
-                </div>
+                <InfoRow>
+                  <InfoLabel>수령 장소</InfoLabel>
+                  <InfoValue>{order.pickupAddress}</InfoValue>
+                </InfoRow>
+                <InfoRow>
+                  <InfoLabel>수령 예정일</InfoLabel>
+                  <InfoValue>
+                    {order.receivedAt ? formatDate(order.receivedAt) : "미정"}
+                  </InfoValue>
+                </InfoRow>
               </>
             )}
-          </div>
-        </section>
+          </InfoBlock>
+        </Section>
 
         {/* 2. 상품 정보 */}
-        <section style={styles.section}>
-          <div style={styles.sectionHeader}>
-            <div style={styles.sectionTitle}>상품 정보</div>
-            <div style={styles.sectionDivider} />
-          </div>
-
-          <div style={styles.productRow}>
-            {/* 왼쪽: 상품 */}
-            <div style={styles.productLeft}>
-              <div style={styles.productImageBox}>
-                <img
-                  src={order.postImg}
-                  alt={order.postTitle}
-                  style={styles.productImage}
+        <Section>
+          <SectionHeader>
+            <SectionTitle>상품 정보</SectionTitle>
+            <SectionDivider />
+          </SectionHeader>
+          <ProductRow>
+            <ProductLeft>
+              <ProductImageBox>
+                <ProductImage 
+                  src={order.postImg ? `${BASE_URL}${order.postImg}` : "/images/sajasaja.png"} 
+                  alt="상품" 
+                  onError={(e) => e.target.src = "/images/sajasaja.png"}
                 />
-              </div>
-              <div style={styles.productTextBox}>
-                <div style={styles.productName}>{order.postTitle}</div>
-                <div style={styles.productMeta}>
-                  {formatEndAtForProduct(order.endAt)}
-                </div>
-                <div style={styles.productMeta}>{order.quantity}개</div>
-                <div style={styles.productPrice}>
+              </ProductImageBox>
+              <ProductTextBox>
+                <ProductName>{order.postTitle}</ProductName>
+                <ProductMeta>마감일 : {formatDate(order.endAt)}</ProductMeta>
+                <ProductMeta>수량 : {order.quantity}개</ProductMeta>
+                <div style={{ marginTop: '8px', fontWeight: '600' }}>
                   {formatPrice(order.price)} 원
                 </div>
-              </div>
-            </div>
+              </ProductTextBox>
+            </ProductLeft>
 
-            {/* 오른쪽: 배송 정보 (배달일 때만) */}
-            {isDelivery && (
-              <div style={styles.productRight}>
-                <div style={styles.productRightTitle}>배송 정보</div>
-                <div style={styles.infoRow}>
-                  <div style={styles.infoLabel}>택배사</div>
-                  <div style={styles.infoValue}>{order.courier || "-"}</div>
-                </div>
-                <div style={styles.infoRow}>
-                  <div style={styles.infoLabel}>송장번호</div>
-                  <div style={styles.infoValue}>
-                    {order.trackingNumber || "-"}
-                  </div>
-                </div>
-              </div>
+            {/* 🔹 배송 정보: 배송(isDelivery)이면서 상태가 배송중(3) 이상일 때만 표시 */}
+            {isDelivery && currentStatus >= 3 && (
+              <ProductRight>
+                <ProductRightTitle>배송 현황</ProductRightTitle>
+                <InfoRow>
+                  <InfoLabel>택배사</InfoLabel>
+                  <InfoValue>{order.courier || "등록 대기중"}</InfoValue>
+                </InfoRow>
+                <InfoRow>
+                  <InfoLabel>송장번호</InfoLabel>
+                  <InfoValue>{order.trackingNumber || "등록 대기중"}</InfoValue>
+                </InfoRow>
+              </ProductRight>
             )}
-          </div>
-        </section>
+          </ProductRow>
+        </Section>
 
         {/* 3. 주최자 정보 */}
-        <section style={styles.section}>
-          <div style={styles.sectionHeader}>
-            <div style={styles.sectionTitle}>주최자 정보</div>
-            <div style={styles.sectionDivider} />
-          </div>
-
-          <div style={styles.infoBlock}>
-            <div style={styles.infoRow}>
-              <div style={styles.infoLabel}>이름</div>
-              <div style={styles.infoValue}>{order.hostName}</div>
-            </div>
-            <div style={styles.infoRow}>
-              <div style={styles.infoLabel}>닉네임</div>
-              <div style={styles.infoValue}>{order.hostNickname}</div>
-            </div>
-          </div>
-        </section>
+        <Section>
+          <SectionHeader>
+            <SectionTitle>주최자 정보</SectionTitle>
+            <SectionDivider />
+          </SectionHeader>
+          <InfoBlock>
+            <InfoRow><InfoLabel>이름</InfoLabel><InfoValue>{order.hostName}</InfoValue></InfoRow>
+            <InfoRow><InfoLabel>닉네임</InfoLabel><InfoValue>{order.hostNickname}</InfoValue></InfoRow>
+          </InfoBlock>
+        </Section>
 
         {/* 4. 결제 정보 */}
-        <section style={styles.section}>
-          <div style={styles.sectionHeader}>
-            <div style={styles.sectionTitle}>결제 정보</div>
-            <div style={styles.sectionDivider} />
-          </div>
-
-          <div style={styles.paymentRow}>
-            {/* 왼쪽: 결제/계좌/수령방식 */}
-            <div style={styles.paymentLeft}>
-              <div style={styles.infoRow}>
-                <div style={styles.infoLabel}>결제방법</div>
-                <div style={styles.infoValue}>무통장입금</div>
-              </div>
-              <div style={styles.infoRow}>
-                <div style={styles.infoLabel}>가상계좌</div>
-                <div style={styles.infoValue}>
-                  {order.virtualAccountBank} {order.virtualAccount}
-                </div>
-              </div>
-              <div style={styles.infoRow}>
-                <div style={styles.infoLabel}>수령방식</div>
-                <div style={styles.infoValue}>
-                  {isDelivery ? "배달" : "직접수령"}
-                </div>
-              </div>
-            </div>
-
-            {/* 오른쪽: 금액/TOTAL */}
-            <div style={styles.paymentRight}>
-              <div style={styles.infoRow}>
-                <div style={styles.infoLabel}>주문금액</div>
-                <div style={styles.infoValue}>{formatPrice(productTotal)}</div>
-              </div>
-              <div style={styles.infoRow}>
-                <div style={styles.infoLabel}>배송비</div>
-                <div style={styles.infoValue}>{formatPrice(deliveryFee)}</div>
-              </div>
-              <div style={styles.totalRow}>
-                <span>TOTAL</span>
+        <Section>
+          <SectionHeader>
+            <SectionTitle>결제 정보</SectionTitle>
+            <SectionDivider />
+          </SectionHeader>
+          <PaymentRow>
+            <PaymentLeft>
+              <InfoRow><InfoLabel>결제방법</InfoLabel><InfoValue>무통장입금</InfoValue></InfoRow>
+              <InfoRow>
+                <InfoLabel>입금계좌</InfoLabel>
+                <InfoValue>
+                  {order.virtualAccountBank || "은행"} {order.virtualAccount || "-"}
+                </InfoValue>
+              </InfoRow>
+              <InfoRow>
+                <InfoLabel>수령방식</InfoLabel>
+                <InfoValue>{isDelivery ? "택배 배송" : "직접 수령"}</InfoValue>
+              </InfoRow>
+            </PaymentLeft>
+            <PaymentRight>
+              <InfoRow>
+                <InfoLabel>주문금액</InfoLabel>
+                <InfoValue style={{textAlign: "right"}}>{formatPrice(order.price * order.quantity)} 원</InfoValue>
+              </InfoRow>
+              <InfoRow>
+                <InfoLabel>배송비</InfoLabel>
+                <InfoValue style={{textAlign: "right"}}>{formatPrice(order.deliveryFee)} 원</InfoValue>
+              </InfoRow>
+              <TotalRow>
+                <span>총 결제금액</span>
                 <span>{formatPrice(totalAmount)} 원</span>
-              </div>
-            </div>
-          </div>
-        </section>
+              </TotalRow>
+            </PaymentRight>
+          </PaymentRow>
+        </Section>
 
         {/* 5. 주문자 정보 */}
-        <section style={styles.section}>
-          <div style={styles.sectionHeader}>
-            <div style={styles.sectionTitle}>주문자 정보</div>
-            <div style={styles.sectionDivider} />
-          </div>
+        <Section>
+          <SectionHeader>
+            <SectionTitle>주문자 정보</SectionTitle>
+            <SectionDivider />
+          </SectionHeader>
+          <InfoBlock>
+            <InfoRow><InfoLabel>이름</InfoLabel><InfoValue>{order.buyerName}</InfoValue></InfoRow>
+            <InfoRow><InfoLabel>전화번호</InfoLabel><InfoValue>{order.buyerPhone}</InfoValue></InfoRow>
+            <InfoRow><InfoLabel>이메일</InfoLabel><InfoValue>{order.email}</InfoValue></InfoRow>
+          </InfoBlock>
+        </Section>
 
-          <div style={styles.infoBlock}>
-            <div style={styles.infoRow}>
-              <div style={styles.infoLabel}>이름</div>
-              <div style={styles.infoValue}>{order.buyerName}</div>
-            </div>
-            <div style={styles.infoRow}>
-              <div style={styles.infoLabel}>전화번호</div>
-              <div style={styles.infoValue}>{order.buyerPhone}</div>
-            </div>
-            <div style={styles.infoRow}>
-              <div style={styles.infoLabel}>이메일</div>
-              <div style={styles.infoValue}>{order.email}</div>
-            </div>
-          </div>
-        </section>
-
-        {/* 6. 공동 구매 시 유의사항 */}
-        <section style={styles.section}>
-          <div style={styles.sectionHeader}>
-            <div style={styles.sectionTitle}>공동 구매 시 유의사항</div>
-            <div style={styles.sectionDivider} />
-          </div>
-
-          <p style={styles.noticeText}>
-            공동구매 진행 및 입금사항은 공지사항을 통해 안내되며,
-            공지 미확인으로 인한 불이익에 대해서는 책임지지 않습니다.
-{"\n\n"}
-            목표 수량이 충족되지 않을 경우 공동구매는 자동 취소되며, 결제 금액은 전액 환불됩니다.
-            목표 수량이 빠르게 충족될 경우, 공동구매는 예정 기간과 관계없이 조기 마감될 수 있습니다.
-{"\n\n"}
+        {/* 유의사항 */}
+        <Section>
+          <NoticeText>
+            공동구매 진행 및 입금사항은 공지사항을 통해 안내되며, 공지 미확인으로 인한 불이익에 대해서는 책임지지 않습니다.
+            {"\n\n"}
             입금 기한 내 미입금 시 주문은 자동 취소됩니다.
             상품 준비가 시작된 이후에는 주문 취소가 불가능합니다.
-            상품 특성에 따라 개봉 이후에는 주문 취소 및 반품이 제한될 수 있습니다.
-{"\n\n"}
-            직접 수령을 선택한 경우 판매자와 직접 소통하여 수령 일정을 조율해야 합니다.
             배송을 선택한 경우 배송 과정에서 발생하는 분실·파손 등과 관련된 문제는 구매자 책임으로 처리됩니다.
-          </p>
-        </section>
-      </div>
-    </div>
+          </NoticeText>
+        </Section>
+      </Inner>
+    </Page>
   );
 };
 
