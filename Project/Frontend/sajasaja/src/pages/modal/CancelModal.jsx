@@ -93,7 +93,7 @@ const CancelModal = ({ isOpen, onClose, onConfirm }) => {
         </ButtonArea>
       </ModalBox>
     </Backdrop>
-  );
+  );  
 };
 
 export default CancelModal;

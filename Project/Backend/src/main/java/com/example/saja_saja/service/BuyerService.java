@@ -368,7 +368,7 @@ public class BuyerService {
 
         List<BuyerListResponseDto> buyers = post.getBuyers()
                 .stream()
-                .filter(buyer -> !buyer.getUser().equals(post.getHost())) // 주최자는 제외
+                .filter(buyer -> !buyer.getUser().equals(post.getHost()) && buyer.getIsCanceled().equals(false)) // 주최자는 제외
                 .map(buyer -> BuyerListResponseDto.of(buyer))
                 .toList();
 
@@ -488,7 +488,13 @@ public class BuyerService {
         Optional<Buyer> optionalB = buyerRepository.findByUserAndPostAndIsCanceled(user, post, false);
 
         if (optionalB.isEmpty()) {
-            throw new BadRequestException("해당 사용자의 구매 정보가 없습니다.", null);
+            optionalB = buyerRepository.findByUserAndPostAndIsCanceledOrderByIdDesc(user, post, true);
+            
+            if(optionalB.isEmpty()) {
+                throw new BadRequestException("해당 사용자의 구매 정보가 없습니다.", null);
+            } else {
+                throw new BadRequestException("취소된 사용자입니다.", null);
+            }
         }
 
         if (post.getStatus().equals(0)) {
@@ -513,6 +519,8 @@ public class BuyerService {
                 || Boolean.TRUE.equals(buyer.getIsDelivery())) {
             throw new BadRequestException("수령일자를 등록할 수 있는 사용자가 아닙니다.", null);
         }
+
+        System.out.println(receivedAtRequestDto.getReceivedAt());
 
         buyer.setReceivedAt(receivedAtRequestDto.getReceivedAt());
         buyer.setStatus(4);
