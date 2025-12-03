@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from "react"; // ✅ useEffect 추가
 import { useNavigate } from "react-router-dom";
 import ShippingInfoModal from "./modal/ShippingInfoModal"; // ✅ 경로 확인 및 .jsx 제거
-import { api, setInterceptor } from "../assets/setIntercepter"; // ✅ api, setInterceptor 추가
 import ContactModal from "./modal/ContactModal";
+import { api, setInterceptor } from "../assets/setIntercepter"; // ✅ api, setInterceptor 추가
 
 /* ============================================
     🔥 SVG 화살표 아이콘 (색 변경 가능)
@@ -161,12 +161,12 @@ const STATUS_MAP = {
 function OrderDetail_Shipping() {
   const navigate = useNavigate();
 
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false); // ✅ [추가]
+  const [contact, setContact] = useState(null); // ✅ [추가]
+
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
-  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
-  const [targetContact, setTargetContact] = useState("");
-  
 
   const [counts, setCounts] = useState({
     0: 0,
@@ -181,8 +181,6 @@ function OrderDetail_Shipping() {
   const [isShippingModalOpen, setIsShippingModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
 
-  
-
   const activeStatus = 3; // 🔥 현재 페이지의 상태: 배송 중
 
   const handleOpenShippingModal = (order) => {
@@ -194,20 +192,6 @@ function OrderDetail_Shipping() {
     setIsShippingModalOpen(false);
     setSelectedOrder(null);
   };
-
-  const handleContactClick = async (postId) => {
-      try {
-        // 해당 게시글 정보를 받아와서 contact 정보 추출
-        const response = await api.get(`/api/posts/${postId}`);
-        const contactInfo = response.data.post.contact;
-        
-        setTargetContact(contactInfo);
-        setIsContactModalOpen(true);
-      } catch (error) {
-        console.error("연락처 정보 조회 실패:", error);
-        alert("연락처 정보를 불러오는데 실패했습니다.");
-      }
-    };
 
   /* ===========================
      1. 주문 목록 및 카운트 불러오기
@@ -247,6 +231,7 @@ function OrderDetail_Shipping() {
           host: o.hostNickname || "주최자",
           hostNickname: o.hostNickname,
           quantity: o.quantity ?? 0,
+          phone: o.postContact,
           date: orderedDate,
           total: `${Number(totalPrice).toLocaleString()} 원`,
           carrierName: o.courier || "-", // 배송사
@@ -324,6 +309,16 @@ function OrderDetail_Shipping() {
       path: STATUS_MAP[6].path,
     },
   ];
+
+  const openContact = (phone) => {
+    setContact(phone);
+    setIsContactModalOpen(true);
+  };
+
+  const closeContact = () => {
+    setContact(null);
+    setIsContactModalOpen(false);
+  };
 
   return (
     <div style={styles.orderPage}>
@@ -463,7 +458,11 @@ function OrderDetail_Shipping() {
 
                   {/* 문의하기 버튼 */}
                   <td style={styles.td}>
-                    <button type="button" style={styles.btnFilled}>
+                    <button
+                      type="button"
+                      style={styles.btnFilled}
+                      onClick={() => openContact(order.phone)}
+                    >
                       문의하기
                     </button>
                   </td>
@@ -473,6 +472,12 @@ function OrderDetail_Shipping() {
           </tbody>
         </table>
       </div>
+      {/* ✅ [추가] 연락처 모달 */}
+      <ContactModal
+        isOpen={isContactModalOpen}
+        onClose={() => closeContact()}
+        contact={contact} // PostResponseDto의 contact 필드
+      />
 
       {/* 배송정보 모달 */}
       {isShippingModalOpen && selectedOrder && (
@@ -483,12 +488,6 @@ function OrderDetail_Shipping() {
           onClose={handleCloseShippingModal}
         />
       )}
-
-      <ContactModal
-        isOpen={isContactModalOpen}
-        onClose={() => setIsContactModalOpen(false)}
-        contact={targetContact}
-      />
     </div>
   );
 }

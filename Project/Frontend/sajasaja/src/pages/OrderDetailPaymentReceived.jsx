@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import CancelModal from "./modal/CancelModal";
-import { api, setInterceptor } from "../assets/setIntercepter"; // api, setInterceptor import
 import ContactModal from "./modal/ContactModal";
+import { api, setInterceptor } from "../assets/setIntercepter"; // api, setInterceptor import
 
 /* ============================================
     🔥 SVG 화살표 아이콘 및 스타일 (생략)
@@ -152,6 +152,9 @@ const STATUS_MAP = {
 function OrderDetailPaymentReceived() {
   const navigate = useNavigate();
 
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false); // ✅ [추가]
+  const [contact, setContact] = useState(null); // ✅ [추가]
+
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
@@ -170,9 +173,6 @@ function OrderDetailPaymentReceived() {
   const [selectedOrder, setSelectedOrder] = useState(null);
 
   const activeStatus = 1; // 🔥 현재 페이지의 상태: 결제 완료
-
-  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
-  const [targetContact, setTargetContact] = useState("");
 
   /* ===========================
      1. 주문 목록 및 카운트 불러오기
@@ -214,6 +214,7 @@ function OrderDetailPaymentReceived() {
           host: o.hostNickname || "주최자",
           hostNickname: o.hostNickname,
           quantity: o.quantity ?? 0,
+          phone: o.postContact,
           date: orderedDate,
           total: `${Number(totalPrice).toLocaleString()} 원`,
         };
@@ -259,20 +260,6 @@ function OrderDetailPaymentReceived() {
     setIsCancelModalOpen(false);
     setSelectedOrder(null);
   };
-
-  const handleContactClick = async (postId) => {
-      try {
-        // 해당 게시글 정보를 받아와서 contact 정보 추출
-        const response = await api.get(`/api/posts/${postId}`);
-        const contactInfo = response.data.post.contact;
-        
-        setTargetContact(contactInfo);
-        setIsContactModalOpen(true);
-      } catch (error) {
-        console.error("연락처 정보 조회 실패:", error);
-        alert("연락처 정보를 불러오는데 실패했습니다.");
-      }
-    };
 
   /* ===========================
      3. 실제 주문 취소 API 호출
@@ -341,6 +328,16 @@ function OrderDetailPaymentReceived() {
       path: STATUS_MAP[6].path,
     },
   ];
+
+  const openContact = (phone) => {
+    setContact(phone);
+    setIsContactModalOpen(true);
+  };
+
+  const closeContact = () => {
+    setContact(null);
+    setIsContactModalOpen(false);
+  };
 
   return (
     <div style={styles.orderPage}>
@@ -475,8 +472,13 @@ function OrderDetailPaymentReceived() {
                       주문 취소
                     </button>
                   </td>
+                  {/* 문의하기 버튼 */}
                   <td style={styles.td}>
-                    <button type="button" style={styles.btnFilled}>
+                    <button
+                      type="button"
+                      style={styles.btnFilled}
+                      onClick={() => openContact(order.phone)}
+                    >
                       문의하기
                     </button>
                   </td>
@@ -486,6 +488,12 @@ function OrderDetailPaymentReceived() {
           </tbody>
         </table>
       </div>
+      {/* ✅ [추가] 연락처 모달 */}
+      <ContactModal
+        isOpen={isContactModalOpen}
+        onClose={() => closeContact()}
+        contact={contact} // PostResponseDto의 contact 필드
+      />
 
       {/* 🔥 주문 취소 모달 */}
       <CancelModal
@@ -493,13 +501,6 @@ function OrderDetailPaymentReceived() {
         onClose={closeCancelModal}
         onConfirm={handleConfirmCancel}
         order={selectedOrder}
-      />
-
-      {/* 🔥 연락처 모달 추가 */}
-      <ContactModal
-        isOpen={isContactModalOpen}
-        onClose={() => setIsContactModalOpen(false)}
-        contact={targetContact}
       />
     </div>
   );

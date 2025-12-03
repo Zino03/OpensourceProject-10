@@ -158,22 +158,27 @@ const STATUS_MAP = {
 function OrderDetailOrderReceived() {
   const navigate = useNavigate();
 
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false); // ✅ [추가]
+  const [contact, setContact] = useState(null); // ✅ [추가]
+
   // 주문 리스트 상태
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // 동적 주문 수량 상태
   const [counts, setCounts] = useState({
-    0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0,
+    0: 0,
+    1: 0,
+    2: 0,
+    3: 0,
+    4: 0,
+    5: 0,
+    6: 0,
   });
 
   // 취소 모달 관련 상태
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
-
-  // 🔥 [추가] 연락처 모달 관련 상태
-  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
-  const [targetContact, setTargetContact] = useState("");
 
   const activeStatus = 0; // 현재 페이지: 주문 접수(0)
 
@@ -207,11 +212,12 @@ function OrderDetailOrderReceived() {
         const totalPrice = o.price ?? 0;
 
         return {
-          id: o.id, 
+          id: o.id,
           postId: o.postId, // 🔥 [중요] postId가 있어야 연락처 조회가 가능합니다.
           name: o.postTitle,
           host: o.hostNickname,
           quantity: o.quantity,
+          phone: o.postContact,
           status: o.status,
           date: orderedDate,
           total: `${Number(totalPrice).toLocaleString()} 원`,
@@ -253,11 +259,9 @@ function OrderDetailOrderReceived() {
     if (!selectedOrder) return;
     try {
       const payload = { status: 5 };
-      await api.patch(
-        `/api/mypage/order/${selectedOrder.id}/cancel`,
-        payload,
-        { headers: { "Content-Type": "application/json" } }
-      );
+      await api.patch(`/api/mypage/order/${selectedOrder.id}/cancel`, payload, {
+        headers: { "Content-Type": "application/json" },
+      });
       alert("주문이 취소되었습니다.");
       closeCancelModal();
       fetchOrders();
@@ -268,36 +272,56 @@ function OrderDetailOrderReceived() {
   };
 
   /* ===================================
-       🔥 3. [연락처 모달 연결] 핸들러
-  =================================== */
-  const handleContactClick = async (postId) => {
-    try {
-      // 1. 해당 주문의 게시글 ID로 상세 정보를 조회합니다.
-      const response = await api.get(`/api/posts/${postId}`);
-      
-      // 2. 받아온 정보에서 연락처(contact)를 꺼냅니다.
-      const contactInfo = response.data.post.contact;
-      
-      // 3. 모달 상태를 업데이트하여 띄웁니다.
-      setTargetContact(contactInfo);
-      setIsContactModalOpen(true);
-    } catch (error) {
-      console.error("연락처 정보 조회 실패:", error);
-      alert("연락처 정보를 불러오는데 실패했습니다.");
-    }
-  };
-
-  /* ===================================
        🔥 STEP UI 데이터
   =================================== */
   const steps = [
-    { id: 0, label: STATUS_MAP[0].label, value: counts[0] || 0, path: STATUS_MAP[0].path },
-    { id: 1, label: STATUS_MAP[1].label, value: counts[1] || 0, path: STATUS_MAP[1].path },
-    { id: 2, label: STATUS_MAP[2].label, value: counts[2] || 0, path: STATUS_MAP[2].path },
-    { id: 3, label: STATUS_MAP[3].label, value: counts[3] || 0, path: STATUS_MAP[3].path },
-    { id: 4, label: STATUS_MAP[4].label, value: (counts[4] || 0) + (counts[5] || 0), path: STATUS_MAP[4].path },
-    { id: 6, label: STATUS_MAP[6].label, value: counts[6] || 0, path: STATUS_MAP[6].path },
+    {
+      id: 0,
+      label: STATUS_MAP[0].label,
+      value: counts[0] || 0,
+      path: STATUS_MAP[0].path,
+    },
+    {
+      id: 1,
+      label: STATUS_MAP[1].label,
+      value: counts[1] || 0,
+      path: STATUS_MAP[1].path,
+    },
+    {
+      id: 2,
+      label: STATUS_MAP[2].label,
+      value: counts[2] || 0,
+      path: STATUS_MAP[2].path,
+    },
+    {
+      id: 3,
+      label: STATUS_MAP[3].label,
+      value: counts[3] || 0,
+      path: STATUS_MAP[3].path,
+    },
+    {
+      id: 4,
+      label: STATUS_MAP[4].label,
+      value: (counts[4] || 0) + (counts[5] || 0),
+      path: STATUS_MAP[4].path,
+    },
+    {
+      id: 6,
+      label: STATUS_MAP[6].label,
+      value: counts[6] || 0,
+      path: STATUS_MAP[6].path,
+    },
   ];
+
+  const openContact = (phone) => {
+    setContact(phone);
+    setIsContactModalOpen(true);
+  };
+
+  const closeContact = () => {
+    setContact(null);
+    setIsContactModalOpen(false);
+  };
 
   return (
     <div style={styles.orderPage}>
@@ -305,13 +329,28 @@ function OrderDetailOrderReceived() {
       <div style={styles.orderSteps}>
         {steps.map((step, index) => (
           <React.Fragment key={step.id}>
-            <div style={styles.orderStep} onClick={() => step.path && navigate(step.path)}>
-              <div style={step.id === activeStatus ? styles.stepNumberActive : styles.stepNumber}>
+            <div
+              style={styles.orderStep}
+              onClick={() => step.path && navigate(step.path)}
+            >
+              <div
+                style={
+                  step.id === activeStatus
+                    ? styles.stepNumberActive
+                    : styles.stepNumber
+                }
+              >
                 {step.value}
               </div>
               <div style={styles.stepLabel}>{step.label}</div>
             </div>
-            {index < steps.length - 2 && <ArrowIcon color={step.id === activeStatus ? arrowColors[0] : arrowColors[1]} />}
+            {index < steps.length - 2 && (
+              <ArrowIcon
+                color={
+                  step.id === activeStatus ? arrowColors[0] : arrowColors[1]
+                }
+              />
+            )}
             {index === steps.length - 2 && <ArrowIcon color={arrowColors[2]} />}
           </React.Fragment>
         ))}
@@ -321,7 +360,9 @@ function OrderDetailOrderReceived() {
       <div style={styles.orderListWrapper}>
         <div style={styles.orderListHeader}>
           <h2 style={styles.orderListTitle}>주문 내역</h2>
-          <span style={styles.orderListNotice}>상품 준비가 시작되면 주문 취소가 어렵습니다.</span>
+          <span style={styles.orderListNotice}>
+            상품 준비가 시작되면 주문 취소가 어렵습니다.
+          </span>
         </div>
 
         <table style={styles.orderTable}>
@@ -338,35 +379,62 @@ function OrderDetailOrderReceived() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td style={styles.td} colSpan={7}>주문 내역을 불러오는 중입니다...</td></tr>
+              <tr>
+                <td style={styles.td} colSpan={7}>
+                  주문 내역을 불러오는 중입니다...
+                </td>
+              </tr>
             ) : orders.length === 0 ? (
-              <tr><td style={styles.td} colSpan={7}>주문 접수 상태의 주문이 없습니다.</td></tr>
+              <tr>
+                <td style={styles.td} colSpan={7}>
+                  주문 접수 상태의 주문이 없습니다.
+                </td>
+              </tr>
             ) : (
               orders.map((order, idx) => (
-                <tr key={order.id} style={idx === orders.length - 1 ? styles.lastBodyRow : styles.bodyRow}>
+                <tr
+                  key={order.id}
+                  style={
+                    idx === orders.length - 1
+                      ? styles.lastBodyRow
+                      : styles.bodyRow
+                  }
+                >
                   <td
-                    style={{ ...styles.td, ...styles.productName, cursor: "pointer" }}
+                    style={{
+                      ...styles.td,
+                      ...styles.productName,
+                      cursor: "pointer",
+                    }}
                     onClick={() => navigate(`/orderpage/${order.id}`)}
                   >
                     {order.name}
                   </td>
-                  <td style={{ ...styles.td, cursor: "pointer" }} onClick={() => navigate(`/user/${order.host}`)}>
+                  <td
+                    style={{ ...styles.td, cursor: "pointer" }}
+                    onClick={() => navigate(`/user/${order.host}`)}
+                  >
                     {order.host}
                   </td>
                   <td style={styles.td}>{order.quantity}</td>
                   <td style={styles.td}>{order.date}</td>
                   <td style={styles.td}>{order.total}</td>
                   <td style={styles.td}>
-                    <button type="button" style={styles.btnOutline} onClick={() => openCancelModal(order)}>
+                    <button
+                      type="button"
+                      style={styles.btnOutline}
+                      onClick={() => openCancelModal(order)}
+                    >
                       주문 취소
                     </button>
                   </td>
-                  {/* 🔥 문의하기 버튼: 클릭 시 handleContactClick 실행 */}
+
+                  {/* 문의하기 버튼 */}
                   <td style={styles.td}>
-                    <button 
-                      type="button" 
-                      style={styles.btnFilled} 
-                      onClick={() => handleContactClick(order.postId)}
+                    <button
+                      type="button"
+                      style={styles.btnFilled}
+                      onClick={() => openContact(order.phone)}
                     >
                       문의하기
                     </button>
@@ -377,6 +445,12 @@ function OrderDetailOrderReceived() {
           </tbody>
         </table>
       </div>
+      {/* ✅ [추가] 연락처 모달 */}
+      <ContactModal
+        isOpen={isContactModalOpen}
+        onClose={() => closeContact()}
+        contact={contact} // PostResponseDto의 contact 필드
+      />
 
       {/* 🔥 취소 모달 */}
       <CancelModal
@@ -384,13 +458,6 @@ function OrderDetailOrderReceived() {
         onClose={closeCancelModal}
         onConfirm={handleConfirmCancel}
         order={selectedOrder}
-      />
-      
-      {/* 🔥 연락처 모달 */}
-      <ContactModal
-        isOpen={isContactModalOpen}
-        onClose={() => setIsContactModalOpen(false)}
-        contact={targetContact}
       />
     </div>
   );
