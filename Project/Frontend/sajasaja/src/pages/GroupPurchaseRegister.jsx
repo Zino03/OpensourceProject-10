@@ -350,13 +350,13 @@ const GroupPurchaseRegister = () => {
       });
 
       if (response.status === 200 || response.status === 201) {
-        // console.log(response.data)
+        console.log(response.data)
 
         alert("공구 등록이 완료되었습니다!");
         setIsConfirmModalOpen(false);
 
         // ✅ 여기서 MY공구 페이지로 이동
-        // navigate('/');
+        navigate('/');
       }
 
     } catch (error) {
