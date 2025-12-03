@@ -721,7 +721,7 @@ const GroupPurchaseDetail = () => {
     imageUrl: post.image ? `${BASE_URL}${post.image}` : "/images/sajasaja.png",
     description: post.content,
   };
-
+  console.log(product)
   const filteredParticipants = participants.filter(
     (p) => p.receive === participantFilter
   );
