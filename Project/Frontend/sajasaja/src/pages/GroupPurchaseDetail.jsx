@@ -632,6 +632,8 @@ const GroupPurchaseDetail = () => {
         setLongitude(postData.pickupAddress.longitude);
       }
 
+      console.log(postData)
+
       // 내 수량 초기화
       if (buyerData) {
         const myQty = buyerData.quantity || 1;
@@ -649,6 +651,7 @@ const GroupPurchaseDetail = () => {
           postData.isCanceled === false
         ) {
           // 상태에 따라 조기 리턴할 거라면 여기서 return
+          return;
         }
 
         // 주최자라면 참여자 목록 조회
@@ -729,9 +732,7 @@ const GroupPurchaseDetail = () => {
   );
 
   // 🔥 주최자일 때는 "내 주문 수량 변경"을 반영해서 보여줄 현재 수량 계산
-  const displayCurrentCount = isOrganizer
-    ? Math.max(baseCurrentCount - hostOriginalQuantity + quantity, 0)
-    : baseCurrentCount;
+  const displayCurrentCount = baseCurrentCount;
 
   const progressPercent = Math.min(
     (displayCurrentCount / product.goalCount) * 100,
