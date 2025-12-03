@@ -981,7 +981,7 @@ const GroupPurchaseDetail = () => {
                     <OrganizerName>{product.organizer}</OrganizerName>
 
                     {/* ✅ 매너점수 배지 (host.mannerScore 연동) */}
-                    {organizerMannerScore !== undefined && (
+                    {/* {organizerMannerScore !== undefined && (
                       <TimeBadge>
                         {" "}
                         {typeof organizerMannerScore === "number"
@@ -989,7 +989,7 @@ const GroupPurchaseDetail = () => {
                           : organizerMannerScore}
                         점
                       </TimeBadge>
-                    )}
+                    )} */}
                   </div>
                 </OrganizerLeft>
 

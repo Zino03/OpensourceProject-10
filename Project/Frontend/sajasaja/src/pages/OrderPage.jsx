@@ -1,11 +1,13 @@
-<<<<<<< HEAD
-import { useNavigate } from "react-router-dom";
-=======
 // 파일명: OrderPage.jsx
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Map, MapMarker, useKakaoLoader } from "react-kakao-maps-sdk";
+import {
+  CustomOverlayMap,
+  Map,
+  MapMarker,
+  useKakaoLoader,
+} from "react-kakao-maps-sdk";
 import { api, setInterceptor } from "../assets/setIntercepter";
 
 // --- Styled Components ---
@@ -33,6 +35,21 @@ const MapContainer = styled.div`
   position: relative;
   border: 1px solid #ddd;
 `;
+
+// 마커 스타일
+const MarkerPin = styled.div`
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  opacity: 1;
+  transform: scale(1);
+  transition: all 0.2s ease;
+  .img {
+    height: 30px;
+  }
+`;
+
 const MapOverlayButton = styled.button`
   position: absolute;
   top: 20px;
@@ -341,17 +358,12 @@ const HostInfo = styled.div`
   gap: 4px;
   font-size: 13px;
 `;
->>>>>>> 8e4ee339965a0743e0b121ed8b155212170e1fea
 
 const OrderPage = () => {
   const navigate = useNavigate();
   const { state } = useLocation();
 
-<<<<<<< HEAD
-  const [loading, error] = useKakaoLoader({
-=======
   const [loadingMap, errorMap] = useKakaoLoader({
->>>>>>> 8e4ee339965a0743e0b121ed8b155212170e1fea
     appkey: "1182ee2a992f45fb1db2238604970e19",
     libraries: ["services"],
   });
@@ -359,21 +371,6 @@ const OrderPage = () => {
   const receiveMethod = state?.method || "delivery";
   const isDelivery = receiveMethod === "delivery";
   const productData = state?.product || {};
-<<<<<<< HEAD
-
-  const postId = state?.postId || productData.id;
-  const maxAvailable = (productData.goalCount || 0) - (productData.currentCount || 0);
-
-  const [quantity, setQuantity] = useState(state?.quantity || 1);
-  const [receiver, setReceiver] = useState('');
-  const [phone, setPhone] = useState({ p1: '010', p2: '', p3: '' });
-
-  const [address, setAddress] = useState({ zipCode: '', street: '', detail: '' }); // ✅ FIXED
-  const [userAddresses, setUserAddresses] = useState([]); 
-  const [selectedAddressId, setSelectedAddressId] = useState('new');
-  const [entranceMethod, setEntranceMethod] = useState('password');
-  const [entranceDetail, setEntranceDetail] = useState('');
-=======
 
   // ✅ PurchaseModal에서 넘겨준 postId를 받음
   const postId = state?.postId || productData.id;
@@ -393,7 +390,6 @@ const OrderPage = () => {
   const [selectedAddressId, setSelectedAddressId] = useState("new");
   const [entranceMethod, setEntranceMethod] = useState("password");
   const [entranceDetail, setEntranceDetail] = useState("");
->>>>>>> 8e4ee339965a0743e0b121ed8b155212170e1fea
 
   // 지도 상태
   const [latitude, setLatitude] = useState(0);
@@ -410,7 +406,6 @@ const OrderPage = () => {
   );
   const totalProductPrice = safePrice * quantity;
   const finalPrice = totalProductPrice + safeShippingCost;
-
 
   // ---------------------------------------------------------
   //                 INITIAL FETCH (SAFE VERSION)
@@ -429,25 +424,11 @@ const OrderPage = () => {
       setInterceptor(token);
 
       try {
-<<<<<<< HEAD
-        // 1) 사용자 주소 로드
-        const addrResponse = await api.get("/api/mypage/addresses");
-
-        // ✅ FIXED: 응답을 무조건 배열로 강제
-        const addresses = Array.isArray(addrResponse?.data?.addresses)
-          ? addrResponse.data.addresses
-          : [];
-
-        setUserAddresses(addresses);
-
-        // 2) 기본 주소 적용
-=======
         // 1) 사용자 주소 불러오기
         const addrResponse = await api.get("/api/mypage/addresses");
         const addresses = addrResponse.data.addresses || [];
         setUserAddresses(addresses);
 
->>>>>>> 8e4ee339965a0743e0b121ed8b155212170e1fea
         const defaultAddr = addresses.find((addr) => addr.isDefault);
 
         if (defaultAddr) {
@@ -459,12 +440,9 @@ const OrderPage = () => {
         // 3) 주최자 프로필 + 좌표 불러오기
         if (postId) {
           const profileRes = await api.get(`/api/posts/${postId}/profile`);
-<<<<<<< HEAD
-=======
 
           // 너가 올려준 응답 구조 대응:
           // { profile: { ... } } 또는 그냥 { ... }
->>>>>>> 8e4ee339965a0743e0b121ed8b155212170e1fea
           const profileData = profileRes.data.profile || profileRes.data;
           setSellerProfile(profileData);
 
@@ -484,7 +462,6 @@ const OrderPage = () => {
     fetchInitData();
   }, [navigate, postId]);
 
-
   // ---------------------------------------------------------
   //                       ADDRESS APPLY
   // ---------------------------------------------------------
@@ -501,7 +478,6 @@ const OrderPage = () => {
         p3: parts[2] || "",
       });
     }
-<<<<<<< HEAD
 
     setAddress({
       zipCode: addr.zipCode || "",
@@ -518,24 +494,9 @@ const OrderPage = () => {
       else if (method === "free") mapped = "free";
 
       setEntranceMethod(mapped);
-=======
-    setAddress({
-      zipCode: addr.zipCode,
-      street: addr.street,
-      detail: addr.detail,
-    });
-    if (addr.entranceAccess) {
-      const method = String(addr.entranceAccess).toLowerCase();
-      let mappedMethod = "etc";
-      if (method === "password") mappedMethod = "password";
-      else if (method === "call") mappedMethod = "security";
-      else if (method === "free") mappedMethod = "free";
-      setEntranceMethod(mappedMethod);
->>>>>>> 8e4ee339965a0743e0b121ed8b155212170e1fea
       setEntranceDetail(addr.entranceDetail || "");
     }
   };
-
 
   // ---------------------------------------------------------
   //                  ADDRESS SELECT HANDLER
@@ -544,23 +505,15 @@ const OrderPage = () => {
     const val = e.target.value;
 
     setSelectedAddressId(val);
-<<<<<<< HEAD
-
-=======
->>>>>>> 8e4ee339965a0743e0b121ed8b155212170e1fea
     if (val === "new") {
       setReceiver("");
       setPhone({ p1: "010", p2: "", p3: "" });
       setAddress({ zipCode: "", street: "", detail: "" });
       setEntranceMethod("password");
       setEntranceDetail("");
-<<<<<<< HEAD
-      return;
-=======
     } else {
       const selected = userAddresses.find((addr) => addr.id === Number(val));
       if (selected) applyAddressToState(selected);
->>>>>>> 8e4ee339965a0743e0b121ed8b155212170e1fea
     }
 
     const selected = (userAddresses || []).find(
@@ -569,7 +522,6 @@ const OrderPage = () => {
 
     if (selected) applyAddressToState(selected);
   };
-
 
   // ---------------------------------------------------------
   //                      QTY CHANGE
@@ -585,7 +537,6 @@ const OrderPage = () => {
     setQuantity(val);
   };
 
-
   // ---------------------------------------------------------
   //                      ORDER BUTTON
   // ---------------------------------------------------------
@@ -598,10 +549,7 @@ const OrderPage = () => {
       return;
     }
 
-<<<<<<< HEAD
-=======
     // ✅ postId 포함해서 결제 페이지로 이동
->>>>>>> 8e4ee339965a0743e0b121ed8b155212170e1fea
     navigate("/payment", {
       state: {
         product: productData,
@@ -622,13 +570,11 @@ const OrderPage = () => {
     });
   };
 
-
   // ---------------------------------------------------------
   //                JSX RETURN (map 처리만 수정)
   // ---------------------------------------------------------
   return (
     <Container>
-
       {/* 주최자 정보 */}
       {sellerProfile && (
         <Section>
@@ -640,13 +586,9 @@ const OrderPage = () => {
             <HostAvatar
               src={sellerProfile.profileImg || "/images/profile.png"}
               alt="주최자 프로필"
-<<<<<<< HEAD
-              onError={(e) => (e.target.src = "/images/profile.png")}
-=======
               onError={(e) => {
                 e.target.src = "/images/profile.png";
               }}
->>>>>>> 8e4ee339965a0743e0b121ed8b155212170e1fea
             />
             <HostInfo>
               <div style={{ fontWeight: 600 }}>
@@ -676,16 +618,16 @@ const OrderPage = () => {
                   onChange={handleAddressSelect}
                   value={selectedAddressId}
                 >
-<<<<<<< HEAD
-                  {(userAddresses || []).map((addr) => (        // ✅ FIXED
-=======
-                  {userAddresses.map((addr) => (
->>>>>>> 8e4ee339965a0743e0b121ed8b155212170e1fea
-                    <option key={addr.id} value={addr.id}>
-                      {addr.name || addr.recipient}{" "}
-                      {addr.isDefault ? "(기본)" : ""}
-                    </option>
-                  ))}
+                  {(userAddresses || []).map(
+                    (
+                      addr // ✅ FIXED
+                    ) => (
+                      <option key={addr.id} value={addr.id}>
+                        {addr.name || addr.recipient}{" "}
+                        {addr.isDefault ? "(기본)" : ""}
+                      </option>
+                    )
+                  )}
                   <option value="new">신규 입력</option>
                 </StyledSelect>
               </InputArea>
@@ -715,23 +657,17 @@ const OrderPage = () => {
                 <PhoneGroup>
                   <StyledInput
                     value={phone.p1}
-                    onChange={(e) =>
-                      setPhone({ ...phone, p1: e.target.value })
-                    }
+                    onChange={(e) => setPhone({ ...phone, p1: e.target.value })}
                   />
                   <span>-</span>
                   <StyledInput
                     value={phone.p2}
-                    onChange={(e) =>
-                      setPhone({ ...phone, p2: e.target.value })
-                    }
+                    onChange={(e) => setPhone({ ...phone, p2: e.target.value })}
                   />
                   <span>-</span>
                   <StyledInput
                     value={phone.p3}
-                    onChange={(e) =>
-                      setPhone({ ...phone, p3: e.target.value })
-                    }
+                    onChange={(e) => setPhone({ ...phone, p3: e.target.value })}
                   />
                 </PhoneGroup>
               </InputArea>
@@ -761,15 +697,7 @@ const OrderPage = () => {
                   </AddressDisplayBox>
                 ) : (
                   <div
-<<<<<<< HEAD
-                    style={{
-                      padding: "10px",
-                      color: "#999",
-                      fontSize: "12px",
-                    }}
-=======
                     style={{ padding: "10px", color: "#999", fontSize: "12px" }}
->>>>>>> 8e4ee339965a0743e0b121ed8b155212170e1fea
                   >
                     주소를 선택하거나 입력해주세요.
                   </div>
@@ -834,18 +762,6 @@ const OrderPage = () => {
       ) : (
         // 직접수령 (map)
         <Section>
-<<<<<<< HEAD
-          <SectionHeader>수령장소</SectionHeader>
-
-          {loading ? (
-            <div>지도를 불러오는 중...</div>
-          ) : error ? (
-            <div>지도 로딩 실패</div>
-          ) : (
-            <MapContainer>
-              <Map
-                center={{ lat: latitude, lng: longitude }}
-=======
           <SectionTitle>수령 장소</SectionTitle>
           <MapContainer>
             {loadingMap ? (
@@ -877,7 +793,6 @@ const OrderPage = () => {
                   lat: parseFloat(productData.latitude || 36.628583),
                   lng: parseFloat(productData.longitude || 127.457583),
                 }}
->>>>>>> 8e4ee339965a0743e0b121ed8b155212170e1fea
                 style={{ width: "100%", height: "100%" }}
                 level={3}
                 onCreate={setMap}
@@ -887,26 +802,17 @@ const OrderPage = () => {
                   yAnchor={1}
                   zIndex={999}
                 >
-<<<<<<< HEAD
-                  <MarkerPin>
+                  {/* <MarkerPin>
                     <img
                       src="/images/marker.png"
                       alt="marker"
                       style={{ height: "30px" }}
                     />
-                  </MarkerPin>
+                  </MarkerPin> */}
                 </CustomOverlayMap>
-=======
-                  <div
-                    style={{ padding: "5px", color: "#000", fontSize: "12px" }}
-                  >
-                    수령 장소
-                  </div>
-                </MapMarker>
->>>>>>> 8e4ee339965a0743e0b121ed8b155212170e1fea
               </Map>
-            </MapContainer>
-          )}
+            )}
+          </MapContainer>
         </Section>
       )}
 
