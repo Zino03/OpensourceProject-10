@@ -165,7 +165,7 @@ public class BuyerService {
 
         post.getBuyers().add(buyer);
         post.setCurrentQuantity(post.getCurrentQuantity() + buyer.getQuantity());
-        if (targetQuantity - post.getCurrentQuantity() <= 5) {
+        if (!post.getStatus().equals(0) && targetQuantity - post.getCurrentQuantity() <= 5) {
             post.setStatus(2);
         }
 
