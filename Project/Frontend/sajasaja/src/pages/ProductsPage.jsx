@@ -4,6 +4,9 @@ import ProductCard from '../components/ProductCard';
 import CustomSelectProduct from '../components/CustomSelectProduct';
 import { api, setInterceptor } from "../assets/setIntercepter";
 
+/* ===========================
+   styled-components (기존 유지)
+   =========================== */
 const FilterSection = styled.section`
   padding: 36px 200px;
   border-bottom: 1px solid #eee;
@@ -57,6 +60,8 @@ const CategoryTag = styled.span`
   font-size: 11px;
   cursor: pointer;
   background-color: ${props => props.$isActive ? '#FFF5E0' : 'transparent'};
+  font-weight: ${props => props.$isActive ? '700' : '400'};
+  color: ${props => props.$isActive ? '#FF7E00' : '#555'};
 `;
 
 const ProductListContainer = styled.div`
@@ -86,8 +91,13 @@ const LoadingText = styled.div`
   font-weight: 600;
 `;
 
-// 카테고리 목록
+/* ===========================
+   상수 및 매핑 데이터
+   =========================== */
+
+// 카테고리 목록 (UI 표시용)
 const CATEGORIES = [
+  "전체", // "전체" 버튼을 명시적으로 추가하여 UX 개선
   "식품", "생활용품", "가전/전자기기", "뷰티/미용", 
   "패션", "잡화/액세서리", "리빙/인테리어", "반려동물", 
   "문구/취미", "스포츠", "유아/아동", "기타"
@@ -110,50 +120,56 @@ const statusOptions = [
 ];
 
 // 백엔드 전송용 상태 매핑 (UI value -> 백엔드 Enum)
+// all일 경우 null로 처리하거나 아예 파라미터를 보내지 않음
 const STATUS_MAP = {
-  'all': null,
-  'prog': 1,  
-  'deadIm': 2,  
-  'dead': 3 
+  'prog': 1,   // 모집중
+  'deadIm': 2, // 마감임박
+  'dead': 3    // 마감
 };
 
 const ProductsPage = () => {
   const [products, setProducts] = useState([]); 
   const [isLoading, setIsLoading] = useState(false);
 
-  const [searchInputValue, setSearchInputValue] = useState(""); 
-  const [confirmedSearchTerm, setConfirmedSearchTerm] = useState("");
+  // 필터 상태 관리
+  const [searchInputValue, setSearchInputValue] = useState(""); // 검색창 입력값
+  const [confirmedSearchTerm, setConfirmedSearchTerm] = useState(""); // 실제 검색 실행값
   const [selectedStatus, setSelectedStatus] = useState("all"); 
   const [selectedCategory, setSelectedCategory] = useState("전체");
 
   useEffect(() => {
     const fetchProducts = async () => {
-      // 1. 토큰 체크 및 인터셉터 설정
+      // 1. 토큰 체크 (필요한 경우)
       const token = localStorage.getItem('accessToken');
       if (token) {
         setInterceptor(token);
-      } 
+      }
       
       setIsLoading(true);
 
       try {
-        // 2. 쿼리 파라미터 구성
+        // 2. 쿼리 파라미터 구성 (핵심 로직)
         const params = {
           page: 0,
           size: 50, 
         };
 
-        if (confirmedSearchTerm) {
-          params.query = confirmedSearchTerm;
+        // 검색어: 값이 있을 때만 params에 추가
+        if (confirmedSearchTerm && confirmedSearchTerm.trim() !== "") {
+          params.query = confirmedSearchTerm.trim();
         }
         
-        if (CATEGORY_MAP[selectedCategory]) {
+        // 카테고리: '전체'가 아니고 맵핑값이 존재할 때만 추가
+        if (selectedCategory !== "전체" && CATEGORY_MAP[selectedCategory]) {
           params.category = CATEGORY_MAP[selectedCategory];
         }
         
-        if (STATUS_MAP[selectedStatus]) {
+        // 상태: 'all'이 아니고 맵핑값이 존재할 때만 추가
+        if (selectedStatus !== 'all' && STATUS_MAP[selectedStatus]) {
           params.type = STATUS_MAP[selectedStatus];
         }
+
+        console.log("API 요청 파라미터:", params); // 디버깅용 로그
 
         // 3. API 호출
         const response = await api.get('/api/posts', { params });
@@ -161,6 +177,7 @@ const ProductsPage = () => {
         console.log("상품 목록 조회 결과:", response.data);
 
         // 4. 응답 데이터 처리
+        // 백엔드 응답 구조(Page 객체인지 List인지)에 따라 유연하게 처리
         if (response.data && response.data.content) {
           setProducts(response.data.content);
         } else if (Array.isArray(response.data)) {
@@ -179,8 +196,10 @@ const ProductsPage = () => {
 
     fetchProducts();
     
+    // 의존성 배열: 이 값들이 변할 때마다 API 재호출
   }, [confirmedSearchTerm, selectedStatus, selectedCategory]);
 
+  // 검색 핸들러
   const handleSearch = () => {
     setConfirmedSearchTerm(searchInputValue); 
   };
@@ -191,27 +210,35 @@ const ProductsPage = () => {
     }
   };
 
+  // 카테고리 클릭 핸들러 (토글 방식 or 단순 선택 방식)
+  // 여기서는 단순 선택 방식으로 구현 ("전체"도 선택 가능하게)
   const handleCategoryClick = (category) => {
-    setSelectedCategory(prev => prev === category ? "전체" : category);
+    setSelectedCategory(category);
   };
 
   return (
     <>
       <FilterSection>
         <SearchBar>
+          {/* 드롭다운: 모집중/마감임박 등 상태 필터 */}
           <CustomSelectProduct
             value={selectedStatus} 
             onChange={(val) => setSelectedStatus(val)} 
-            options={statusOptions}>
-          </CustomSelectProduct>
+            options={statusOptions}
+          />
           
-          <input type="text" placeholder="공동 구매 게시물 검색" 
+          {/* 검색창 */}
+          <input 
+            type="text" 
+            placeholder="공동 구매 게시물 검색" 
             value={searchInputValue}
             onChange={(e) => setSearchInputValue(e.target.value)}
-            onKeyDown={handleKeyDown}/>
+            onKeyDown={handleKeyDown}
+          />
           <img src="/images/search.png" alt="search" onClick={handleSearch}/> 
         </SearchBar>
         
+        {/* 카테고리 태그 목록 */}
         <SubCategoryTags>
           {CATEGORIES.map((category) => (
             <CategoryTag 
