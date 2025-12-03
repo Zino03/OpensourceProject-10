@@ -168,6 +168,12 @@ public class BuyerService {
         if (!post.getStatus().equals(0) && targetQuantity - post.getCurrentQuantity() <= 5) {
             post.setStatus(2);
         }
+        if (
+                (!post.getStatus().equals(1) || !post.getStatus().equals(2))
+                        && targetQuantity == post.getCurrentQuantity()
+        ) {
+            post.setStatus(3);
+        }
 
         buyer = buyerRepository.save(buyer);
 
