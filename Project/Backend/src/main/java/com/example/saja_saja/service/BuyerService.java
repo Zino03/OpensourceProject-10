@@ -165,6 +165,9 @@ public class BuyerService {
 
         post.getBuyers().add(buyer);
         post.setCurrentQuantity(post.getCurrentQuantity() + buyer.getQuantity());
+        if (targetQuantity - post.getCurrentQuantity() <= 5) {
+            post.setStatus(2);
+        }
 
         buyer = buyerRepository.save(buyer);
 
@@ -230,7 +233,21 @@ public class BuyerService {
         }
 
         post.setCurrentQuantity(post.getCurrentQuantity() - buyer.getQuantity());
-        post.setCurrentPaidQuantity(post.getCurrentPaidQuantity() - buyer.getQuantity());
+
+        if (buyer.getIsPaid().equals(1)) {
+            post.setCurrentPaidQuantity(post.getCurrentPaidQuantity() - buyer.getQuantity());
+        }
+
+        if (post.getStatus() != 3) {
+            int remainingQuantity = post.getQuantity() - post.getCurrentQuantity();
+
+            if (remainingQuantity <= 5) {
+                post.setStatus(2);
+            } else {
+                post.setStatus(1);
+            }
+        }
+
 
         Optional<Buyer> optionalLastBuyer = buyerRepository.findFirstByPostAndIsCanceledAndIsPaidOrderByIdDesc(post, false, 0);
         if (optionalLastBuyer.isEmpty()) {
@@ -305,6 +322,12 @@ public class BuyerService {
         buyer.setQuantity(requestQuantity);
         buyer.setPrice(post.getPrice()*requestQuantity);
         post.setCurrentQuantity(newTotal);
+        post.setCurrentPaidQuantity(post.getCurrentPaidQuantity() - oldQuantity + requestQuantity);
+        if (post.getQuantity() - post.getCurrentQuantity() <= 5) {
+            post.setStatus(2);
+        } else {
+            post.setStatus(1);
+        }
 
         buyerRepository.save(buyer);
         postRepository.save(post);

@@ -256,7 +256,6 @@ const OrderPage = () => {
                  </MapMarker>
                </Map>
             )}
-            <MapOverlayButton>지도보기</MapOverlayButton>
           </MapContainer>
           <WarningText>수령장소를 확인해주세요!</WarningText>
         </Section>

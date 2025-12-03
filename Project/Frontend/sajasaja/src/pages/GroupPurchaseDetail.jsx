@@ -939,7 +939,7 @@ const GroupPurchaseDetail = () => {
             <OrganizerRow>
               <Label>주최자</Label>
               <OrganizerBadge>
-                <OrganizerLeft onClick={() => navigate("/userpage")}>
+                <OrganizerLeft onClick={() => navigate(`/user/${post.host.nickname}`)}>
                   <ProfileIcon
                     src={product.organizerProfileImage}
                     alt="profile"

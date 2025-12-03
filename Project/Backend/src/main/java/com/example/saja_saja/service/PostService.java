@@ -259,6 +259,7 @@ public class PostService {
         }
 
         post.setIsCanceled(true);
+        post.setStatus(3);  // 마감
 
         // 참여자 전부에 대해 buyer 취소 처리
         for (Buyer buyer : post.getBuyers()) {
