@@ -148,7 +148,11 @@ const MyPage = () => {
   }, [navigate, userNickname]); // userNickname을 의존성 배열에 추가하여 ESLint 경고 방지
 
   const handleClick = (path) => {
-    navigate(path);
+    navigate(path, {
+      state: {
+        nickname: nickname,
+      },
+    });
   }; // 로딩 상태 처리
   if (isLoading) {
     return (

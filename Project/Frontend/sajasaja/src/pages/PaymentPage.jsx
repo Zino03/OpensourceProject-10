@@ -148,7 +148,7 @@ const PaymentPage = () => {
           </InputWrapper>
         </FormGroup>
         <FormGroup>
-          <Label>이메일</Label>
+          <Label>이메일 (선택)</Label>
           <InputWrapper>
             <StyledInput type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="이메일을 입력해주세요" />
             <FaPen className="icon" />

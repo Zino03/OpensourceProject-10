@@ -274,4 +274,26 @@ public class UserService {
             throw new RuntimeException("프로필을 불러올 수 없습니다.");
         }
     }
+
+    public ResponseEntity getUser(Member member) {
+        try {
+            User user = member.getUser();
+
+            UserInfoResponseDto profile = null;
+            if (member != null) {
+                profile = UserInfoResponseDto.of(user);
+            } else {
+                throw new BadRequestException("로그인되지 않은 사용자입니다.", null);
+            }
+
+            HashMap<String, Object> data = new HashMap<>();
+            data.put("profile", profile);
+            return new ResponseEntity(data, HttpStatus.OK);
+        } catch (BadRequestException e) {
+            throw e;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("프로필을 불러올 수 없습니다.");
+        }
+    }
 }
