@@ -51,7 +51,7 @@ public class UserService {
 
     public ResponseEntity getAddressList(Long userId) {
         try {
-            List<UserAddress> addresses = userAddressRepository.findByUserId(userId);
+            List<UserAddress> addresses = userAddressRepository.findByUserIdOrderByIsDefaultDesc(userId);
             List<UserAddressResponseDto> addressDto = addresses.stream()
                     .map(UserAddressResponseDto::new)
                     .collect(Collectors.toList());
