@@ -22,6 +22,8 @@ public class OrderListResponseDto {
 
     private String postContact;
 
+    private String postImage;
+
     private String hostNickname;
 
     private Integer quantity;
@@ -46,6 +48,7 @@ public class OrderListResponseDto {
                 post.getId(),
                 post.getTitle(),
                 post.getContact(),
+                post.getImage(),
                 post.getHost().getNickname(),
                 buyer.getQuantity(),
                 buyer.getCreatedAt(),
