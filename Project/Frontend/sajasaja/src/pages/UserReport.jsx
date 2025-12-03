@@ -1,7 +1,8 @@
 // 파일명: UserReport.jsx
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import ReportComplete from "./modal/ReportComplete"; // ⭐ 모달 import 추가
+import { api } from "../assets/setIntercepter";
 
 const styles = {
   page: {
@@ -135,10 +136,22 @@ const styles = {
   },
 };
 
+const reasonMap = {
+  spam: "스팸/광고",
+  abuse: "욕설·비방/혐오 표현",
+  fraud: "사기 의심/거래 문제",
+  "false-info": "허위 정보",
+  obscene: "음란물/불건전 내용",
+  copyright: "저작권 침해",
+  other: "기타",
+};
+
 const UserReport = () => {
   const navigate = useNavigate();
+  const location = useLocation(); // ✅ 이전 페이지에서 데이터 받기
 
-  const reportedUserName = "사자사자";
+  console.log(location.state);
+  const reportedUserName = location ? location.state.reportedUserName : "";
 
   const [title, setTitle] = useState("");
   const [reason, setReason] = useState("");
@@ -147,7 +160,7 @@ const UserReport = () => {
   // ⭐ 모달 상태 추가
   const [isCompleteOpen, setIsCompleteOpen] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!title.trim()) {
@@ -163,14 +176,28 @@ const UserReport = () => {
       return;
     }
 
-    // TODO: 신고 API
-    console.log("신고 대상:", reportedUserName);
-    console.log("제목:", title);
-    console.log("사유:", reason);
-    console.log("내용:", detail);
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      alert("로그인이 필요합니다.");
+      navigate("/login");
+      return;
+    }
 
-    // ⭐ alert 대신 모달 열기
-    setIsCompleteOpen(true);
+    try {
+      await api.post(`/api/report/USER`, {
+        title: title,
+        content: `${reasonMap[reason]}\n\n${detail}`,
+        reportedNickname: reportedUserName, // 백엔드 Enum 매핑을 위해 대문자 변환 (spam -> SPAM)
+      });
+
+      // 신고 완료 모달 열기
+      setIsCompleteOpen(true);
+    } catch (error) {
+      console.error("신고 실패:", error);
+      const errorMsg =
+        error.response?.data?.message || "신고 접수 중 오류가 발생했습니다.";
+      alert(errorMsg);
+    }
   };
 
   const handleCancel = () => {

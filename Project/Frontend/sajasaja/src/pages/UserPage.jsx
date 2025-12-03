@@ -271,7 +271,11 @@ const UserPage = () => {
   };
 
   const handleReport = () => {
-    navigate("/userreport");
+    navigate("/userreport", {
+      state: {
+        reportedUserName: nickname,
+      },
+    });
   };
 
   // 🔹 프로필 이미지: profileImg 사용
@@ -291,17 +295,14 @@ const UserPage = () => {
         <section style={styles.profileCard}>
           <div style={styles.profileLeft}>
             <div style={styles.avatar}>
-              {!loading && (
-                <img
-                  src={avatarSrc}
-                  alt="프로필"
-                />
-              )}
+              {!loading && <img src={avatarSrc} alt="프로필" />}
             </div>
             <div style={styles.profileInfo}>
               <div style={styles.nicknameRow}>
                 <span style={styles.nickname}>
-                  {loading ? "프로필 불러오는 중..." : user?.nickname ?? nickname}
+                  {loading
+                    ? "프로필 불러오는 중..."
+                    : user?.nickname ?? nickname}
                 </span>
                 {!loading && user && (
                   <span style={styles.ratingBadge}>{mannerScoreText}</span>
@@ -340,18 +341,14 @@ const UserPage = () => {
               onClick={() => setActiveTab("ongoing")}
             >
               진행 중
-              {activeTab === "ongoing" && (
-                <div style={styles.tabUnderline} />
-              )}
+              {activeTab === "ongoing" && <div style={styles.tabUnderline} />}
             </div>
             <div
               style={styles.tab(activeTab === "closed")}
               onClick={() => setActiveTab("closed")}
             >
               마감
-              {activeTab === "closed" && (
-                <div style={styles.tabUnderline} />
-              )}
+              {activeTab === "closed" && <div style={styles.tabUnderline} />}
             </div>
           </div>
 

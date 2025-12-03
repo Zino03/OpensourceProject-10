@@ -28,7 +28,6 @@ const CATEGORY_LABELS = {
   ETC: "기타",
 };
 
-
 // --- Styled Components ---
 const Container = styled.div`
   width: 100%;
@@ -58,6 +57,7 @@ const CategoryTag = styled.div`
   margin-bottom: 10px;
   span {
     margin-right: 5px;
+  }
 `;
 
 const TopSection = styled.div`
@@ -629,29 +629,35 @@ const GroupPurchaseDetail = () => {
 
       // 주최자 여부 확인
       if (postData.host && postData.host.nickname === myNickname) {
-         setIsOrganizer(true);
-         
-        if(postData.status === 0 || postData.status === 4 || postData.isCanceled === false) {
-          return
+        setIsOrganizer(true);
+
+        if (
+          postData.status === 0 ||
+          postData.status === 4 ||
+          postData.isCanceled === false
+        ) {
+          return;
         }
-        
-         // 주최자라면 참여자 목록 조회
-         const buyersResponse = await api.get(`/api/posts/${id}/buyers`);
-         const buyers = buyersResponse.data.buyers || [];
-         
-         const mappedBuyers = buyers.map(b => ({
-             id: b.buyerId,
-             name: b.name,
-             nickname: b.nickname,
-             amount: `${b.totalPrice?.toLocaleString()}원`,
-             address: b.address ? `(${b.address.zipCode}) ${b.address.street} ${b.address.detail}` : "주소 정보 없음",
-             status: b.isPaid === 1 ? '결제 완료' : '결제 대기',
-             date: b.receivedAt ? b.receivedAt.substring(0,10) : '-',
-             invoice: b.trackingNumber ? { number: b.trackingNumber } : null,
-             pickup: b.receivedAt ? { receiveDate: b.receivedAt } : null,
-             receive: b.address ? 'delivery' : 'pickup'
-         }));
-         setParticipants(mappedBuyers);
+
+        // 주최자라면 참여자 목록 조회
+        const buyersResponse = await api.get(`/api/posts/${id}/buyers`);
+        const buyers = buyersResponse.data.buyers || [];
+
+        const mappedBuyers = buyers.map((b) => ({
+          id: b.buyerId,
+          name: b.name,
+          nickname: b.nickname,
+          amount: `${b.totalPrice?.toLocaleString()}원`,
+          address: b.address
+            ? `(${b.address.zipCode}) ${b.address.street} ${b.address.detail}`
+            : "주소 정보 없음",
+          status: b.isPaid === 1 ? "결제 완료" : "결제 대기",
+          date: b.receivedAt ? b.receivedAt.substring(0, 10) : "-",
+          invoice: b.trackingNumber ? { number: b.trackingNumber } : null,
+          pickup: b.receivedAt ? { receiveDate: b.receivedAt } : null,
+          receive: b.address ? "delivery" : "pickup",
+        }));
+        setParticipants(mappedBuyers);
       }
     } catch (error) {
       console.error("로드 실패:", error.response?.data);
@@ -681,8 +687,7 @@ const GroupPurchaseDetail = () => {
       <div style={{ padding: "50px", textAlign: "center" }}>로딩 중...</div>
     );
 
-    const categoryLabel = CATEGORY_LABELS[post.category] || "카테고리";
-
+  const categoryLabel = CATEGORY_LABELS[post.category] || "카테고리";
 
   const product = {
     title: post.title,
@@ -834,26 +839,25 @@ const GroupPurchaseDetail = () => {
     setIsModalOpen(true);
   };
 
-  const handleReportNotice = (noticeId, noticeContent, hostNickname) => { // 인자 추가
+  const handleReportNotice = (noticeId) => {
+    // 인자 추가
     const token = localStorage.getItem("accessToken");
 
     if (!token) {
       alert("로그인이 필요한 서비스입니다.");
       navigate("/login");
       return;
-    } 
-    
+    }
+
     // ✅ [수정] state에 id와 title을 담아서 navigate 호출
     navigate("/notificationreport", {
-        state: {
-            id: noticeId,
-            title: noticeContent ? (noticeContent.length > 20 ? noticeContent.substring(0, 20) + "..." : noticeContent) : "공지사항",
-            reportedNickname: hostNickname // 👈 닉네임 전달
-        }
+      state: {
+        id: noticeId,
+      },
     });
   };
 
-  const handleReviewAction = () => {
+  const handleReportReview = (reviewId) => {
     const token = localStorage.getItem("accessToken");
 
     if (!token) {
@@ -861,16 +865,19 @@ const GroupPurchaseDetail = () => {
       navigate("/login");
       return;
     } else {
-      navigate("/reviewreport");
+      navigate("/reviewreport", {
+        state: {
+          id: reviewId,
+        },
+      });
     }
   };
 
   return (
     <Container>
       <CategoryTag>
-  <span>{categoryLabel}</span> &gt;
-</CategoryTag>
-
+        <span>{categoryLabel}</span> &gt;
+      </CategoryTag>
 
       <TopSection>
         <ImageArea>
@@ -909,9 +916,7 @@ const GroupPurchaseDetail = () => {
           </ProductTitleRow>
           <ProgressSection>
             <ProgressLabel>현재 주문된 수량</ProgressLabel>
-            <CurrentCount>
-              {currentCount}
-            </CurrentCount>
+            <CurrentCount>{currentCount}</CurrentCount>
             <ProgressBarContainer>
               <ProgressBarFill $percent={progressPercent} />
             </ProgressBarContainer>
@@ -939,7 +944,9 @@ const GroupPurchaseDetail = () => {
             <OrganizerRow>
               <Label>주최자</Label>
               <OrganizerBadge>
-                <OrganizerLeft onClick={() => navigate(`/user/${post.host.nickname}`)}>
+                <OrganizerLeft
+                  onClick={() => navigate(`/user/${post.host.nickname}`)}
+                >
                   <ProfileIcon
                     src={product.organizerProfileImage}
                     alt="profile"
@@ -1113,7 +1120,9 @@ const GroupPurchaseDetail = () => {
                       </ActionButton>
                     ) : (
                       // ✅ [수정] 신고 버튼 클릭 시 notice.id와 notice.content를 전달
-                      <ActionButton onClick={() => handleReportNotice(notice.id, notice.conten, post.host.nickname)}>
+                      <ActionButton
+                        onClick={() => handleReportNotice(notice.id)}
+                      >
                         <FaRegBell /> 신고
                       </ActionButton>
                     )}
@@ -1148,7 +1157,7 @@ const GroupPurchaseDetail = () => {
                       <UserName>{review.nickname || "익명"}</UserName>
                       <RatingText>별점 {review.score}점</RatingText>
                     </UserInfo>
-                    <ActionButton onClick={handleReviewAction}>
+                    <ActionButton onClick={handleReportReview(review.id)}>
                       <FaRegBell /> 신고
                     </ActionButton>
                   </CommentHeader>

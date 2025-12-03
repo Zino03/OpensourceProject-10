@@ -129,6 +129,16 @@ const styles = {
   },
 };
 
+const reasonMap = {
+  spam: "스팸/광고",
+  abuse: "욕설·비방/혐오 표현",
+  fraud: "사기 의심/거래 문제",
+  "false-info": "허위 정보",
+  obscene: "음란물/불건전 내용",
+  copyright: "저작권 침해",
+  other: "기타",
+};
+
 const NotificationReport = () => {
   const navigate = useNavigate();
   const location = useLocation(); // ✅ 이전 페이지에서 데이터 받기
@@ -150,7 +160,6 @@ const NotificationReport = () => {
       navigate(-1);
     }
   }, [noticeId, navigate]);
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -182,10 +191,9 @@ const NotificationReport = () => {
       await api.post(`/api/report/NOTICE`, {
         reportedId: noticeId,
         title: title,
-        content: detail,
-        reportedNickname: 'nickName', // 백엔드 Enum 매핑을 위해 대문자 변환 (spam -> SPAM)
+        content: `${reasonMap[reason]}\n\n${detail}`,
       });
-      
+
       // await api.patch(`api/admin/report/NOTICE/${noticeId}`),{
       //   reportId: noticeId,
       //   type: NOTICE,
@@ -205,7 +213,6 @@ const NotificationReport = () => {
   const handleCancel = () => {
     navigate(-1);
   };
-  
 
   return (
     <div style={styles.page}>

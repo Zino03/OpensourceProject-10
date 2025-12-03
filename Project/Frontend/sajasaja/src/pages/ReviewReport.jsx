@@ -1,7 +1,8 @@
 // 파일명: ReviewReport.jsx
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import ReportComplete from "./modal/ReportComplete"; // ⭐ 모달 import
+import { api } from "../assets/setIntercepter";
 
 const styles = {
   page: {
@@ -135,8 +136,22 @@ const styles = {
   },
 };
 
+const reasonMap = {
+  spam: "스팸/광고",
+  abuse: "욕설·비방/혐오 표현",
+  fraud: "사기 의심/거래 문제",
+  "false-info": "허위 정보",
+  obscene: "음란물/불건전 내용",
+  copyright: "저작권 침해",
+  other: "기타",
+};
+
 const ReviewReport = () => {
   const navigate = useNavigate();
+  const location = useLocation(); // ✅ 이전 페이지에서 데이터 받기
+
+  // 이전 페이지(공지 상세보기)에서 넘어온 state 값
+  const reviewId = location.state?.id;
 
   // ✅ 신고 대상 후기 제목 (예시)
   const reportedReviewTitle = "프레첼 공동구매 3차 후기";
@@ -148,7 +163,7 @@ const ReviewReport = () => {
   // ⭐ 모달 상태
   const [isCompleteOpen, setIsCompleteOpen] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!title.trim()) {
@@ -164,14 +179,31 @@ const ReviewReport = () => {
       return;
     }
 
-    // TODO: 신고 API 호출 (후기 신고)
-    console.log("신고 후기:", reportedReviewTitle);
-    console.log("제목:", title);
-    console.log("사유:", reason);
-    console.log("내용:", detail);
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      alert("로그인이 필요합니다.");
+      navigate("/login");
+      return;
+    }
 
-    // 신고 완료 모달 열기
-    setIsCompleteOpen(true);
+    try {
+      // ✅ 백엔드 API 호출
+      // 엔드포인트: POST /api/report/NOTICE
+      // RequestBody: ReportRequestDto (targetId, title, content, reason)
+      await api.post(`/api/report/REVIEW`, {
+        reportedId: reviewId,
+        title: title,
+        content: `${reasonMap[reason]}\n\n${detail}`,
+      });
+
+      // 신고 완료 모달 열기
+      setIsCompleteOpen(true);
+    } catch (error) {
+      console.error("신고 실패:", error);
+      const errorMsg =
+        error.response?.data?.message || "신고 접수 중 오류가 발생했습니다.";
+      alert(errorMsg);
+    }
   };
 
   const handleCancel = () => {
