@@ -1,283 +1,323 @@
 // 파일명: OrderDetail_Delivered.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react"; // ✅ useEffect 추가
 import { useNavigate } from "react-router-dom";
 import ConfirmationPurchase from "./modal/ConfirmationPurchase";
-import ReviewModal from "./modal/ReviewModal"; // ✅ 후기 모달
+import ReviewModal from "./modal/ReviewModal";
+import { api, setInterceptor } from "../assets/setIntercepter"; // ✅ api, setInterceptor 추가
 
 /* ============================================
-    🔥 SVG 화살표 아이콘 (색 변경 가능)
+    🔥 SVG 화살표 아이콘 (색 변경 가능)
 =============================================== */
 const ArrowIcon = ({ color = "#b0b0b0" }) => (
-  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    style={{ marginTop: "22px" }}
-  >
-    <path
-      d="M8 4l8 8-8 8"
-      stroke={color}
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    style={{ marginTop: "22px" }}
+  >
+    <path
+      d="M8 4l8 8-8 8"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
 );
 
 const styles = {
-  orderPage: {
-    maxWidth: "1200px",
-    margin: "60px auto",
-    color: "#222",
-  },
-
-  orderSteps: {
-    display: "flex",
-    alignItems: "flex-start",
-    gap: "52px",
-    marginBottom: "50px",
-    justifyContent: "center",
-  },
-
-  orderStep: {
-    textAlign: "center",
-    cursor: "pointer",
-  },
-
-  stepNumber: {
-    fontSize: "60px",
-    fontWeight: 401,
-    color: "#b0b0b0",
-    lineHeight: 1,
-    fontFamily: "Pretendard",
-  },
-
-  stepNumberActive: {
-    fontSize: "60px",
-    fontWeight: 401,
-    color: "#000",
-    lineHeight: 1,
-    fontFamily: "Pretendard",
-  },
-
-  stepLabel: {
-    fontSize: "13px",
-    marginTop: "8px",
-    color: "#555",
-  },
-
-  orderListWrapper: {
-    marginTop: "20px",
-  },
-
-  orderListHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-end",
-    width: "77%",
-    margin: "0 auto",
-    borderBottom: "1px solid #000",
-    paddingBottom: "8px",
-  },
-
-  orderListTitle: {
-    fontSize: "16px",
-    fontWeight: 900,
-  },
-
-  orderTable: {
-    width: "77%",
-    margin: "0 auto",
-    borderCollapse: "collapse",
-    fontSize: "13px",
-  },
-
-  tableHeadRow: {
-    borderBottom: "1px solid #000",
-  },
-
-  th: {
-    padding: "20px 8px",
-    textAlign: "center",
-    fontWeight: 500,
-    color: "#555",
-    fontSize: "13.5px",
-  },
-
-  td: {
-    padding: "10px 8px",
-    textAlign: "center",
-    fontSize: "11.5px",
-  },
-
-  bodyRow: {
-    borderBottom: "1px solid #f1f1f1",
-  },
-
-  lastBodyRow: {
-    borderBottom: "1px solid #e1e1e1",
-  },
-
-  productName: {
-    maxWidth: "200px",
-    whiteSpace: "nowrap",
-    textAlign: "left",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-  },
-
-  orderActions: {
-    display: "flex",
-    gap: "8px",
-  },
-
-  btnConfirmDefault: {
-    minWidth: "90px",
-    padding: "4px 14px",
-    fontSize: "11px",
-    borderRadius: "6px",
-    cursor: "pointer",
-    backgroundColor: "#fff",
-    border: "1px solid #000",
-    color: "#000",
-  },
-
-  btnConfirmDone: {
-    minWidth: "90px",
-    padding: "4px 14px",
-    fontSize: "11px",
-    borderRadius: "6px",
-    cursor: "default",
-    backgroundColor: "#e0e0e0",
-    border: "1px solid #e0e0e0",
-    color: "#000",
-  },
-
-  btnFilled: {
-    minWidth: "90px",
-    padding: "4px 14px",
-    fontSize: "11px",
-    borderRadius: "6px",
-    cursor: "pointer",
-    border: "1px solid #000000ff",
-    backgroundColor: "#000000ff",
-    color: "#fff",
-  },
+  orderPage: {
+    maxWidth: "1200px",
+    margin: "60px auto",
+    color: "#222",
+  },
+  orderSteps: {
+    display: "flex",
+    alignItems: "flex-start",
+    gap: "52px",
+    marginBottom: "50px",
+    justifyContent: "center",
+  },
+  orderStep: {
+    textAlign: "center",
+    cursor: "pointer",
+  },
+  stepNumber: {
+    fontSize: "60px",
+    fontWeight: 401,
+    color: "#b0b0b0",
+    lineHeight: 1,
+    fontFamily: "Pretendard",
+  },
+  stepNumberActive: {
+    fontSize: "60px",
+    fontWeight: 401,
+    color: "#000",
+    lineHeight: 1,
+    fontFamily: "Pretendard",
+  },
+  stepLabel: {
+    fontSize: "13px",
+    marginTop: "8px",
+    color: "#555",
+  },
+  orderListWrapper: {
+    marginTop: "20px",
+  },
+  orderListHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
+    width: "77%",
+    margin: "0 auto",
+    borderBottom: "1px solid #000",
+    paddingBottom: "8px",
+  },
+  orderListTitle: {
+    fontSize: "16px",
+    fontWeight: 900,
+  },
+  orderTable: {
+    width: "77%",
+    margin: "0 auto",
+    borderCollapse: "collapse",
+    fontSize: "13px",
+  },
+  tableHeadRow: {
+    borderBottom: "1px solid #000",
+  },
+  th: {
+    padding: "20px 8px",
+    textAlign: "center",
+    fontWeight: 500,
+    color: "#555",
+    fontSize: "13.5px",
+  },
+  td: {
+    padding: "10px 8px",
+    textAlign: "center",
+    fontSize: "11.5px",
+  },
+  bodyRow: {
+    borderBottom: "1px solid #f1f1f1",
+  },
+  lastBodyRow: {
+    borderBottom: "1px solid #e1e1e1",
+  },
+  productName: {
+    maxWidth: "200px",
+    whiteSpace: "nowrap",
+    textAlign: "left",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+  },
+  orderActions: {
+    display: "flex",
+    gap: "8px",
+  },
+  btnConfirmDefault: {
+    minWidth: "90px",
+    padding: "4px 14px",
+    fontSize: "11px",
+    borderRadius: "6px",
+    cursor: "pointer",
+    backgroundColor: "#fff",
+    border: "1px solid #000",
+    color: "#000",
+  },
+  btnConfirmDone: {
+    minWidth: "90px",
+    padding: "4px 14px",
+    fontSize: "11px",
+    borderRadius: "6px",
+    cursor: "default",
+    backgroundColor: "#e0e0e0",
+    border: "1px solid #e0e0e0",
+    color: "#000",
+  },
+  btnFilled: {
+    minWidth: "90px",
+    padding: "4px 14px",
+    fontSize: "11px",
+    borderRadius: "6px",
+    cursor: "pointer",
+    border: "1px solid #000000ff",
+    backgroundColor: "#000000ff",
+    color: "#fff",
+  },
 };
 
 /* ============================================
-    🔥 화살표 색상 배열
+    🔥 화살표 색상 배열 및 STATUS_MAP
 =============================================== */
 const arrowColors = ["#828282", "#828282", "#828282", "#828282", "#ffffffff"];
 
-const orderCounts = {
-  received: 4,
-  payment: 4,
-  preparing: 4,
-  shipping: 3,
-  delivered: 4,
-  cancelled: 4,
+// 백엔드 Status Code
+const STATUS_MAP = {
+    0: { label: "주문 접수", path: "/order-detail" },
+    1: { label: "결제 완료", path: "/received" },
+    2: { label: "상품 준비 중", path: "/preparing" },
+    3: { label: "배송 중", path: "/shipping" },
+    4: { label: "배송 완료", path: "/delivered" },
+    6: { label: "주문 취소", path: "/cancelled" },
 };
-
-const steps = [
-  { id: 1, label: "주문 접수", value: orderCounts.received, path: "/order-detail" },
-  { id: 2, label: "결제 완료", value: orderCounts.payment, path: "/received" },
-  { id: 3, label: "상품 준비 중", value: orderCounts.preparing, path: "/preparing" },
-  { id: 4, label: "배송 중", value: orderCounts.shipping, path: "/shipping" },
-  { id: 5, label: "배송완료", value: orderCounts.delivered, active: true, path: "/delivered" },
-  { id: 6, label: "주문 취소", value: orderCounts.cancelled, path: "/cancelled" },
-];
-
-/* 초기 주문 리스트 + 구매확정 여부 */
-const initialOrders = [
-  {
-    id: 1,
-    name: "애니 피오르크 미니 프레첼 스낵 150g",
-    host: "사자사자",
-    quantity: 1,
-    date: "2025-11-12",
-    total: "1,890 원",
-    confirmed: false,
-    imageUrl: "/images/products/pretzel.png", // 없어도 동작, 예시
-  },
-  {
-    id: 2,
-    name: "비로드슴 실온 닭가슴살 7종 10팩 골라담기",
-    host: "빈지노",
-    quantity: 2,
-    date: "2025-05-20",
-    total: "12,400 원",
-    confirmed: true,
-  },
-  {
-    id: 3,
-    name: "연평도 자연 간장게장 100% 알베기 암꽃게 ...",
-    host: "간장게장맛있어요요요",
-    quantity: 2,
-    date: "2025-01-13",
-    total: "23,600 원",
-    confirmed: false,
-  },
-  {
-    id: 4,
-    name: "[아이앤비] 섬유유연제 건조기",
-    host: "김우민호",
-    quantity: 1,
-    date: "2025-01-07",
-    total: "5,200 원",
-    confirmed: true,
-  },
-];
 
 function OrderDetail_Delivered() {
   const navigate = useNavigate();
 
-  const [orders, setOrders] = useState(initialOrders);
+  const [orders, setOrders] = useState([]); // ✅ 초기값 수정
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [counts, setCounts] = useState({ 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 });
 
   // 구매확정 모달
   const [showModal, setShowModal] = useState(false);
-  const [selectedOrderId, setSelectedOrderId] = useState(null);
+  const [selectedOrderToConfirm, setSelectedOrderToConfirm] = useState(null); // ID 대신 전체 객체 저장
 
   // 후기 모달
   const [showReviewModal, setShowReviewModal] = useState(false);
-  const [reviewOrderId, setReviewOrderId] = useState(null);
+  const [reviewOrder, setReviewOrder] = useState(null);
+  
+  const activeStatus = 4; // 🔥 현재 페이지의 상태: 배송 완료 (Status 4와 5를 함께 조회)
 
-  const handleConfirmPurchase = () => {
-    setOrders((prev) =>
-      prev.map((o) =>
-        o.id === selectedOrderId ? { ...o, confirmed: true } : o
-      )
-    );
-    setShowModal(false);
-    setSelectedOrderId(null);
+  /* ===========================
+     1. 주문 목록 및 카운트 불러오기
+     - status=4: 배송 완료 (Status 4와 5를 함께 가져옴)
+  ============================ */
+  const fetchOrders = async () => {
+    try {
+      setLoading(true);
+      setErrorMsg("");
+
+      // GET /api/mypage/orders?status=4 호출
+      const res = await api.get("/api/mypage/orders", {
+        params: {
+          status: activeStatus,
+          page: 0,
+        },
+      });
+
+      const { orders: rawOrders, statusCounts } = res.data; //
+
+      if (statusCounts) {
+          setCounts(statusCounts);
+      }
+      
+      if (!Array.isArray(rawOrders)) {
+        setOrders([]);
+        return;
+      }
+
+      // OrderListResponseDto 필드에 맞게 매핑
+      const mapped = rawOrders.map((o) => ({
+          id: o.id,
+          name: o.postTitle || "상품명 없음",
+          host: o.hostNickname || "주최자",
+          hostNickname: o.hostNickname,
+          quantity: o.quantity ?? 0,
+          date: (o.createdAt || "").split("T")[0] || "",
+          total: `${Number(o.price ?? 0).toLocaleString()} 원`,
+          confirmed: o.status === 5, // Status 5면 구매확정 완료
+          // 후기 모달에 필요한 추가 정보 (order detail DTO에는 있지만, list DTO에는 없으므로 임시로 하드코딩된 필드를 유지)
+          imageUrl: "/images/products/sample.png", 
+      }));
+
+      setOrders(mapped);
+    } catch (err) {
+      console.error("주문 내역 조회 실패:", err);
+      setErrorMsg(err.response?.data?.message || "주문 내역을 불러오는 중 오류가 발생했습니다.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // 🔥 인증 오류 수정: navigate 대신 실제 토큰을 setInterceptor에 전달
+    const token = localStorage.getItem("accessToken");
+    
+    if (!token || token === 'undefined') {
+        navigate('/login'); 
+        return;
+    }
+    
+    setInterceptor(token);
+    fetchOrders();
+  }, [navigate]);
+
+  /* ===========================
+     2. 구매 확정 로직 (API 연동)
+  ============================ */
+  const handleConfirmPurchase = async () => {
+    if (!selectedOrderToConfirm) return;
+
+    try {
+      // PATCH /mypage/order/{buyerId}/confirm 호출
+      await api.patch(`/api/mypage/order/${selectedOrderToConfirm.id}/confirm`);
+
+      // 성공 후 목록 새로고침
+      fetchOrders(); 
+
+      setShowModal(false);
+      setSelectedOrderToConfirm(null);
+    } catch (err) {
+      console.error("구매 확정 실패:", err);
+      alert(err.response?.data?.message || "구매 확정 중 오류가 발생했습니다.");
+    }
   };
 
   const handleCancelModal = () => {
     setShowModal(false);
-    setSelectedOrderId(null);
+    setSelectedOrderToConfirm(null);
   };
 
+  /* ===========================
+     3. 후기 작성 로직 (API 연동)
+  ============================ */
   // 후기 모달 열기
-  const handleOpenReviewModal = (orderId) => {
-    setReviewOrderId(orderId);
+  const handleOpenReviewModal = (order) => {
+    setReviewOrder(order);
     setShowReviewModal(true);
   };
 
   // 후기 모달 닫기
   const handleCloseReviewModal = () => {
     setShowReviewModal(false);
-    setReviewOrderId(null);
+    setReviewOrder(null);
   };
 
-  // 후기 등록 콜백
-  const handleSubmitReview = (orderId, rating, reviewText) => {
-    console.log("리뷰 등록:", { orderId, rating, reviewText });
-    setShowReviewModal(false);
-    setReviewOrderId(null);
+  // 후기 등록 API 호출
+  const handleSubmitReview = async (orderId, rating, reviewText) => {
+    try {
+        const body = {
+            content: reviewText,
+            rating: rating,
+        };
+
+        // POST /mypage/order/{buyerId}/review 호출
+        await api.post(`/api/mypage/order/${orderId}/review`, body);
+
+        alert("후기가 성공적으로 등록되었습니다.");
+        
+        // 후기 등록 후 상태가 변경될 수 있으므로 목록 새로고침
+        fetchOrders(); 
+
+        handleCloseReviewModal();
+    } catch (err) {
+        console.error("후기 등록 실패:", err);
+        alert(err.response?.data?.message || "후기 등록 중 오류가 발생했습니다.");
+    }
   };
 
-  const reviewOrder = orders.find((o) => o.id === reviewOrderId) || null;
+  // 동적 steps 배열 생성 (Status 4와 5를 '배송 완료'로 통합하여 표시)
+  const steps = [
+      { id: 0, label: STATUS_MAP[0].label, value: counts[0] || 0, active: false, path: STATUS_MAP[0].path },
+      { id: 1, label: STATUS_MAP[1].label, value: counts[1] || 0, active: false, path: STATUS_MAP[1].path },
+      { id: 2, label: STATUS_MAP[2].label, value: counts[2] || 0, active: false, path: STATUS_MAP[2].path },
+      { id: 3, label: STATUS_MAP[3].label, value: counts[3] || 0, active: false, path: STATUS_MAP[3].path },
+      { id: 4, label: STATUS_MAP[4].label, value: (counts[4] || 0) + (counts[5] || 0), active: true, path: STATUS_MAP[4].path }, 
+      { id: 6, label: STATUS_MAP[6].label, value: counts[6] || 0, active: false, path: STATUS_MAP[6].path },
+  ];
 
   return (
     <div style={styles.orderPage}>
@@ -290,7 +330,7 @@ function OrderDetail_Delivered() {
               onClick={() => step.path && navigate(step.path)}
             >
               <div
-                style={step.active ? styles.stepNumberActive : styles.stepNumber}
+                style={step.id === activeStatus ? styles.stepNumberActive : styles.stepNumber}
               >
                 {step.value}
               </div>
@@ -298,19 +338,32 @@ function OrderDetail_Delivered() {
             </div>
 
             {index < steps.length - 1 && (
-              <ArrowIcon color={arrowColors[index]} />
+              <ArrowIcon color={step.id === activeStatus ? arrowColors[index] : arrowColors[index + 1]} />
             )}
           </React.Fragment>
         ))}
       </div>
 
       {/* ============================
-          주문 내역 테이블
-      ============================ */}
+          주문 내역 테이블
+      ============================ */}
       <div style={styles.orderListWrapper}>
         <div style={styles.orderListHeader}>
           <h2 style={styles.orderListTitle}>주문 내역</h2>
         </div>
+        
+        {errorMsg && (
+          <div
+            style={{
+              width: "77%",
+              margin: "10px auto",
+              fontSize: "12px",
+              color: "#D32F2F",
+            }}
+          >
+            {errorMsg}
+          </div>
+        )}
 
         <table style={styles.orderTable}>
           <thead>
@@ -326,72 +379,85 @@ function OrderDetail_Delivered() {
           </thead>
 
           <tbody>
-            {orders.map((order, idx) => (
-              <tr
-                key={order.id}
-                style={
-                  idx === orders.length - 1
-                    ? styles.lastBodyRow
-                    : styles.bodyRow
-                }
-              >
-                <td
-                  style={{
-                    ...styles.td,
-                    ...styles.productName,
-                    cursor: "pointer",
-                  }}
-                  onClick={() => navigate(`/orderpage/${order.id}`)}
-
-                >
-                  {order.name}
-                </td>
-
-                <td
-                  style={{
-                    ...styles.td,
-                    minWidth: "100px",
-                    cursor: "pointer",          // 마우스 올렸을 때 손모양
-                  }}
-                  onClick={() => navigate("/userpage")}  // ✅ 여기서 사용자 프로필로 이동
-                >
-                  {order.host}
-                </td>
-                <td style={styles.td}>{order.quantity}</td>
-                <td style={styles.td}>{order.date}</td>
-                <td style={styles.td}>{order.total}</td>
-
-                {/* 구매확정 버튼 */}
-                <td style={styles.td}>
-                  <button
-                    type="button"
-                    style={
-                      order.confirmed
-                        ? styles.btnConfirmDone
-                        : styles.btnConfirmDefault
-                    }
-                    onClick={() => {
-                      if (order.confirmed) return;
-                      setSelectedOrderId(order.id);
-                      setShowModal(true);
-                    }}
-                  >
-                    구매확정
-                  </button>
-                </td>
-
-                {/* 후기 작성 버튼 */}
-                <td style={styles.td}>
-                  <button
-                    type="button"
-                    style={styles.btnFilled}
-                    onClick={() => handleOpenReviewModal(order.id)}
-                  >
-                    후기 작성
-                  </button>
+            {loading ? (
+              <tr>
+                <td style={styles.td} colSpan={7}>
+                  주문 내역을 불러오는 중입니다...
                 </td>
               </tr>
-            ))}
+            ) : orders.length === 0 ? (
+              <tr>
+                <td style={styles.td} colSpan={7}>
+                  배송 완료된 주문이 없습니다.
+                </td>
+              </tr>
+            ) : (
+              orders.map((order, idx) => (
+                <tr
+                  key={order.id}
+                  style={
+                    idx === orders.length - 1
+                      ? styles.lastBodyRow
+                      : styles.bodyRow
+                  }
+                >
+                  <td
+                    style={{
+                      ...styles.td,
+                      ...styles.productName,
+                      cursor: "pointer",
+                    }}
+                    onClick={() => navigate(`/orderpage/${order.id}`)}
+                  >
+                    {order.name}
+                  </td>
+
+                  <td
+                    style={{
+                      ...styles.td,
+                      minWidth: "100px",
+                      cursor: "pointer",
+                    }}
+                    onClick={() => navigate(`/user/${order.hostNickname || order.host}`)}
+                  >
+                    {order.host}
+                  </td>
+                  <td style={styles.td}>{order.quantity}</td>
+                  <td style={styles.td}>{order.date}</td>
+                  <td style={styles.td}>{order.total}</td>
+
+                  {/* 구매확정 버튼 */}
+                  <td style={styles.td}>
+                    <button
+                      type="button"
+                      style={
+                        order.confirmed
+                          ? styles.btnConfirmDone
+                          : styles.btnConfirmDefault
+                      }
+                      onClick={() => {
+                        if (order.confirmed) return;
+                        setSelectedOrderToConfirm(order);
+                        setShowModal(true);
+                      }}
+                    >
+                      {order.confirmed ? "확정 완료" : "구매확정"}
+                    </button>
+                  </td>
+
+                  {/* 후기 작성 버튼 */}
+                  <td style={styles.td}>
+                    <button
+                      type="button"
+                      style={styles.btnFilled}
+                      onClick={() => handleOpenReviewModal(order)}
+                    >
+                      후기 작성
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
