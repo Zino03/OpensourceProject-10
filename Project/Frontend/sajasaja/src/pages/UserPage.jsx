@@ -295,10 +295,6 @@ const UserPage = () => {
                 <img
                   src={avatarSrc}
                   alt="프로필"
-                  style={styles.avatarImg}
-                  onError={(e) => {
-                    e.currentTarget.src = "/images/filledprofile.svg";
-                  }}
                 />
               )}
             </div>
@@ -381,10 +377,6 @@ const UserPage = () => {
                       src={item.thumbnail}
                       alt={item.title}
                       style={styles.thumbImg}
-                      onError={(e) => {
-                        e.currentTarget.src =
-                          "/images/sample-product-fallback.png";
-                      }}
                     />
                   </div>
 
