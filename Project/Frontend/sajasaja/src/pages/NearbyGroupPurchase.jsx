@@ -257,6 +257,9 @@ const NearbyGroupPurchase = () => {
   const [visibleItems, setVisibleItems] = useState([]);
   const [selectedLocationKey, setSelectedLocationKey] = useState(null);
 
+  const [center, setCenter] = useState({ lat: 36.628583, lng: 127.457583 }); // 기본값(실패 시)
+  const [isLocationLoaded, setIsLocationLoaded] = useState(false); // 위치 로딩 상태
+
   const groupedItems = useMemo(() => {
     const groups = {};
     visibleItems.forEach((item) => {
@@ -354,13 +357,29 @@ const NearbyGroupPurchase = () => {
     setSelectedLocationKey(null);
   };
 
+  const DEMO_LOCATION = { lat: 36.625626, lng: 127.454441 };
   useEffect(() => {
-    if (map) {
-      const center = map.getCenter();
-      fetchPosts(center.getLat(), center.getLng());
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setCenter(DEMO_LOCATION);
+          setIsLocationLoaded(true);
+        },
+        (err) => {
+          console.error("위치 정보를 가져올 수 없습니다.", err);
+          setCenter(DEMO_LOCATION);
+          setIsLocationLoaded(true); // 실패해도 지도는 띄워야 함 (기본값 사용)
+        },
+        {
+          enableHighAccuracy: true, // 배터리를 더 쓰더라도 GPS 등 정밀 위치 요청
+          maximumAge: 0,            // 캐시된 위치값 사용 안 함
+          timeout: 5000,            // 5초 안에 못 찾으면 에러 처리
+        }
+      );
+    } else {
+      setIsLocationLoaded(true);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [map]);
+  }, []);
 
   const handleRefresh = () => {
     if (!map) return;
@@ -462,7 +481,8 @@ const NearbyGroupPurchase = () => {
 
       <MapArea>
         <Map
-          center={{ lat: 36.628583, lng: 127.457583 }}
+          center={center} // 👈 고정값 대신 state 사용
+          isPanto={true} // 👈 부드러운 이동 효과 (선택사항)
           style={{ width: "100%", height: "100%" }}
           level={4}
           onCreate={setMap}
@@ -486,26 +506,6 @@ const NearbyGroupPurchase = () => {
                   }}
                 >
                   <img src="/images/marker.png" alt="marker" />
-                  {group.items.length > 1 && (
-                    <span
-                      style={{
-                        position: "absolute",
-                        top: "-5px",
-                        right: "-5px",
-                        background: "red",
-                        color: "white",
-                        borderRadius: "50%",
-                        width: "18px",
-                        height: "18px",
-                        fontSize: "11px",
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                      }}
-                    >
-                      {group.items.length}
-                    </span>
-                  )}
                 </MarkerPin>
               </CustomOverlayMap>
             );

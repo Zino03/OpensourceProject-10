@@ -10,7 +10,7 @@ const STATUS_STEPS = [
   { step: 3, label: "상품준비" }, // DB Status 2
   { step: 4, label: "배송중" },   // DB Status 3
   { step: 5, label: "배송완료" }, // DB Status 4 
-  { step: 6, label: "회원가입" }, // DB Status 5
+  { step: 6, label: "구매확정" }, // DB Status 5
 ];
 
 // --- Styled Components ---

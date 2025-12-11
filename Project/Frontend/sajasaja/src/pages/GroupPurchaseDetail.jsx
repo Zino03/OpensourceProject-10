@@ -662,12 +662,12 @@ const GroupPurchaseDetail = () => {
           name: b.userName,
           nickname: b.userNickname,
           amount: `${b.price?.toLocaleString()}원`,
-          reception: b.userAddress.recipient,
-          phone: b.userAddress.phone,
+          reception: b.userAddress?.reception || null,
+          phone: b.userAddress?.phone || null,
           address: b.userAddress
             ? `(${b.userAddress.zipCode}) ${b.userAddress.street} ${b.userAddress.detail}`
             : "주소 정보 없음",
-          entrance: b.userAddress.entranceAccess
+          entrance: b.userAddress?.entranceAccess
             ? {
                 acess: b.userAddress.entranceAccess,
                 detail: b.userAddress.entranceDetail,
@@ -684,6 +684,7 @@ const GroupPurchaseDetail = () => {
         setParticipants(mappedBuyers);
       }
     } catch (error) {
+      console.log(error);
       console.error("로드 실패:", error.response?.data);
       alert("정보를 불러오는데 실패했습니다.");
     } finally {
