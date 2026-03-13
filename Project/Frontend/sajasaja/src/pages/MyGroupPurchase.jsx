@@ -1,7 +1,7 @@
 // 파일명: MyGroupPurchase.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { api, setInterceptor } from "../assets/setIntercepter";
+import { api, BASE_URL, setInterceptor } from "../assets/setIntercepter";
 
 const styles = {
   page: {
@@ -175,9 +175,9 @@ const MyGroupPurchase = () => {
       setLoading(true);
       const res = await api.get(ENDPOINT);
 
-      const raw = Array.isArray(res.data)
-        ? res.data
-        : res.data.content || [];
+      console.log(res.data);
+
+      const raw = Array.isArray(res.data) ? res.data : res.data.content || [];
 
       const mapped = raw.map((item) => {
         const s = statusMapping(item.status);
@@ -185,7 +185,7 @@ const MyGroupPurchase = () => {
         return {
           id: item.id,
           title: item.title,
-          thumbnail: item.image,
+          thumbnail: `${BASE_URL}${item.image}`,
           endDate: item.endAt?.slice(0, 10), // yyyy-MM-dd
           price: item.price,
           qtyCurrent: item.currentQuantity,
@@ -196,6 +196,8 @@ const MyGroupPurchase = () => {
           disabled: s.disabled,
         };
       });
+
+      console.log(mapped);
 
       setGroups(mapped);
     } catch (err) {
@@ -264,9 +266,7 @@ const MyGroupPurchase = () => {
                 </div>
 
                 <div style={styles.priceBox}>
-                  <div style={styles.price}>
-                    {g.price.toLocaleString()} 원
-                  </div>
+                  <div style={styles.price}>{g.price.toLocaleString()} 원</div>
 
                   <div style={styles.settleRow}>
                     <span style={styles.settleLabel}>정산예정금액</span>

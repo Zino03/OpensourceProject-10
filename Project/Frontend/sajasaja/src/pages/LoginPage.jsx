@@ -180,7 +180,7 @@ const LoginPage = () => {
       <LoginWrapper>
         <LoginLogo>
           <img src="/images/sajasaja.png" alt="SajaSaja Logo" />
-          SajaSaja
+          <img src="/images/LogoText.png" alt="SajaSaja LogoText" style={{height: 30}} />
         </LoginLogo>
 
         <InputField>

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
-import { FaTimes } from "react-icons/fa"; 
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import styled from "styled-components";
+import { FaTimes } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 const Overlay = styled.div`
   position: fixed;
@@ -36,7 +36,9 @@ const CloseButton = styled.button`
   color: #999;
   cursor: pointer;
   padding: 0;
-  &:hover { opacity: 0.9; }
+  &:hover {
+    opacity: 0.9;
+  }
 `;
 
 const Title = styled.h2`
@@ -110,8 +112,12 @@ const StepButton = styled.button`
   align-items: center;
   justify-content: center;
 
-  &:hover { background-color: #f5f5f5; }
-  &:active { background-color: #eee; }
+  &:hover {
+    background-color: #f5f5f5;
+  }
+  &:active {
+    background-color: #eee;
+  }
 `;
 
 const StepInput = styled.input`
@@ -120,15 +126,17 @@ const StepInput = styled.input`
   border-left: 1px solid #ddd;
   border-right: 1px solid #ddd;
   font-size: 12px;
-  font-weight: 500; 
+  font-weight: 500;
   text-align: center;
 
-  &::-webkit-inner-spin-button, 
-  &::-webkit-outer-spin-button { 
-    -webkit-appearance: none; 
-    margin: 0; 
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
   }
-  &:focus { outline: none; }
+  &:focus {
+    outline: none;
+  }
 `;
 
 const StockLimitText = styled.span`
@@ -146,27 +154,28 @@ const RadioLabel = styled.label`
   display: flex;
   align-items: center;
   gap: 6px;
-  cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
-  color: ${props => props.disabled ? '#ccc' : '#333'};
+  cursor: ${(props) => (props.disabled ? "not-allowed" : "pointer")};
+  color: ${(props) => (props.disabled ? "#ccc" : "#333")};
   font-size: 12px;
 
   input {
     appearance: none;
     width: 18px;
     height: 18px;
-    border: 2px solid ${props => props.disabled ? '#eee' : '#ddd'};
+    border: 2px solid ${(props) => (props.disabled ? "#eee" : "#ddd")};
     border-radius: 50%;
     margin: 0;
-    cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
+    cursor: ${(props) => (props.disabled ? "not-allowed" : "pointer")};
     position: relative;
-    background-color: ${props => props.disabled ? '#f9f9f9' : 'transparent'};
+    background-color: ${(props) =>
+      props.disabled ? "#f9f9f9" : "transparent"};
 
     &:checked {
       border-color: #666;
     }
 
     &:checked::after {
-      content: '';
+      content: "";
       position: absolute;
       top: 50%;
       left: 50%;
@@ -181,7 +190,7 @@ const RadioLabel = styled.label`
 
 const SubmitButton = styled.button`
   width: 100%;
-  background-color: #FF7E36;
+  background-color: #ff7e36;
   color: #fff;
   border: none;
   padding: 16px 0;
@@ -198,17 +207,18 @@ const SubmitButton = styled.button`
 
 // ✅ postId 추가 (GroupPurchaseDetail에서 넘겨준 값)
 const PurchaseModal = ({ isOpen, onClose, product, postId }) => {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
   const [quantity, setQuantity] = useState(1);
-  const [receiveMethod, setReceiveMethod] = useState('pickup');
+  const [receiveMethod, setReceiveMethod] = useState("pickup");
 
-  const isDeliveryAvailable = product?.shipping?.includes('가능') && !product?.shipping?.includes('불');
+  const isDeliveryAvailable =
+    product?.shipping?.includes("가능") && !product?.shipping?.includes("불");
   const maxQuantity = product.goalCount - product.currentCount;
 
   useEffect(() => {
     if (isOpen) {
       setQuantity(1);
-      setReceiveMethod('pickup');
+      setReceiveMethod("pickup");
     }
   }, [isOpen]);
 
@@ -216,24 +226,24 @@ const PurchaseModal = ({ isOpen, onClose, product, postId }) => {
 
   // 버튼 핸들러
   const handleDecrease = () => {
-    if (quantity > 1) setQuantity(prev => prev - 1);
+    if (quantity > 1) setQuantity((prev) => prev - 1);
   };
 
   const handleIncrease = () => {
-    if (quantity < maxQuantity) setQuantity(prev => prev + 1);
+    if (quantity < maxQuantity) setQuantity((prev) => prev + 1);
     else alert(`최대 ${maxQuantity}개까지만 구매 가능합니다.`);
   };
 
   const handleInputChange = (e) => {
     const val = e.target.value;
-    
-    if (val === '') {
-      setQuantity('');
+
+    if (val === "") {
+      setQuantity("");
       return;
     }
 
     const numVal = Number(val);
-    
+
     if (isNaN(numVal) || numVal < 1) return;
 
     if (numVal > maxQuantity) {
@@ -245,24 +255,24 @@ const PurchaseModal = ({ isOpen, onClose, product, postId }) => {
   };
 
   const handleBlur = () => {
-    if (quantity === '' || quantity < 1) {
+    if (quantity === "" || quantity < 1) {
       setQuantity(1);
     }
   };
 
   const handleSubmit = () => {
     // ✅ OrderPage로 넘어갈 때 postId를 state에 담아서 보냅니다.
-    navigate('/order', { 
-      state: { 
-        product: product, 
-        quantity: quantity, 
+    navigate("/order", {
+      state: {
+        product: product,
+        quantity: quantity,
         method: receiveMethod,
-        postId: postId 
-      } 
+        postId: postId,
+      },
     });
-    
+
     onClose();
-  }
+  };
 
   return (
     <Overlay onClick={onClose}>
@@ -272,9 +282,9 @@ const PurchaseModal = ({ isOpen, onClose, product, postId }) => {
         </CloseButton>
 
         <Title>주문</Title>
-        <Divider /> 
+        <Divider />
         <SectionHeader>상품 정보</SectionHeader>
-        
+
         <InfoRow>
           <Label>상품명</Label>
           <Value>{product.title}</Value>
@@ -285,7 +295,7 @@ const PurchaseModal = ({ isOpen, onClose, product, postId }) => {
         </InfoRow>
         <InfoRow>
           <Label>배송비</Label>
-          <Value>0 원</Value>
+          <Value>{product.shippingCost}</Value>
         </InfoRow>
 
         <Divider />
@@ -296,10 +306,11 @@ const PurchaseModal = ({ isOpen, onClose, product, postId }) => {
             <Stepper>
               <StepButton onClick={handleDecrease}>-</StepButton>
               <StepInput
-                type="number" 
-                value={quantity} 
+                type="number"
+                value={quantity}
                 onChange={handleInputChange}
-                onBlur={handleBlur}/>
+                onBlur={handleBlur}
+              />
               <StepButton onClick={handleIncrease}>+</StepButton>
             </Stepper>
             <StockLimitText>(구매 가능 수량: {maxQuantity}개)</StockLimitText>
@@ -310,22 +321,22 @@ const PurchaseModal = ({ isOpen, onClose, product, postId }) => {
           <Label>수령방식</Label>
           <RadioGroup>
             <RadioLabel disabled={!isDeliveryAvailable}>
-              <input 
-                type="radio" 
-                name="receive" 
-                value="delivery" 
-                checked={receiveMethod === 'delivery'}
+              <input
+                type="radio"
+                name="receive"
+                value="delivery"
+                checked={receiveMethod === "delivery"}
                 onChange={(e) => setReceiveMethod(e.target.value)}
                 disabled={!isDeliveryAvailable}
               />
-              배송 {isDeliveryAvailable ? '' : '(불가)'}
+              배송 {isDeliveryAvailable ? "" : "(불가)"}
             </RadioLabel>
             <RadioLabel>
-              <input 
-                type="radio" 
-                name="receive" 
-                value="pickup" 
-                checked={receiveMethod === 'pickup'}
+              <input
+                type="radio"
+                name="receive"
+                value="pickup"
+                checked={receiveMethod === "pickup"}
                 onChange={(e) => setReceiveMethod(e.target.value)}
               />
               직접수령

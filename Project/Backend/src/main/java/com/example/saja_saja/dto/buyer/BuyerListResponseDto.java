@@ -21,6 +21,8 @@ import java.util.ArrayList;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BuyerListResponseDto {
+    private Long buyerId;
+
     private String userName;
 
     private String userNickname;
@@ -42,6 +44,7 @@ public class BuyerListResponseDto {
 
     public static BuyerListResponseDto of(Buyer buyer) {
         return builder()
+                .buyerId(buyer.getId())
                 .userName(buyer.getUser().getName())
                 .userNickname(buyer.getUser().getNickname())
                 .price(buyer.getPrice())

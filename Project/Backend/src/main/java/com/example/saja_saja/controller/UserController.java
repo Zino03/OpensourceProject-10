@@ -174,4 +174,10 @@ public class UserController {
         Member member = userService.getMember(SecurityUtil.getCurrentUserId());
         return postService.userPostList(pageable, member, member.getUser().getNickname());
     }
+
+    @GetMapping("/mypage/user")
+    public ResponseEntity getUser() {
+        Member member = userService.getMember(SecurityUtil.getCurrentUserId());
+        return userService.getUser(member);
+    }
 }

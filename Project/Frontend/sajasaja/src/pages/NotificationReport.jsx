@@ -144,8 +144,10 @@ const NotificationReport = () => {
   const location = useLocation(); // ✅ 이전 페이지에서 데이터 받기
 
   // 이전 페이지(공지 상세보기)에서 넘어온 state 값
-  const noticeId = location.state?.id;
-  const noticeTitle = location.state?.title || "공지사항 정보 없음";
+  const noticeId = location.state ? location.state.id : "";
+  const noticeTitle = location.state
+    ? location.state.title
+    : "공지사항 정보 없음";
 
   const [title, setTitle] = useState("");
   const [reason, setReason] = useState("");
@@ -185,9 +187,11 @@ const NotificationReport = () => {
     }
 
     try {
-      // ✅ 백엔드 API 호출
-      // 엔드포인트: POST /api/report/NOTICE
-      // RequestBody: ReportRequestDto (targetId, title, content, reason)
+      // ✅ 백엔드 API 연동 부분 수정
+      // API Spec: POST /api/report/NOTICE
+      // Body: { title, content, reportedId }
+      // content에는 신고 사유(reason)와 상세 내용(detail)을 합쳐서 전송
+
       await api.post(`/api/report/NOTICE`, {
         reportedId: noticeId,
         title: title,

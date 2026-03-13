@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { useNavigate, useLocation } from "react-router-dom";
+import AddressFind from "./modal/AddressFind"; // ✅ 주소검색 모달 추가
 
 /* ===========================
     공통 레이아웃 & 스타일
@@ -234,15 +235,13 @@ const EditMyDelivery = () => {
   // mydelivery에서 navigate("/editdelivery", { state: { address } }) 로 넘겨준 값
   const prev = location.state?.address || {};
 
-  console.log(prev)
+  console.log(prev);
 
-  // prev 안에 어떤 키를 쓸지는 네가 실제로 넘기는 데이터 구조에 맞춰야 해
-  // 여기서는 예시로 name/label/zip/road/detail/phone/entranceMethod 등을 쓴다고 가정
   const [labelName, setLabelName] = useState(prev.name || ""); // 배송지명
-  const [isDefault, setIsDefault] = useState(!!prev.isDefault);  // 기본배송지 여부
-  const [receiver, setReceiver] = useState(prev.recipient || "");     // 받는 분
+  const [isDefault, setIsDefault] = useState(!!prev.isDefault); // 기본배송지 여부
+  const [receiver, setReceiver] = useState(prev.recipient || ""); // 받는 분
 
-  // 연락처: 예시로 prev.phone 을 "010-1234-5678" 이런 식으로 받는다고 가정
+  // 연락처
   const fullPhone = prev.phone || "";
   let initialP1 = "010";
   let initialP2 = "";
@@ -265,13 +264,20 @@ const EditMyDelivery = () => {
   const [roadAddr, setRoadAddr] = useState(prev.street || "");
   const [detailAddr, setDetailAddr] = useState(prev.detail || "");
 
-  const [entranceMethod, setEntranceMethod] = useState(prev.entranceAccess || "PASSWORD");
-  const [entranceDetail, setEntranceDetail] = useState(prev.entranceDetail   || "");
+  const [entranceMethod, setEntranceMethod] = useState(
+    prev.entranceAccess || "PASSWORD"
+  );
+  const [entranceDetail, setEntranceDetail] = useState(
+    prev.entranceDetail || ""
+  );
 
-  const [agree, setAgree] = useState(false); // 수정 시에도 다시 동의 받으려면 false 유지
+  const [agree, setAgree] = useState(false); // 필요하면 이용약관 동의 추가 가능
+
+  // ✅ 주소검색 모달 열림 여부
+  const [isAddressOpen, setIsAddressOpen] = useState(false);
 
   const isEmpty = (v) => {
-    if (typeof v !== "string") return true; // 문자열이 아니면 빈 값 취급
+    if (typeof v !== "string") return true;
     return v.trim() === "";
   };
 
@@ -308,8 +314,16 @@ const EditMyDelivery = () => {
     }
   };
 
+  // ✅ 우편번호 버튼 클릭 → 모달 열기
   const handleZipSearch = () => {
-    alert("우편번호 검색 기능을 연동하세요.");
+    setIsAddressOpen(true);
+  };
+
+  // ✅ 주소 검색 완료 핸들러 (NewDeliveryInfo랑 동일 패턴)
+  const handleAddressComplete = (data) => {
+    setZipCode(data.zonecode);   // 우편번호
+    setRoadAddr(data.address);   // 도로명 주소
+    setIsAddressOpen(false);     // 모달 닫기
   };
 
   const handleSubmit = (e) => {
@@ -341,7 +355,6 @@ const EditMyDelivery = () => {
       return;
     }
 
-    // 여기서 수정된 데이터 서버로 보내거나, 상위 상태 업데이트 등 처리
     const updated = {
       ...prev,
       label: labelName,
@@ -447,7 +460,7 @@ const EditMyDelivery = () => {
               <ZipInput
                 placeholder="우편번호"
                 value={zipCode}
-                onChange={(e) => setZipCode(e.target.value)}
+                readOnly          // ✅ 검색으로만 입력
               />
               <ZipButton type="button" onClick={handleZipSearch}>
                 우편번호
@@ -537,9 +550,16 @@ const EditMyDelivery = () => {
           <CancelButton type="button" onClick={() => navigate(-1)}>
             취소
           </CancelButton>
-          <SubmitButton>확인</SubmitButton>
+          <SubmitButton type="submit">확인</SubmitButton>
         </ButtonRow>
       </form>
+
+      {/* ✅ 주소검색 모달 렌더링 */}
+      <AddressFind
+        isOpen={isAddressOpen}
+        onClose={() => setIsAddressOpen(false)}
+        onComplete={handleAddressComplete}
+      />
     </Container>
   );
 };

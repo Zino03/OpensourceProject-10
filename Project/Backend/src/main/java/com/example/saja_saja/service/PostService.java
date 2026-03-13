@@ -115,7 +115,9 @@ public class PostService {
                         return n;
                     })
                     .toList();
+        }
 
+        if(member != null) {
             // 내가 이 공구에 참여했는지 여부
             Buyer buyer = postEntity.getBuyers().stream()
                     .filter(b -> Objects.equals(b.getUser().getId(), member.getUser().getId()))
@@ -202,7 +204,7 @@ public class PostService {
         if (type == 0) {
             // 진행중, 마감임박, 마감
             spec = spec.and((root, query, cb) ->
-                    cb.between(root.get("status"), 1, 3)
+                    cb.between(root.get("status"), 1, 2)
             );
         } else if (type >= 1 && type <= 3) {
             spec = spec.and((root, query, cb) ->

@@ -1,7 +1,8 @@
-// 파일명: OrderDetail_OrderReceived.jsx
+// 파일명: OrderDetailOrderReceived.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import CancelModal from "./modal/CancelModal";
+import ContactModal from "./modal/ContactModal"; // ContactModal import 확인
 import { api, setInterceptor } from "../assets/setIntercepter";
 
 /* ============================================
@@ -143,118 +144,107 @@ const styles = {
   },
 };
 
-const arrowColors = ["#000000ff", "#828282", "#828282", "#828282", "#ffffffff"];
+const arrowColors = ["#000000ff", "#828282", "#ffffffff"];
 
-const orderCounts = {
-  received: 4,
-  payment: 4,
-  preparing: 4,
-  shipping: 3,
-  delivered: 4,
-  cancelled: 4,
+const STATUS_MAP = {
+  0: { label: "주문 접수", path: "/order-detail" },
+  1: { label: "결제 완료", path: "/received" },
+  2: { label: "상품 준비 중", path: "/preparing" },
+  3: { label: "배송 중", path: "/shipping" },
+  4: { label: "배송 완료", path: "/delivered" },
+  6: { label: "주문 취소", path: "/cancelled" },
 };
 
-/* 현재 페이지는 "주문 접수"라고 가정 (1번 단계 active) */
-const steps = [
-  { id: 1, label: "주문 접수", value: orderCounts.received, active: true, path: "/order-detail" },
-  { id: 2, label: "결제 완료", value: orderCounts.payment, path: "/received" },
-  { id: 3, label: "상품 준비 중", value: orderCounts.preparing, path: "/preparing" },
-  { id: 4, label: "배송 중", value: orderCounts.shipping, path: "/shipping" },
-  { id: 5, label: "배송완료", value: orderCounts.delivered, path: "/delivered" },
-  { id: 6, label: "주문 취소", value: orderCounts.cancelled, path: "/cancelled" },
-];
-
-/* ============================================
-    🔥 메인 컴포넌트 (주문 접수 리스트)
-=============================================== */
 function OrderDetailOrderReceived() {
   const navigate = useNavigate();
 
-  // 🔥 주문 리스트 (백엔드에서 가져올 것)
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false); // ✅ [추가]
+  const [contact, setContact] = useState(null); // ✅ [추가]
+
+  // 주문 리스트 상태
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [errorMsg, setErrorMsg] = useState("");
 
-  // 🔥 모달 on/off + 어떤 주문을 취소할지
+  // 동적 주문 수량 상태
+  const [counts, setCounts] = useState({
+    0: 0,
+    1: 0,
+    2: 0,
+    3: 0,
+    4: 0,
+    5: 0,
+    6: 0,
+  });
+
+  // 취소 모달 관련 상태
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
 
-  /* ===========================
-      1. 페이지 진입 시 주문 목록 불러오기
-         - status=0: 주문 접수
-  ============================ */
-  useEffect(() => {
-    // 다른 페이지들처럼 interceptor 설정(토큰/401 처리 등)
-    setInterceptor(navigate);
+  const activeStatus = 0; // 현재 페이지: 주문 접수(0)
 
-    const fetchOrders = async () => {
-      try {
-        setLoading(true);
-        setErrorMsg("");
+  // ⚠️ [수정] 불필요하고 에러를 유발하던 fetchPostDetail 함수는 제거했습니다.
 
-        const res = await api.get("/api/mypage/orders", {
-          params: {
-            status: 0, // 🔥 0 = 주문 접수
-            page: 0,
-          },
-        });
+  /* ===================================
+       🔥 1. 주문 목록 불러오기
+  =================================== */
+  const fetchOrders = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get("/api/mypage/orders", {
+        params: { status: activeStatus, page: 0 },
+      });
 
-        console.log("📡 /api/mypage/orders 응답:", res.data);
+      const { orders: rawOrders, statusCounts } = res.data;
 
-        // 👉 응답 형태에 따라 파싱
-        // 1) Page 형태: { content: [...] }
-        // 2) data 안에 들어있는 경우: { data: { content: [...] } }
-        const rawList =
-          res.data?.content ||
-          res.data?.data?.content ||
-          res.data?.data ||
-          res.data;
+      if (statusCounts) setCounts(statusCounts);
 
-        if (!Array.isArray(rawList)) {
-          console.warn("예상과 다른 응답 형식:", rawList);
-          setOrders([]);
-          return;
-        }
-
-        // 🔥 백엔드 DTO 필드명에 맞게 매핑
-        //   아래는 예시야. 실제 필드명 보고 조금만 수정하면 됨.
-        //   예: id, postTitle, hostNickname, quantity, createdAt, totalPrice ...
-        const mapped = rawList.map((o) => {
-          const buyerId = o.id; // 주문(구매) ID (UserController에서 buyerId로 쓰는 것)
-          const productName = o.postTitle || o.title || "상품명 없음";
-          const hostNickname = o.hostNickname || o.host || "주최자";
-          const qty = o.quantity ?? o.count ?? 0;
-          const orderedDate =
-            (o.createdAt || o.orderedAt || "").split("T")[0] || "";
-          const totalPrice =
-            o.totalPrice ?? o.amount ?? o.price ?? 0;
-
-          return {
-            id: buyerId,
-            name: productName,
-            host: hostNickname,
-            hostNickname, // 프로필 페이지 이동 시 사용
-            quantity: qty,
-            date: orderedDate,
-            total: `${Number(totalPrice).toLocaleString()} 원`,
-          };
-        });
-
-        setOrders(mapped);
-      } catch (err) {
-        console.error(err);
-        setErrorMsg("주문 내역을 불러오는 중 오류가 발생했습니다.");
-      } finally {
-        setLoading(false);
+      if (!Array.isArray(rawOrders)) {
+        setOrders([]);
+        return;
       }
-    };
 
+      // status=0만 필터링
+      const activeOrders = rawOrders.filter((o) => o.status === 0);
+
+      // 데이터 매핑
+      const mapped = activeOrders.map((o) => {
+        const orderedDate = (o.createdAt || "").split("T")[0] || "";
+        const totalPrice = o.price ?? 0;
+
+        return {
+          id: o.id,
+          postId: o.postId, // 🔥 [중요] postId가 있어야 연락처 조회가 가능합니다.
+          name: o.postTitle,
+          host: o.hostNickname,
+          quantity: o.quantity,
+          phone: o.postContact,
+          status: o.status,
+          date: orderedDate,
+          total: `${Number(totalPrice).toLocaleString()} 원`,
+        };
+      });
+
+      setOrders(mapped);
+    } catch (err) {
+      console.error("주문 내역 조회 실패:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    if (!token || token === "undefined") {
+      navigate("/login");
+      return;
+    }
+    setInterceptor(token);
     fetchOrders();
   }, [navigate]);
 
-  /* ===========================
-      2. 취소 모달 열기 / 닫기
-  ============================ */
+  /* ===================================
+       🔥 2. 취소 모달 핸들러
+  =================================== */
   const openCancelModal = (order) => {
     setSelectedOrder(order);
     setIsCancelModalOpen(true);
@@ -265,30 +255,77 @@ function OrderDetailOrderReceived() {
     setSelectedOrder(null);
   };
 
-  /* ===========================
-      3. 실제 주문 취소 API 호출
-         - PATCH /api/mypage/order/{buyerId}/cancel
-  ============================ */
   const handleConfirmCancel = async () => {
     if (!selectedOrder) return;
-
     try {
-      // 🔥 백엔드 UserController 기준 (buyerId 사용)
-      await api.patch(`/api/mypage/order/${selectedOrder.id}/cancel`);
-
-      // 화면에서도 해당 주문 제거 or 다시 조회
-      setOrders((prev) => prev.filter((o) => o.id !== selectedOrder.id));
-
+      const payload = { status: 5 };
+      await api.patch(`/api/mypage/order/${selectedOrder.id}/cancel`, payload, {
+        headers: { "Content-Type": "application/json" },
+      });
+      alert("주문이 취소되었습니다.");
       closeCancelModal();
+      fetchOrders();
     } catch (err) {
-      console.error(err);
+      console.error("주문 취소 실패:", err);
       alert("주문 취소 중 오류가 발생했습니다.");
     }
   };
 
+  /* ===================================
+       🔥 STEP UI 데이터
+  =================================== */
+  const steps = [
+    {
+      id: 0,
+      label: STATUS_MAP[0].label,
+      value: counts[0] || 0,
+      path: STATUS_MAP[0].path,
+    },
+    {
+      id: 1,
+      label: STATUS_MAP[1].label,
+      value: counts[1] || 0,
+      path: STATUS_MAP[1].path,
+    },
+    {
+      id: 2,
+      label: STATUS_MAP[2].label,
+      value: counts[2] || 0,
+      path: STATUS_MAP[2].path,
+    },
+    {
+      id: 3,
+      label: STATUS_MAP[3].label,
+      value: counts[3] || 0,
+      path: STATUS_MAP[3].path,
+    },
+    {
+      id: 4,
+      label: STATUS_MAP[4].label,
+      value: (counts[4] || 0) + (counts[5] || 0),
+      path: STATUS_MAP[4].path,
+    },
+    {
+      id: 6,
+      label: STATUS_MAP[6].label,
+      value: counts[6] || 0,
+      path: STATUS_MAP[6].path,
+    },
+  ];
+
+  const openContact = (phone) => {
+    setContact(phone);
+    setIsContactModalOpen(true);
+  };
+
+  const closeContact = () => {
+    setContact(null);
+    setIsContactModalOpen(false);
+  };
+
   return (
     <div style={styles.orderPage}>
-      {/* 🔥 상단 주문 단계 + svg 화살표 */}
+      {/* 상단 주문 단계 */}
       <div style={styles.orderSteps}>
         {steps.map((step, index) => (
           <React.Fragment key={step.id}>
@@ -297,23 +334,29 @@ function OrderDetailOrderReceived() {
               onClick={() => step.path && navigate(step.path)}
             >
               <div
-                style={step.active ? styles.stepNumberActive : styles.stepNumber}
+                style={
+                  step.id === activeStatus
+                    ? styles.stepNumberActive
+                    : styles.stepNumber
+                }
               >
                 {step.value}
               </div>
               <div style={styles.stepLabel}>{step.label}</div>
             </div>
-
-            {index < steps.length - 1 && (
-              <ArrowIcon color={arrowColors[index]} />
+            {index < steps.length - 2 && (
+              <ArrowIcon
+                color={
+                  step.id === activeStatus ? arrowColors[0] : arrowColors[1]
+                }
+              />
             )}
+            {index === steps.length - 2 && <ArrowIcon color={arrowColors[2]} />}
           </React.Fragment>
         ))}
       </div>
 
-      {/* ============================
-          주문 내역 테이블
-      ============================ */}
+      {/* 주문 테이블 */}
       <div style={styles.orderListWrapper}>
         <div style={styles.orderListHeader}>
           <h2 style={styles.orderListTitle}>주문 내역</h2>
@@ -321,19 +364,6 @@ function OrderDetailOrderReceived() {
             상품 준비가 시작되면 주문 취소가 어렵습니다.
           </span>
         </div>
-
-        {errorMsg && (
-          <div
-            style={{
-              width: "77%",
-              margin: "10px auto",
-              fontSize: "12px",
-              color: "#D32F2F",
-            }}
-          >
-            {errorMsg}
-          </div>
-        )}
 
         <table style={styles.orderTable}>
           <thead>
@@ -347,7 +377,6 @@ function OrderDetailOrderReceived() {
               <th style={styles.th}>문의하기</th>
             </tr>
           </thead>
-
           <tbody>
             {loading ? (
               <tr>
@@ -381,25 +410,15 @@ function OrderDetailOrderReceived() {
                   >
                     {order.name}
                   </td>
-
                   <td
-                    style={{
-                      ...styles.td,
-                      minWidth: "100px",
-                      cursor: "pointer",
-                    }}
-                    // ✅ 주최자 닉네임으로 유저 프로필 이동
-                    onClick={() =>
-                      navigate(`/user/${order.hostNickname || order.host}`)
-                    }
+                    style={{ ...styles.td, cursor: "pointer" }}
+                    onClick={() => navigate(`/user/${order.host}`)}
                   >
                     {order.host}
                   </td>
-
                   <td style={styles.td}>{order.quantity}</td>
                   <td style={styles.td}>{order.date}</td>
                   <td style={styles.td}>{order.total}</td>
-
                   <td style={styles.td}>
                     <button
                       type="button"
@@ -409,8 +428,14 @@ function OrderDetailOrderReceived() {
                       주문 취소
                     </button>
                   </td>
+
+                  {/* 문의하기 버튼 */}
                   <td style={styles.td}>
-                    <button type="button" style={styles.btnFilled}>
+                    <button
+                      type="button"
+                      style={styles.btnFilled}
+                      onClick={() => openContact(order.phone)}
+                    >
                       문의하기
                     </button>
                   </td>
@@ -420,12 +445,19 @@ function OrderDetailOrderReceived() {
           </tbody>
         </table>
       </div>
+      {/* ✅ [추가] 연락처 모달 */}
+      <ContactModal
+        isOpen={isContactModalOpen}
+        onClose={() => closeContact()}
+        contact={contact} // PostResponseDto의 contact 필드
+      />
 
-      {/* 🔥 주문 취소 모달 */}
+      {/* 🔥 취소 모달 */}
       <CancelModal
         isOpen={isCancelModalOpen}
         onClose={closeCancelModal}
         onConfirm={handleConfirmCancel}
+        order={selectedOrder}
       />
     </div>
   );

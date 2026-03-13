@@ -13,8 +13,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface BuyerRepository extends JpaRepository<Buyer, Long> {
-    Optional<Buyer> findByUser(User user);
     Optional<Buyer> findByUserAndPostAndIsCanceled(User user, Post post, Boolean isCanceled);
+    Optional<Buyer>     findByUserAndPostAndIsCanceledOrderByIdDesc(User user, Post post, Boolean isCanceled);
     Page<Buyer> findAllByIsPaidIn(List<Integer> isPaids, Pageable pageable);
     Page<Buyer> findAllByIsPaid(Integer isPaid, Pageable pageable);
 

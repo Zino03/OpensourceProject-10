@@ -1,5 +1,5 @@
 // 파일명: ReviewModal.jsx
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 const overlayStyle = {
   position: "fixed",
@@ -265,8 +265,8 @@ function ReviewModal({
               onChange={(e) => setReviewText(e.target.value)}
             />
             <div style={warningTextStyle}>
-              허위 후기 작성 시 불이익이 있을 수 있습니다. 후기는 주최자의
-              매너 점수에 적용됩니다.
+              허위 후기 작성 시 불이익이 있을 수 있습니다. 후기는 주최자의 매너
+              점수에 적용됩니다.
             </div>
           </div>
         </div>
@@ -276,7 +276,11 @@ function ReviewModal({
           <button type="button" style={cancelButtonStyle} onClick={onClose}>
             취소
           </button>
-          <button type="button" style={submitButtonStyle} onClick={handleSubmit}>
+          <button
+            type="button"
+            style={submitButtonStyle}
+            onClick={handleSubmit}
+          >
             후기 등록
           </button>
         </div>

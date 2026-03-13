@@ -1,8 +1,8 @@
-// 파일명: UserPage.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { api, setInterceptor } from "../assets/setIntercepter";
+import { api, BASE_URL, setInterceptor } from "../assets/setIntercepter";
 
+// --- 스타일 컴포넌트 (기존과 동일) ---
 const styles = {
   page: {
     minHeight: "100vh",
@@ -28,10 +28,7 @@ const styles = {
     marginBottom: "32px",
     minHeight: "160px",
   },
-  profileLeft: {
-    display: "flex",
-    alignItems: "center",
-  },
+  profileLeft: { display: "flex", alignItems: "center" },
   avatar: {
     width: "96px",
     height: "96px",
@@ -44,25 +41,14 @@ const styles = {
     overflow: "hidden",
     backgroundColor: "#f7f7f7",
   },
-  avatarImg: {
+  avatarSrc: {
     width: "100%",
     height: "100%",
     objectFit: "cover",
   },
-  profileInfo: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "8px",
-  },
-  nicknameRow: {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-  },
-  nickname: {
-    fontSize: "20px",
-    fontWeight: 600,
-  },
+  profileInfo: { display: "flex", flexDirection: "column", gap: "8px" },
+  nicknameRow: { display: "flex", alignItems: "center", gap: "10px" },
+  nickname: { fontSize: "20px", fontWeight: 600 },
   ratingBadge: {
     backgroundColor: "#FF7E00",
     color: "#fff",
@@ -70,10 +56,7 @@ const styles = {
     padding: "2px 17px",
     borderRadius: "8px",
   },
-  username: {
-    fontSize: "14px",
-    color: "#000000ff",
-  },
+  username: { fontSize: "14px", color: "#000000ff" },
   reportButton: {
     padding: "5px 15px",
     borderRadius: "6px",
@@ -85,13 +68,8 @@ const styles = {
     marginRight: "-33px",
     marginTop: "-170px",
   },
-  sectionHeader: {
-    marginBottom: "16px",
-  },
-  sectionTitle: {
-    fontSize: "18px",
-    fontWeight: 600,
-  },
+  sectionHeader: { marginBottom: "16px" },
+  sectionTitle: { fontSize: "18px", fontWeight: 600 },
   tabRow: {
     display: "flex",
     gap: "24px",
@@ -114,11 +92,7 @@ const styles = {
     height: "2px",
     backgroundColor: "#FF7E00",
   },
-  list: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "12px",
-  },
+  list: { display: "flex", flexDirection: "column", gap: "12px" },
   itemCard: {
     display: "flex",
     alignItems: "center",
@@ -137,26 +111,10 @@ const styles = {
     backgroundColor: "#f7f7f7",
     flexShrink: 0,
   },
-  thumbImg: {
-    width: "100%",
-    height: "100%",
-    objectFit: "cover",
-  },
-  itemInfo: {
-    flex: 1,
-    display: "flex",
-    flexDirection: "column",
-    gap: "6px",
-  },
-  itemHeaderRow: {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-  },
-  itemTitle: {
-    fontSize: "15px",
-    fontWeight: 500,
-  },
+  thumbImg: { width: "100%", height: "100%", objectFit: "cover" },
+  itemInfo: { flex: 1, display: "flex", flexDirection: "column", gap: "6px" },
+  itemHeaderRow: { display: "flex", alignItems: "center", gap: "10px" },
+  itemTitle: { fontSize: "15px", fontWeight: 500 },
   dangerBadge: {
     fontSize: "10px",
     color: "#ffffff",
@@ -171,89 +129,56 @@ const styles = {
     fontSize: "12px",
     color: "#333333",
   },
-  label: {
-    width: "32px",
-    fontWeight: "800",
-  },
-  labelValue: {
-    color: "#000000",
-  },
+  label: { width: "32px", fontWeight: "800" },
+  labelValue: { color: "#000000" },
   priceBox: {
     fontSize: "16px",
     fontWeight: 600,
     marginLeft: "24px",
     whiteSpace: "nowrap",
   },
-  emptyText: {
-    fontSize: "14px",
-    color: "#999999",
-    padding: "24px 4px",
-  },
+  emptyText: { fontSize: "14px", color: "#999999", padding: "24px 4px" },
 };
 
 const UserPage = () => {
   const navigate = useNavigate();
-  const { nickname } = useParams();
+  const { nickname } = useParams(); // URL 파라미터에서 닉네임 획득
 
   const [activeTab, setActiveTab] = useState("ongoing");
   const [user, setUser] = useState(null);
   const [ongoingList, setOngoingList] = useState([]);
   const [closedList, setClosedList] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [errorMsg, setErrorMsg] = useState("");
+  const [isMyPage, setIsMyPage] = useState(false);
 
   useEffect(() => {
-    // 네가 써둔 방식 유지 (토큰 기반)
     const token = localStorage.getItem("accessToken");
+    const myNickname = localStorage.getItem("userNickname");
     setInterceptor(token);
+
+    // 내 페이지인지 확인
+    if (nickname === myNickname) setIsMyPage(true);
 
     const fetchData = async () => {
       try {
         setLoading(true);
-        setErrorMsg("");
-
+        // ✅ 유저 프로필 조회 API 호출
         const res = await api.get(`/api/user/${nickname}`);
-        console.log("📡 /api/user 응답:", res.data);
+        console.log("유저 조회 결과:", res.data);
 
-        // 응답 구조: { profile: { ... } } 라고 했으니까
-        const profile = res.data.profile || res.data;
-        console.log("🔍 profile 객체:", profile);
+        const profileData = res.data.profile;
+        setUser(profileData);
 
-        // 🔹 프로필 정보
-        setUser(profile);
+        // 게시글 목록 분류
+        const activePosts = profileData.activePosts || [];
+        const closedPosts = profileData.closedPosts || [];
 
-        // 🔹 공구 리스트 매핑 함수
-        const mapPost = (p) => {
-          // status가 없을 수도 있어서 안전하게 처리
-          let statusLabel = "";
-          if (p.status === 2) statusLabel = "마감임박";
-          else if (p.status === 3) statusLabel = "마감";
-
-          return {
-            id: p.id,
-            title: p.title,
-            thumbnail: p.image, // "/uploads/post/..." 형태
-            quantity:
-              p.currentQuantity != null && p.quantity != null
-                ? `${p.currentQuantity}/${p.quantity}`
-                : p.quantity != null
-                ? `${p.quantity}`
-                : "",
-            period: p.endAt ? p.endAt.split("T")[0] : "",
-            status: p.status,
-            statusLabel,
-            price: p.price,
-          };
-        };
-
-        const activePosts = profile.activePosts || [];
-        const closedPosts = profile.closedPosts || [];
-
-        setOngoingList(activePosts.map(mapPost));
-        setClosedList(closedPosts.map(mapPost));
+        setOngoingList(activePosts.map(mapPostData));
+        setClosedList(closedPosts.map(mapPostData));
       } catch (err) {
-        console.error(err);
-        setErrorMsg("유저 정보를 불러오는 중 오류가 발생했습니다.");
+        console.error("유저 정보 조회 실패:", err);
+        alert("존재하지 않는 사용자이거나 정보를 불러올 수 없습니다.");
+        navigate(-1);
       } finally {
         setLoading(false);
       }
@@ -264,12 +189,36 @@ const UserPage = () => {
     }
   }, [nickname, navigate]);
 
+  // 데이터 매핑 헬퍼 함수
+  const mapPostData = (p) => {
+    let statusLabel = "";
+    // 2: 마감임박, 3: 마감
+    if (p.status === 2) statusLabel = "마감임박";
+    else if (p.status === 3) statusLabel = "마감";
+
+    return {
+      id: p.id,
+      title: p.title,
+      thumbnail: p.image
+        ? p.image.startsWith("http")
+          ? p.image
+          : `${BASE_URL}${p.image}`
+        : "/images/sajasaja.png",
+      quantity: `${p.currentQuantity}/${p.quantity}`,
+      period: p.endAt ? p.endAt.substring(0, 10) : "",
+      status: p.status,
+      statusLabel,
+      price: p.price,
+    };
+  };
+
   const listToShow = activeTab === "ongoing" ? ongoingList : closedList;
 
   const handleItemClick = (id) => {
     navigate(`/products/${id}`);
   };
 
+  // ✅ 신고하기 버튼 클릭 -> UserReport 페이지로 이동 (데이터 전달)
   const handleReport = () => {
     navigate("/userreport", {
       state: {
@@ -278,24 +227,23 @@ const UserPage = () => {
     });
   };
 
-  // 🔹 프로필 이미지: profileImg 사용
+  // 프로필 이미지 처리
   const avatarSrc =
     user?.profileImg && user.profileImg !== ""
-      ? user.profileImg
+      ? user.profileImg.startsWith("http")
+        ? user.profileImg
+        : `${BASE_URL}${user.profileImg}`
       : "/images/profilecircle.svg";
-
-  // 🔹 매너점수 텍스트
-  const mannerScoreText =
-    user?.mannerScore != null ? `${user.mannerScore}점` : "-";
 
   return (
     <div style={styles.page}>
       <div style={styles.inner}>
-        {/* 상단 프로필 카드 */}
         <section style={styles.profileCard}>
           <div style={styles.profileLeft}>
             <div style={styles.avatar}>
-              {!loading && <img src={avatarSrc} alt="프로필" />}
+              {!loading && (
+                <img src={avatarSrc} style={styles.avatarSrc} alt="프로필" />
+              )}
             </div>
             <div style={styles.profileInfo}>
               <div style={styles.nicknameRow}>
@@ -305,36 +253,31 @@ const UserPage = () => {
                     : user?.nickname ?? nickname}
                 </span>
                 {!loading && user && (
-                  <span style={styles.ratingBadge}>{mannerScoreText}</span>
+                  <span style={styles.ratingBadge}>
+                    {user.mannerScore || 0}점
+                  </span>
                 )}
               </div>
-              <span style={styles.username}>
-                {loading ? "" : user?.name ?? ""}
-              </span>
-              {errorMsg && (
-                <span style={{ fontSize: 12, color: "#D32F2F" }}>
-                  {errorMsg}
-                </span>
-              )}
+              <span style={styles.username}>{user?.name}</span>
             </div>
           </div>
 
-          <button
-            type="button"
-            style={styles.reportButton}
-            onClick={handleReport}
-          >
-            신고하기
-          </button>
+          {/* 본인이 아닐 때만 신고 버튼 표시 */}
+          {!isMyPage && (
+            <button
+              type="button"
+              style={styles.reportButton}
+              onClick={handleReport}
+            >
+              신고하기
+            </button>
+          )}
         </section>
 
-        {/* 최근 공구 활동 */}
         <section>
           <div style={styles.sectionHeader}>
             <h2 style={styles.sectionTitle}>최근 공구 활동</h2>
           </div>
-
-          {/* 탭 */}
           <div style={styles.tabRow}>
             <div
               style={styles.tab(activeTab === "ongoing")}
@@ -352,11 +295,8 @@ const UserPage = () => {
             </div>
           </div>
 
-          {/* 공구 리스트 */}
           <div style={styles.list}>
-            {loading ? (
-              <div style={styles.emptyText}>불러오는 중입니다...</div>
-            ) : listToShow.length === 0 ? (
+            {listToShow.length === 0 ? (
               <div style={styles.emptyText}>
                 {activeTab === "ongoing"
                   ? "진행 중인 공구가 없습니다."
@@ -374,9 +314,9 @@ const UserPage = () => {
                       src={item.thumbnail}
                       alt={item.title}
                       style={styles.thumbImg}
+                      onError={(e) => (e.target.src = "/images/sajasaja.png")}
                     />
                   </div>
-
                   <div style={styles.itemInfo}>
                     <div style={styles.itemHeaderRow}>
                       <span style={styles.itemTitle}>{item.title}</span>
@@ -386,7 +326,6 @@ const UserPage = () => {
                         </span>
                       )}
                     </div>
-
                     <div style={styles.labelRow}>
                       <span style={styles.label}>수량</span>
                       <span style={styles.labelValue}>{item.quantity}</span>
@@ -396,11 +335,8 @@ const UserPage = () => {
                       <span style={styles.labelValue}>{item.period}</span>
                     </div>
                   </div>
-
                   <div style={styles.priceBox}>
-                    {item.price != null
-                      ? `${item.price.toLocaleString()} 원`
-                      : "-"}
+                    {item.price.toLocaleString()} 원
                   </div>
                 </div>
               ))

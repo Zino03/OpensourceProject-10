@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import PostManageModal from "./modal/PostManageModal";
-import CustomSelect from "../components/CustomSelect";
+import { useNavigate } from "react-router-dom";
 import { api, setInterceptor } from "../assets/setIntercepter";
 import { formatDate } from "../assets/utils";
 
@@ -120,6 +120,7 @@ const statusOptions = [
 ];
 
 const AdminPostManage = () => {
+  const navigate = useNavigate();
   const [posts, setPosts] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
@@ -132,6 +133,10 @@ const AdminPostManage = () => {
   // 페이지네이션 상태
   const [page, setPage] = useState(0); // 현재 페이지 (0부터 시작)
   const [totalPages, setTotalPages] = useState(0);
+
+  const handleRowClick = (postId) => {
+    navigate(`/products/${postId}`);
+  };
 
   // 데이터 로드 (페이지, 필터, 검색어 변경 시 실행)
   useEffect(() => {
@@ -289,7 +294,10 @@ const AdminPostManage = () => {
               return (
                   <tr key={post.id}>
                     <td>{post.id}</td>
-                    <td>{post.title}</td>
+                    <td
+                      onClick={() => handleRowClick(post.id)}
+                      style={{ cursor: "pointer" }}
+                      >{post.title}</td>
                     <td>{post.hostNickname}</td>
                     <td>{formatDate(post.endAt)}</td>
                     <td>{formatDate(post.createdAt)}</td>

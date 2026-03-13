@@ -1,9 +1,6 @@
 package com.example.saja_saja.service;
 
-import com.example.saja_saja.dto.buyer.BuyerListResponseDto;
-import com.example.saja_saja.dto.buyer.CanceledOrderListResponseDto;
-import com.example.saja_saja.dto.buyer.OrderListResponseDto;
-import com.example.saja_saja.dto.buyer.OrderResponseDto;
+import com.example.saja_saja.dto.buyer.*;
 import com.example.saja_saja.dto.post.BuyerApplyRequestDto;
 import com.example.saja_saja.dto.post.BuyerApplyResponseDto;
 import com.example.saja_saja.dto.post.ReceivedAtRequestDto;
@@ -158,6 +155,7 @@ public class BuyerService {
         if (post.getHost().equals(member.getUser())) {
             buyer.setIsPaid(1);
             buyer.setStatus(1);
+            post.setCurrentPaidQuantity(requestQuantity);
         } else {
             buyer.setPayerName(req.getPayerName());
             buyer.setPayerEmail(req.getPayerEmail());
@@ -165,8 +163,14 @@ public class BuyerService {
 
         post.getBuyers().add(buyer);
         post.setCurrentQuantity(post.getCurrentQuantity() + buyer.getQuantity());
-        if (targetQuantity - post.getCurrentQuantity() <= 5) {
+        if (!post.getStatus().equals(0) && targetQuantity - post.getCurrentQuantity() <= 5) {
             post.setStatus(2);
+        }
+        if (
+                (post.getStatus().equals(1) || post.getStatus().equals(2))
+                        && targetQuantity == post.getCurrentQuantity()
+        ) {
+            post.setStatus(3);
         }
 
         buyer = buyerRepository.save(buyer);
@@ -201,7 +205,11 @@ public class BuyerService {
         Optional<Buyer> optionalB = buyerRepository.findByUserAndPostAndIsCanceled(user, post, false);
 
         if (optionalB.isEmpty()) {
-            throw new BadRequestException("구매 정보를 찾을 수 없습니다.", null);
+            optionalB = buyerRepository.findByUserAndPostAndIsCanceledOrderByIdDesc(user, post, true);
+            if (optionalB.isEmpty()) {
+                throw new BadRequestException("주문 정보를 찾을 수 없습니다.", null);
+            }
+            throw new BadRequestException("이미 취소된 주문입니다.", null);
         }
 
         Buyer buyer = optionalB.get();
@@ -230,6 +238,7 @@ public class BuyerService {
             buyer.setCanceledAt(LocalDateTime.now());
             buyer.setCanceledReason(canceledReason);
             buyer.setIsPaid(3); // 주문 취소
+            buyer.setStatus(6);
         }
 
         post.setCurrentQuantity(post.getCurrentQuantity() - buyer.getQuantity());
@@ -238,15 +247,12 @@ public class BuyerService {
             post.setCurrentPaidQuantity(post.getCurrentPaidQuantity() - buyer.getQuantity());
         }
 
-        if (post.getStatus() != 3) {
-            int remainingQuantity = post.getQuantity() - post.getCurrentQuantity();
-
-            if (remainingQuantity <= 5) {
-                post.setStatus(2);
-            } else {
-                post.setStatus(1);
-            }
+        if (!post.getIsCanceled() && post.getQuantity() - post.getCurrentQuantity() <= 5) {
+            post.setStatus(2);
+        } else {
+            post.setStatus(1);
         }
+
 
 
         Optional<Buyer> optionalLastBuyer = buyerRepository.findFirstByPostAndIsCanceledAndIsPaidOrderByIdDesc(post, false, 0);
@@ -259,7 +265,9 @@ public class BuyerService {
         buyerRepository.save(buyer);
         postRepository.save(post);
 
-        return new ResponseEntity(buyer, HttpStatus.OK);
+        CanceledBuyerResponseDto data = CanceledBuyerResponseDto.of(buyer, post.getHost().getNickname());
+
+        return new ResponseEntity(data, HttpStatus.OK);
     }
 
     // 주최자가 본인거 수량변경
@@ -323,7 +331,13 @@ public class BuyerService {
         buyer.setPrice(post.getPrice()*requestQuantity);
         post.setCurrentQuantity(newTotal);
         post.setCurrentPaidQuantity(post.getCurrentPaidQuantity() - oldQuantity + requestQuantity);
-        if (post.getQuantity() - post.getCurrentQuantity() <= 5) {
+
+        Integer quantity = post.getQuantity();
+        Integer currentQuantity = post.getCurrentQuantity();
+
+        if (quantity.equals(currentQuantity)) {
+            post.setStatus(3);
+        } else if (quantity - currentQuantity <= 5) {
             post.setStatus(2);
         } else {
             post.setStatus(1);
@@ -368,7 +382,7 @@ public class BuyerService {
 
         List<BuyerListResponseDto> buyers = post.getBuyers()
                 .stream()
-                .filter(buyer -> !buyer.getUser().equals(post.getHost())) // 주최자는 제외
+                .filter(buyer -> !buyer.getUser().equals(post.getHost()) && buyer.getIsCanceled().equals(false)) // 주최자는 제외
                 .map(buyer -> BuyerListResponseDto.of(buyer))
                 .toList();
 
@@ -409,7 +423,13 @@ public class BuyerService {
         Optional<Buyer> optionalB = buyerRepository.findByUserAndPostAndIsCanceled(user, post, false);
 
         if (optionalB.isEmpty()) {
-            throw new BadRequestException("해당 사용자의 구매 정보가 없습니다.", null);
+            optionalB = buyerRepository.findByUserAndPostAndIsCanceledOrderByIdDesc(user, post, true);
+
+            if(optionalB.isEmpty()) {
+                throw new BadRequestException("해당 사용자의 구매 정보가 없습니다.", null);
+            } else {
+                throw new BadRequestException("취소된 사용자입니다.", null);
+            }
         }
 
         // 배송 불가 공구는 배송정보 등록 불가
@@ -488,7 +508,13 @@ public class BuyerService {
         Optional<Buyer> optionalB = buyerRepository.findByUserAndPostAndIsCanceled(user, post, false);
 
         if (optionalB.isEmpty()) {
-            throw new BadRequestException("해당 사용자의 구매 정보가 없습니다.", null);
+            optionalB = buyerRepository.findByUserAndPostAndIsCanceledOrderByIdDesc(user, post, true);
+            
+            if(optionalB.isEmpty()) {
+                throw new BadRequestException("해당 사용자의 구매 정보가 없습니다.", null);
+            } else {
+                throw new BadRequestException("취소된 사용자입니다.", null);
+            }
         }
 
         if (post.getStatus().equals(0)) {
@@ -513,6 +539,8 @@ public class BuyerService {
                 || Boolean.TRUE.equals(buyer.getIsDelivery())) {
             throw new BadRequestException("수령일자를 등록할 수 있는 사용자가 아닙니다.", null);
         }
+
+        System.out.println(receivedAtRequestDto.getReceivedAt());
 
         buyer.setReceivedAt(receivedAtRequestDto.getReceivedAt());
         buyer.setStatus(4);
@@ -550,7 +578,7 @@ public class BuyerService {
             Boolean hasMore = null;
             Page<?> orderListDto = null;
 
-            if (status == 5) {
+            if (status == 6) {
                 orderListDto = buyerPage.map(
                         buyerEntity -> CanceledOrderListResponseDto.of(buyerEntity)
                 );
@@ -626,12 +654,12 @@ public class BuyerService {
             throw new BadRequestException("주최 공동 구매 기록은 구매 확정할 수 없습니다.", null);
         }
 
-        if (buyer.getStatus() != 3) {
+        if (buyer.getStatus() != 4) {
             throw new BadRequestException("수령 완료된 주문만 구매 확정할 수 있습니다.", null);
         }
 
         try {
-            buyer.setStatus(4);
+            buyer.setStatus(5);
 
             HashMap<String, Object> data = new HashMap<>();
             data.put("buyerId", buyerId);

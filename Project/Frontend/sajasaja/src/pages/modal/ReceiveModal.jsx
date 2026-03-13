@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
-import DatePicker, { registerLocale } from 'react-datepicker';
+import React, { useState, useEffect } from "react";
+import styled from "styled-components";
+import DatePicker, { registerLocale } from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css"; // 달력
-import { ko } from 'date-fns/locale'; // 한글 설정
+import { ko } from "date-fns/locale"; // 한글 설정
 
 // 한글 로케일 등록
-registerLocale('ko', ko);
+registerLocale("ko", ko);
 
 const Overlay = styled.div`
   position: fixed;
@@ -82,14 +82,16 @@ const ButtonGroup = styled.div`
 
 const CloseButton = styled.button`
   padding: 12px 30px;
-  background-color: #E0E0E0;
+  background-color: #e0e0e0;
   color: #333;
   border: none;
   border-radius: 6px;
   font-weight: 500;
   font-size: 12px;
   cursor: pointer;
-  &:hover { background-color: #d5d5d5; }
+  &:hover {
+    background-color: #d5d5d5;
+  }
 `;
 
 const SaveButton = styled.button`
@@ -101,7 +103,9 @@ const SaveButton = styled.button`
   font-weight: 500;
   font-size: 12px;
   cursor: pointer;
-  &:hover { background-color: #333; }
+  &:hover {
+    background-color: #333;
+  }
 `;
 
 const DatePickerWrapper = styled.div`
@@ -123,7 +127,7 @@ const DatePickerWrapper = styled.div`
 
     &:focus {
       outline: none;
-      border-color: #FF7E36;
+      border-color: #ff7e36;
     }
   }
 `;
@@ -147,7 +151,7 @@ const TimeInput = styled.input`
 
   &:focus {
     outline: none;
-    border-color: #FF7E36;
+    border-color: #ff7e36;
   }
 `;
 
@@ -163,10 +167,10 @@ const ReceiveModal = ({ isOpen, onClose, participants, onSave }) => {
 
   // 문자열 / Date 모두 처리해서 Date 객체로 바꾸는 헬퍼
   const toDateOrEmpty = (raw) => {
-    if (!raw) return '';
+    if (!raw) return "";
     if (raw instanceof Date) return raw;
-    const d = new Date(raw);        // "2025-11-20" 같은 문자열 처리
-    return isNaN(d.getTime()) ? '' : d;
+    const d = new Date(raw); // "2025-11-20" 같은 문자열 처리
+    return isNaN(d.getTime()) ? "" : d;
   };
 
   // 모달이 열릴 때마다 데이터 동기화
@@ -175,11 +179,14 @@ const ReceiveModal = ({ isOpen, onClose, participants, onSave }) => {
       setRData(
         participants.map((p) => {
           // 부모에서 넘겨주는 값: 우선 top-level, 없으면 p.receive 안에서 찾기
-          const receiveDateRaw = p.receiveDate || p.receive?.receiveDate || '';
-          const fullTime =
-            p.receiveTime || p.receive?.receiveTime || '';
+          const receiveDateRaw = p.pickup ? p.pickup.receiveDate : "";
+          let fullTime = p.pickup ? p.pickup.receiveDate : "";
 
-          const [hour = '', minute = ''] = fullTime.split(':');
+          if (fullTime) {
+            fullTime = fullTime.substr(11);
+          }
+
+          const [hour = "", minute = ""] = fullTime.split(":");
 
           return {
             id: p.id,
@@ -207,7 +214,7 @@ const ReceiveModal = ({ isOpen, onClose, participants, onSave }) => {
 
   const handleTimeChange = (id, field, value) => {
     // 숫자와 최대 2자리 제한
-    const onlyNum = value.replace(/[^0-9]/g, '').slice(0, 2);
+    const onlyNum = value.replace(/[^0-9]/g, "").slice(0, 2);
     setRData((prev) =>
       prev.map((item) =>
         item.id === id ? { ...item, [field]: onlyNum } : item
@@ -215,24 +222,37 @@ const ReceiveModal = ({ isOpen, onClose, participants, onSave }) => {
     );
   };
 
+  const formatLocalDate = (date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  };
+
   const handleSave = () => {
-    // 저장할 때는 다시 문자열 포맷(YYYY-MM-DD, HH:mm)으로 변환하여 부모에게 전달
     const formattedData = RData.map((item) => {
-      const dateStr = item.receiveDate
-        ? item.receiveDate.toISOString().split('T')[0] // "2025-11-20"
-        : '';
+      const dateStr = item.receiveDate ? formatLocalDate(item.receiveDate) : "";
 
       const timeStr =
         item.receiveHour && item.receiveMinute
           ? `${item.receiveHour}:${item.receiveMinute}`
-          : '';
+          : "";
 
       return {
         ...item,
         receiveDate: dateStr,
         receiveTime: timeStr,
       };
-    });
+    })
+      // 🔥 값이 하나라도 있는 경우만 필터링해서 포함
+      .filter((item) => {
+        return item.receiveDate;
+      });
+
+    for (let item of formattedData) {
+      console.log(item);
+      console.log(item.receiveTime);
+    }
 
     onSave(formattedData);
     onClose();
@@ -253,8 +273,8 @@ const ReceiveModal = ({ isOpen, onClose, participants, onSave }) => {
               </tr>
             </thead>
             <tbody>
-              {RData.map((row) => (
-                <tr key={row.id}>
+              {RData.map((row, id) => (
+                <tr key={id}>
                   <td>{row.name}</td>
                   <td>{row.nickname}</td>
                   <td>
@@ -278,7 +298,7 @@ const ReceiveModal = ({ isOpen, onClose, participants, onSave }) => {
                         onChange={(e) =>
                           handleTimeChange(
                             row.id,
-                            'receiveHour',
+                            "receiveHour",
                             e.target.value
                           )
                         }
@@ -291,7 +311,7 @@ const ReceiveModal = ({ isOpen, onClose, participants, onSave }) => {
                         onChange={(e) =>
                           handleTimeChange(
                             row.id,
-                            'receiveMinute',
+                            "receiveMinute",
                             e.target.value
                           )
                         }

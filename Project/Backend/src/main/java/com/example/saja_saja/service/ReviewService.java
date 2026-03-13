@@ -7,10 +7,13 @@ import com.example.saja_saja.entity.post.*;
 import com.example.saja_saja.exception.BadRequestException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -34,14 +37,20 @@ public class ReviewService {
 
         Post post = optionalP.get();
 
-        if (!member.getUser().equals(post.getHost())) {
+        if (member.getUser().equals(post.getHost())) {
             throw new BadRequestException("주최자는 후기를 등록할 수 없습니다.", null);
         }
 
         Optional<Buyer> optionalB = buyerRepository.findByUserAndPostAndIsCanceled(member.getUser(), post, false);
 
         if (optionalB.isEmpty()) {
-            throw new BadRequestException("해당 사용자의 구매 정보가 없습니다.", null);
+            optionalB = buyerRepository.findByUserAndPostAndIsCanceledOrderByIdDesc(member.getUser(), post, true);
+
+            if(optionalB.isEmpty()) {
+                throw new BadRequestException("해당 사용자의 구매 정보가 없습니다.", null);
+            } else {
+                throw new BadRequestException("취소된 사용자입니다.", null);
+            }
         }
 
         Buyer buyer = optionalB.get();
@@ -68,6 +77,10 @@ public class ReviewService {
         review = reviewRepository.save(review);
         buyer.setReview(review);
 
-        return null;
+        Map<String, Object> data = new HashMap<>();
+        data.put("review", review);
+        data.put("message", "후기 등록이 완료되었습니다.");
+
+        return new ResponseEntity(data, HttpStatus.OK);
     }
 }

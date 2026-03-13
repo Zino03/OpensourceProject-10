@@ -8,10 +8,7 @@ import InvoiceModal from "./modal/InvoiceModal";
 import ReceiveModal from "./modal/ReceiveModal";
 import DeliveryInfoModal from "./modal/DeliveryInfoModal";
 import ContactModal from "./modal/ContactModal";
-import { api, setInterceptor } from "../assets/setIntercepter";
-
-// 백엔드 서버 주소 (이미지 표시용)
-const BACKEND_URL = "http://192.168.31.28:8080";
+import { api, BASE_URL, setInterceptor } from "../assets/setIntercepter";
 
 // 백엔드 enum → 한글 카테고리명 매핑
 const CATEGORY_LABELS = {
@@ -580,8 +577,10 @@ const GroupPurchaseDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const [currentCount, setCurrentCount] = useState(0);
 
-  const [latitude, setLatitude] = useState(0);
-  const [longitude, setLongitude] = useState(0);
+  const [latitude, setLatitude] = useState(0.0);
+  const [longitude, setLongitude] = useState(0.0);
+
+  const [organizerMannerScore, setOrganizerMannerScore] = useState(0.0);
 
   // 공지사항 입력 상태
   const [noticeContent, setNoticeContent] = useState("");
@@ -620,21 +619,25 @@ const GroupPurchaseDetail = () => {
       setNotices(postData.notices || []);
       setReviews(postData.reviews || []);
       setCurrentCount(postData.currentQuantity || 0);
+      setOrganizerMannerScore(postData.host.mannerScore);
 
       console.log(postData);
 
       if (postData.pickupAddress) {
         setLatitude(postData.pickupAddress.latitude);
         setLongitude(postData.pickupAddress.longitude);
-
-        console.log(latitude, longitude);
       }
+
+      console.log(latitude);
+      console.log(longitude);
 
       // 내 수량 초기화 (주최자라면)
       if (buyerData) {
         // 내가 이미 구매자(혹은 주최자)라면 기존 수량을 세팅
         setQuantity(buyerData.quantity || 1);
       }
+
+      console.log(myNickname);
 
       // 주최자 여부 확인
       if (postData.host && postData.host.nickname === myNickname) {
@@ -643,32 +646,45 @@ const GroupPurchaseDetail = () => {
         if (
           postData.status === 0 ||
           postData.status === 4 ||
-          postData.isCanceled === false
+          postData.isCanceled === true
         ) {
           return;
         }
 
         // 주최자라면 참여자 목록 조회
         const buyersResponse = await api.get(`/api/posts/${id}/buyers`);
-        const buyers = buyersResponse.data.buyers || [];
+        const buyers = buyersResponse.data || [];
 
-        const mappedBuyers = buyers.map((b) => ({
+        console.log(buyers);
+
+        const mappedBuyers = buyersResponse.data.map((b) => ({
           id: b.buyerId,
-          name: b.name,
-          nickname: b.nickname,
-          amount: `${b.totalPrice?.toLocaleString()}원`,
-          address: b.address
-            ? `(${b.address.zipCode}) ${b.address.street} ${b.address.detail}`
+          name: b.userName,
+          nickname: b.userNickname,
+          amount: `${b.price?.toLocaleString()}원`,
+          reception: b.userAddress?.reception || null,
+          phone: b.userAddress?.phone || null,
+          address: b.userAddress
+            ? `(${b.userAddress.zipCode}) ${b.userAddress.street} ${b.userAddress.detail}`
             : "주소 정보 없음",
+          entrance: b.userAddress?.entranceAccess
+            ? {
+                acess: b.userAddress.entranceAccess,
+                detail: b.userAddress.entranceDetail,
+              }
+            : null,
           status: b.isPaid === 1 ? "결제 완료" : "결제 대기",
           date: b.receivedAt ? b.receivedAt.substring(0, 10) : "-",
-          invoice: b.trackingNumber ? { number: b.trackingNumber } : null,
+          invoice: b.trackingNumber
+            ? { number: b.trackingNumber, courier: b.courier }
+            : null,
           pickup: b.receivedAt ? { receiveDate: b.receivedAt } : null,
-          receive: b.address ? "delivery" : "pickup",
+          receive: b.userAddress ? "delivery" : "pickup",
         }));
         setParticipants(mappedBuyers);
       }
     } catch (error) {
+      console.log(error);
       console.error("로드 실패:", error.response?.data);
       alert("정보를 불러오는데 실패했습니다.");
     } finally {
@@ -707,19 +723,17 @@ const GroupPurchaseDetail = () => {
     daysLeft: getDaysLeft(post.endAt),
     shipping: post.isDeliveryAvailable ? "배송 가능" : "배송 불가",
     shippingCost: post.deliveryFee
-      ? `${post.deliveryFee.toLocaleString()}원`
+      ? `${post.deliveryFee.toLocaleString()} 원`
       : "무료",
     organizer: post.host?.nickname || "알 수 없음",
     organizerProfileImage: post.host?.profileImg
-      ? `${BACKEND_URL}${post.host.profileImg}`
+      ? `${BASE_URL}${post.host.profileImg}`
       : "/images/profile.png",
     price: post.price,
-    imageUrl: post.image
-      ? `${BACKEND_URL}${post.image}`
-      : "/images/sajasaja.png",
+    imageUrl: post.image ? `${BASE_URL}${post.image}` : "/images/sajasaja.png",
     description: post.content,
   };
-
+  console.log(product);
   const filteredParticipants = participants.filter(
     (p) => p.receive === participantFilter
   );
@@ -785,7 +799,7 @@ const GroupPurchaseDetail = () => {
       return;
 
     try {
-      await api.post(`/api/post/${id}/host-quantity`, null, {
+      await api.post(`/api/posts/${id}/host-quantity`, null, {
         params: { quantity: quantity },
       });
       alert("수량이 변경되었습니다.");
@@ -801,37 +815,44 @@ const GroupPurchaseDetail = () => {
     try {
       for (const item of updatedData) {
         if (item.invoiceNum) {
-          await api.post(`/api/posts/${id}/tracking`, {
-            buyerId: item.id,
+          let res = await api.post(`/api/posts/${id}/tracking`, {
+            userNickname: item.nickname,
+            courier: item.courier || "대한통운",
             trackingNumber: item.invoiceNum,
-            carrier: item.courier || "대한통운",
           });
+          console.log(res);
         }
       }
       alert("송장 정보가 저장되었습니다.");
       fetchPostDetail();
     } catch (err) {
-      alert("송장 등록 실패");
+      console.log(err.response.data);
+      alert(err.response.data.message);
+      // alert("송장 등록 실패");
     }
   };
 
   const handleReceiveDateSave = async (updatedData) => {
     try {
       for (const item of updatedData) {
-        if (item.receiveDate) {
-          const dateStr = `${item.receiveDate}T${
-            item.receiveTime || "00:00"
-          }:00`;
-          await api.post(`/api/posts/${id}/received-at`, {
-            buyerId: item.id,
-            receivedAt: dateStr,
-          });
-        }
+        if (!item.receiveDate || item.receiveDate.trim() === "") continue;
+
+        const dateStr = `${item.receiveDate}T${item.receiveTime || "00:00"}:00`;
+
+        console.log(item.nickname);
+        console.log(dateStr);
+
+        await api.post(`/api/posts/${id}/received-at`, {
+          userNickname: item.nickname,
+          receivedAt: dateStr,
+        });
       }
       alert("수령 일자가 저장되었습니다.");
       fetchPostDetail();
     } catch (err) {
-      alert("수령 일자 등록 실패");
+      // alert("수령 일자 등록 실패");
+      console.log(err.response.data);
+      alert(err.response.data.message);
     }
   };
 
@@ -848,7 +869,12 @@ const GroupPurchaseDetail = () => {
     setIsModalOpen(true);
   };
 
-  const handleReportNotice = (noticeId) => {
+  const shorten = (text) => {
+    if (!text) return "";
+    return text.length > 20 ? text.substring(0, 20) + "..." : text;
+  };
+
+  const handleReportNotice = (noticeId, noticeContent) => {
     // 인자 추가
     const token = localStorage.getItem("accessToken");
 
@@ -862,11 +888,12 @@ const GroupPurchaseDetail = () => {
     navigate("/notificationreport", {
       state: {
         id: noticeId,
+        title: shorten(noticeContent),
       },
     });
   };
 
-  const handleReportReview = (reviewId) => {
+  const handleReportReview = (reviewId, reviewContent) => {
     const token = localStorage.getItem("accessToken");
 
     if (!token) {
@@ -877,10 +904,12 @@ const GroupPurchaseDetail = () => {
       navigate("/reviewreport", {
         state: {
           id: reviewId,
+          title: shorten(reviewContent),
         },
       });
     }
   };
+  console.log(product.imageUrl);
 
   return (
     <Container>
@@ -891,7 +920,7 @@ const GroupPurchaseDetail = () => {
       <TopSection>
         <ImageArea>
           <MainImageWrapper>
-            {product.daysLeft <= 3 && (
+            {product.status === 2 && (
               <div
                 style={{
                   position: "absolute",
@@ -963,10 +992,28 @@ const GroupPurchaseDetail = () => {
                       (e.target.src = "/images/filledprofile.svg")
                     }
                   />
-                  <OrganizerName>{product.organizer}</OrganizerName>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}
+                  >
+                    <OrganizerName>{product.organizer}</OrganizerName>
+
+                    {/* ✅ 매너점수 배지 (host.mannerScore 연동) */}
+                    {organizerMannerScore !== undefined && (
+                      <TimeBadge>
+                        {" "}
+                        {typeof organizerMannerScore === "number"
+                          ? organizerMannerScore.toFixed(1)
+                          : organizerMannerScore}
+                        점
+                      </TimeBadge>
+                    )}
+                  </div>
                 </OrganizerLeft>
 
-                {/* ✅ [수정됨] 문의하기 버튼: 클릭 시 모달 열기 */}
                 {!isOrganizer && (
                   <ContactButton onClick={() => setIsContactModalOpen(true)}>
                     문의하기
@@ -999,9 +1046,7 @@ const GroupPurchaseDetail = () => {
               </QuantityArea>
             )}
             <PriceArea>
-              <PriceText>
-                {(product.price * quantity).toLocaleString()} 원
-              </PriceText>
+              <PriceText>{product.price.toLocaleString()} 원</PriceText>
             </PriceArea>
           </BottomArea>
 
@@ -1136,7 +1181,9 @@ const GroupPurchaseDetail = () => {
                     ) : (
                       // ✅ [수정] 신고 버튼 클릭 시 notice.id와 notice.content를 전달
                       <ActionButton
-                        onClick={() => handleReportNotice(notice.id)}
+                        onClick={() =>
+                          handleReportNotice(notice.id, notice.content)
+                        }
                       >
                         <FaRegBell /> 신고
                       </ActionButton>
@@ -1170,9 +1217,13 @@ const GroupPurchaseDetail = () => {
                     <UserInfo>
                       <UserIcon src="/images/filledprofile.svg" alt="user" />
                       <UserName>{review.nickname || "익명"}</UserName>
-                      <RatingText>별점 {review.score}점</RatingText>
+                      <RatingText>별점 {review.star}점</RatingText>
                     </UserInfo>
-                    <ActionButton onClick={handleReportReview(review.id)}>
+                    <ActionButton
+                      onClick={() =>
+                        handleReportReview(review.id, review.content)
+                      }
+                    >
                       <FaRegBell /> 신고
                     </ActionButton>
                   </CommentHeader>
@@ -1227,7 +1278,7 @@ const GroupPurchaseDetail = () => {
               </ManageButtonGroup>
             ) : (
               <ManageButton onClick={() => setIsReceiveDateModalOpen(true)}>
-                수령일자 등록
+                수령일시 등록
               </ManageButton>
             )}
           </ManageHeader>
@@ -1251,7 +1302,18 @@ const GroupPurchaseDetail = () => {
                 )}
               </tr>
             </thead>
-            <tbody onClick={() => setIsDeliveryInfoModalOpen(true)}>
+            {/* <tbody onClick={() => {setIsDeliveryInfoModalOpen(true)}}> */}
+
+            <tbody
+              onClick={() => {
+                if (
+                  participantFilter === "delivery" &&
+                  filteredParticipants.length > 0
+                ) {
+                  setIsDeliveryInfoModalOpen(true);
+                }
+              }}
+            >
               {filteredParticipants.length > 0 ? (
                 filteredParticipants.map((p, idx) => (
                   <tr key={idx}>

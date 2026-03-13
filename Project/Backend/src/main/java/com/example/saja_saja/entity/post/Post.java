@@ -38,6 +38,7 @@ public class Post {
 
     private Integer price;
 
+    @Column(length = 1000)
     private String content;
 
     private Integer quantity;
