@@ -243,7 +243,7 @@ const NearbyGroupPurchase = () => {
   const navigate = useNavigate(); // ✅ 네비게이션 훅 사용
   
   const [loading, error] = useKakaoLoader({
-    appkey: '1182ee2a992f45fb1db2238604970e19', 
+    appkey: process.env.REACT_APP_KAKAO_MAP_KEY, 
     libraries: ["clusterer", "drawing", "services"],
   });
 
